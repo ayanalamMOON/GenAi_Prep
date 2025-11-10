@@ -4,8 +4,10 @@
 [![LaTeX](https://img.shields.io/badge/LaTeX-Study%20Guide-008080.svg)](docs/LLM_Study_Material.pdf)
 [![Python](https://img.shields.io/badge/Python-3.8%2B-3776AB.svg)](requirements.txt)
 [![Jupyter](https://img.shields.io/badge/Jupyter-Notebooks-F37626.svg)](notebooks/)
+[![Status](https://img.shields.io/badge/Status-Actively%20Maintained-brightgreen.svg)]()
+[![Updates](https://img.shields.io/badge/Updates-Regular-blue.svg)]()
 
-> **Comprehensive university-level study guide for Large Language Models (LLMs), transformers, RLHF, fine-tuning, and generative AI techniques. Includes 335 pages of theory, 47 visualizations, and 4 practical Jupyter notebooks.**
+> **Comprehensive university-level study guide for Large Language Models (LLMs), transformers, RLHF, fine-tuning, and generative AI techniques. Includes 335+ pages of theory (actively expanding), 47 visualizations, and 4 practical Jupyter notebooks. Regular updates with enhanced content and new implementations.**
 
 **Keywords:** Large Language Models, LLM, Transformers, RLHF, LoRA, QLoRA, Fine-Tuning, GPT, BERT, Attention Mechanism, Pre-training, Instruction Tuning, RAG, LangChain, LangGraph, Deep Learning, Natural Language Processing, NLP, Machine Learning, AI Safety
 
@@ -36,9 +38,11 @@ GenAi_Prep/
 
 ## Primary Study Material
 
-**`docs/LLM_Study_Material.pdf`** (335 pages)
+**`docs/LLM_Study_Material.pdf`** (335+ pages, actively expanding)
 
 The main study document covering end-to-end LLM development, from fundamental concepts through advanced techniques. Each section includes mathematical derivations, practical code implementations, hyperparameter guidance, and debugging strategies.
+
+> **Note:** This document is regularly updated with enhanced content, additional sections, and improved explanations based on the latest research and best practices.
 
 ### Topics Covered
 
@@ -137,11 +141,92 @@ See `visualization/README.md` for the complete collection of visualizations and 
 
 ## Repository Statistics
 
-- **Study Material**: 335 pages of comprehensive content
+- **Study Material**: 335+ pages of comprehensive content (actively expanding)
 - **Jupyter Notebooks**: 4 practical implementations
 - **Visualizations**: 47 educational diagrams across 6 categories
 - **Code Examples**: Production-ready implementations with extensive documentation
 - **Topics Covered**: 12 major sections from fundamentals to advanced techniques
+- **Status**: Actively maintained with regular updates
+
+## Development Status & Roadmap
+
+### ✅ Recently Completed (v1.0.0)
+
+**Section 8 Enhancement - RLHF (Reinforcement Learning from Human Feedback):**
+- Complete RLHF pipeline implementation (SFT → Reward Model → PPO)
+- Production-ready TRL (Transformer Reinforcement Learning) code (~725 lines)
+- Comprehensive DPO (Direct Preference Optimization) implementation
+- 4 hyperparameter guidance boxes with justified recommendations
+- 4 common pitfalls & debugging sections with solutions
+- 5 key takeaways boxes summarizing core concepts
+- All code extensively documented with step-by-step explanations
+- Fixed LaTeX rendering issues in all tcolorbox environments
+
+### 🚧 Currently In Progress
+
+**Section 9 - Instruction Fine-Tuning & SFT Datasets:**
+- Instruction dataset formats (Alpaca, ShareGPT, etc.)
+- Dataset quality assessment and curation strategies
+- Multi-task instruction tuning methodologies
+- LoRA/PEFT integration for efficient instruction tuning
+- Production code examples with dataset loading and training loops
+- Hyperparameter guidance for instruction fine-tuning
+- Common pitfalls in dataset preparation and model alignment
+
+**Section 10 - Evaluation & Benchmarking:**
+- Comprehensive metric coverage (Perplexity, BLEU, ROUGE, BERTScore)
+- Human evaluation methodologies and inter-rater reliability
+- Benchmark suite analysis (MMLU, HellaSwag, TruthfulQA, etc.)
+- Statistical significance testing for model comparisons
+- Production code for automated evaluation pipelines
+- Best practices for avoiding benchmark overfitting
+
+**Section 11 - Safety, Ethics & Bias Mitigation:**
+- Bias detection and measurement techniques
+- Safety filtering and content moderation strategies
+- Constitutional AI and value alignment approaches
+- Demographic bias analysis with statistical tests
+- Red-teaming and adversarial testing methodologies
+- Regulatory compliance and ethical guidelines
+
+### 📋 Planned Updates
+
+**Near-Term (Next Updates):**
+- Complete Sections 9-11 with same depth as enhanced Section 8
+- Add TikZ diagrams for visual concept representation
+- Expand visualization collection with new categories
+- Add exam-style summary boxes for quick revision
+- Include more real-world case studies and examples
+
+**Medium-Term:**
+- Section 12+ expansions based on emerging techniques
+- Additional Jupyter notebooks for advanced topics
+- Interactive visualization tools and notebooks
+- Video walkthrough scripts for complex concepts
+- Expanded code examples for production deployment
+
+**Long-Term:**
+- Continuous updates reflecting latest research (2024-2025)
+- Advanced topics: Mixture of Experts, Sparse Models, Multimodal LLMs
+- Extended RAG implementations with vector databases
+- Agent frameworks and autonomous systems
+- Performance optimization and deployment strategies
+
+### 📊 Content Enhancement Philosophy
+
+Each section follows a consistent quality standard:
+
+1. **Teacher-Quality Exposition**: First principles → Intuition → Formalization → Implementation
+2. **Mathematical Rigor**: Step-by-step derivations with clear notation
+3. **Production Code**: Extensively commented, runnable examples with real hyperparameters
+4. **Practical Guidance**: Hyperparameter recommendations, common pitfalls, debugging strategies
+5. **Structured Summaries**: Key takeaways boxes for quick reference
+
+### 🔄 Update Frequency
+
+- **Major Updates**: Monthly (new sections, significant enhancements)
+- **Minor Updates**: Bi-weekly (fixes, clarifications, additional examples)
+- **Continuous**: Bug fixes, typo corrections, user-reported issues
 
 ## Getting Started
 
@@ -226,10 +311,38 @@ The compiled PDF will be generated in the `latex/` directory and can be moved to
 
 ## Contributing
 
-This is a study materials repository. If you identify errors or areas for improvement, please document them clearly with:
+This is an actively maintained study materials repository. Contributions are welcome in the following forms:
+
+### Reporting Issues
+If you identify errors or areas for improvement, please document them clearly with:
 - Section/page reference
 - Description of the issue
 - Suggested correction with supporting references
+
+### Suggesting Enhancements
+- Additional topics or subtopics to cover
+- Improved explanations or alternative approaches
+- Additional code examples or visualizations
+- Real-world use cases and applications
+
+### Stay Updated
+- **Watch** this repository for updates
+- **Star** to bookmark and support the project
+- Check the [Releases](https://github.com/ayanalamMOON/GenAi_Prep/releases) page for version history
+- Follow the [Projects](https://github.com/ayanalamMOON/GenAi_Prep/projects) board for development progress
+
+## Changelog
+
+### Version 1.0.0 (November 2025)
+- Initial release with 335 pages of comprehensive content
+- Enhanced Section 8 (RLHF) with production implementations
+- 47 educational visualizations across 6 categories
+- 4 practical Jupyter notebooks
+- Complete LaTeX source files
+- Professional repository structure and documentation
+
+### Future Versions
+See [Development Status & Roadmap](#development-status--roadmap) for planned updates.
 
 ## License
 
