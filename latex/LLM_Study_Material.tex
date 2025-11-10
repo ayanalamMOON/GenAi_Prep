@@ -12,6 +12,10 @@
 \usepackage{graphicx}
 \usepackage{fancyhdr}
 \usepackage{amsthm}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usetikzlibrary{positioning,shapes,arrows,calc,patterns,matrix,decorations.pathreplacing}
+\pgfplotsset{compat=1.18}
 
 % Define argmax and argmin
 \DeclareMathOperator*{\argmax}{arg\,max}
@@ -120,7 +124,7 @@ Where $x_i$ is the $i$-th token and $x_{<i}$ represents all preceding tokens.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/fine_tuning/transfer_learning_process.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/fine_tuning/transfer_learning_process.png}
 \caption{Transfer Learning Process: From Pre-training to Fine-tuning to Adapted Model}
 \label{fig:transfer_learning}
 \end{figure}
@@ -305,7 +309,7 @@ Use Case & Maximum performance & Resource constraints \\
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.85\textwidth]{visualization/images/fine_tuning/memory_comparison.png}
+\includegraphics[width=0.85\textwidth]{../visualization/images/fine_tuning/memory_comparison.png}
 \caption{GPU Memory Requirements: Full Fine-Tuning vs LoRA across different model sizes}
 \label{fig:memory_comparison}
 \end{figure}
@@ -386,14 +390,14 @@ where:
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=1.0\textwidth]{visualization/images/fine_tuning/learning_rate_comparison.png}
+\includegraphics[width=1.0\textwidth]{../visualization/images/fine_tuning/learning_rate_comparison.png}
 \caption{Learning Rate Schedules: Pre-training uses higher rates (3e-4) while fine-tuning uses 10x lower rates (3e-5)}
 \label{fig:lr_comparison}
 \end{figure}
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/fine_tuning/discriminative_learning_rates.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/fine_tuning/discriminative_learning_rates.png}
 \caption{Discriminative Learning Rates Across Layers: Earlier layers get smaller updates to preserve general features}
 \label{fig:discriminative_lr}
 \end{figure}
@@ -433,7 +437,7 @@ where:
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=1.0\textwidth]{visualization/images/fine_tuning/catastrophic_forgetting.png}
+\includegraphics[width=1.0\textwidth]{../visualization/images/fine_tuning/catastrophic_forgetting.png}
 \caption{Catastrophic Forgetting: Without EWC regularization (left), original task performance drops drastically. With EWC (right), both tasks maintain good performance}
 \label{fig:catastrophic_forgetting}
 \end{figure}
@@ -450,7 +454,7 @@ where $k$ indexes tasks, $j < k$ are previous tasks.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.85\textwidth]{visualization/images/fine_tuning/fisher_information_matrix.png}
+\includegraphics[width=0.85\textwidth]{../visualization/images/fine_tuning/fisher_information_matrix.png}
 \caption{Fisher Information Matrix: Darker colors indicate parameters more important for the original task. EWC protects these parameters during fine-tuning}
 \label{fig:fisher_matrix}
 \end{figure}
@@ -503,7 +507,7 @@ Since $\|\theta_t - \theta^*\|$ is small after pre-training, $\eta$ must be corr
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/fine_tuning/convergence_analysis.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/fine_tuning/convergence_analysis.png}
 \caption{Convergence with Different Learning Rates: Optimal LR (green) achieves fast convergence. Too low (blue) is slow, too high (orange) oscillates, and very high (red) diverges}
 \label{fig:convergence}
 \end{figure}
@@ -841,7 +845,7 @@ print(f"Generated: {generated_text}")
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/fine_tuning/training_loss_curves.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/fine_tuning/training_loss_curves.png}
 \caption{Training Loss Patterns: Good convergence (green) shows steady decrease. Overfitting (red) shows validation loss increasing. High LR (orange) causes oscillations}
 \label{fig:training_loss}
 \end{figure}
@@ -904,7 +908,7 @@ where $h_k$ is the activation at layer $k$ and $L$ is the final layer.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/fine_tuning/gradient_flow_analysis.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/fine_tuning/gradient_flow_analysis.png}
 \caption{Gradient Flow: Gradient magnitudes decay exponentially in earlier layers (vanishing gradient problem). Layer 12 receives 50x larger gradients than Layer 1}
 \label{fig:gradient_flow}
 \end{figure}
@@ -1258,7 +1262,7 @@ Fine-tuning success depends critically on choosing the right hyperparameters. He
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/fine_tuning/hyperparameter_recommendations.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/fine_tuning/hyperparameter_recommendations.png}
 \caption{Hyperparameter Recommendations by Dataset Size: Values normalized for visualization. Larger datasets allow higher batch sizes and lower learning rates}
 \label{fig:hyperparameters}
 \end{figure}
@@ -1854,7 +1858,7 @@ Cost & Very high & Moderate \\
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.92\textwidth]{visualization/images/pretraining/pretraining_vs_finetuning.png}
+\includegraphics[width=0.92\textwidth]{../visualization/images/pretraining/pretraining_vs_finetuning.png}
 \caption{\textbf{Pre-Training vs Fine-Tuning: Resource Comparison.} Detailed comparison across six key dimensions: (1) \textit{Data Requirements} - pre-training needs massive unlabeled corpora (billions of tokens) while fine-tuning uses small task-specific datasets (thousands of examples); (2) \textit{Computational Cost} - pre-training requires thousands of GPU-days vs hours for fine-tuning; (3) \textit{Training Time} - weeks/months for pre-training vs hours/days for fine-tuning; (4) \textit{Parameter Updates} - pre-training updates all parameters from random initialization, fine-tuning adapts pre-trained weights; (5) \textit{Infrastructure} - pre-training needs distributed multi-node clusters, fine-tuning works on single GPUs; (6) \textit{Total Cost} - pre-training costs \$10K-\$1M+ vs \$10-\$1K for fine-tuning. This stark contrast explains why most practitioners use pre-trained models (GPT, BERT, LLaMA) rather than training from scratch.}
 \label{fig:pretraining_vs_finetuning}
 \end{figure}
@@ -1993,7 +1997,7 @@ Standard GPT-2:
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/pretraining/pretraining_pipeline.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/pretraining/pretraining_pipeline.png}
 \caption{\textbf{Complete Pre-Training Pipeline from Raw Data to Foundation Model.} The workflow consists of five sequential stages: (1) \textit{Raw Data Collection} - gathering massive unlabeled text corpora from diverse sources (web crawl, books, code repositories) totaling billions of tokens; (2) \textit{Tokenization} - converting text into subword tokens using BPE, WordPiece, or SentencePiece with vocabulary sizes of 32K-50K tokens; (3) \textit{Model Initialization} - creating transformer architecture with random weights, specifying depth (6-96 layers), width (384-12288 dimensions), and attention heads (6-96 heads); (4) \textit{Training Loop} - iterating for multiple epochs with next-token prediction objective, using AdamW optimizer with learning rate warmup and cosine decay, gradient accumulation for large effective batch sizes, and mixed-precision training (FP16/BF16) for efficiency; (5) \textit{Foundation Model Output} - producing a versatile pre-trained model ready for downstream fine-tuning on specific tasks. This pipeline represents the foundation of modern LLMs like GPT, BERT, and LLaMA.}
 \label{fig:pretraining_pipeline}
 \end{figure}
@@ -2039,7 +2043,7 @@ N_{opt} \propto C^{0.50}, \quad D_{opt} \propto C^{0.50}
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.94\textwidth]{visualization/images/pretraining/scaling_laws.png}
+\includegraphics[width=0.94\textwidth]{../visualization/images/pretraining/scaling_laws.png}
 \caption{\textbf{Scaling Laws for Language Model Pre-Training.} Four critical relationships govern pre-training performance: (1) \textit{Model Size Scaling} - loss decreases as $\mathcal{L}(N) \propto N^{-0.076}$ with parameter count, showing diminishing returns but continuous improvement; (2) \textit{Data Size Scaling} - loss follows $\mathcal{L}(D) \propto D^{-0.095}$ with more training tokens, emphasizing the importance of large corpora; (3) \textit{Chinchilla vs Gopher Strategy} - comparing parameter-heavy (Gopher: 280B params, 300B tokens) vs balanced approach (Chinchilla: 70B params, 1.4T tokens), where Chinchilla achieves superior performance despite 4× fewer parameters by following compute-optimal scaling; (4) \textit{Compute-Optimal Scaling} - showing $N_{opt} \propto C^{0.5}$ and $D_{opt} \propto C^{0.5}$, meaning doubling compute budget requires increasing both model size and data by $\sqrt{2} \approx 1.4×$. These laws (Kaplan et al. 2020, Hoffmann et al. 2022) are fundamental for efficient resource allocation in modern LLM training.}
 \label{fig:scaling_laws}
 \end{figure}
@@ -2092,7 +2096,7 @@ where:
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.93\textwidth]{visualization/images/pretraining/training_dynamics.png}
+\includegraphics[width=0.93\textwidth]{../visualization/images/pretraining/training_dynamics.png}
 \caption{\textbf{Pre-Training Loss Dynamics and Learning Rate Scheduling.} Left panel shows training loss curves for four model sizes (124M, 1B, 7B, and 70B parameters) over 100K training steps, demonstrating consistent scaling behavior where larger models achieve lower final loss but require similar training duration. All models show rapid initial descent followed by gradual convergence, with the 70B model reaching loss $\approx$ 2.0 compared to 3.2 for the 124M model. Right panel illustrates the standard learning rate schedule used in pre-training: (1) \textit{Linear Warmup Phase} (first 2K steps) - gradually increasing from 0 to peak LR (6×10$^{-4}$) to stabilize training and prevent early divergence; (2) \textit{Cosine Decay Phase} (remaining 98K steps) - smoothly decreasing following cosine function to final LR (6×10$^{-5}$), allowing the model to fine-tune towards local optima. This schedule balances exploration (high LR) and exploitation (low LR) for optimal convergence.}
 \label{fig:training_dynamics}
 \end{figure}
@@ -2156,7 +2160,7 @@ Treats input as raw UTF-8 byte stream, allows subword units:
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.94\textwidth]{visualization/images/pretraining/tokenization_comparison.png}
+\includegraphics[width=0.94\textwidth]{../visualization/images/pretraining/tokenization_comparison.png}
 \caption{\textbf{Comprehensive Comparison of Tokenization Strategies.} Four-panel analysis comparing five major tokenization approaches: (1) \textit{Vocabulary Size} - ranging from 256 (Character-level) to 50K (Unigram/XLNet), with BPE (GPT-2: 50K), WordPiece (BERT: 30K), and SentencePiece (T5: 32K) offering balanced sizes; (2) \textit{Tokens per Word} - character-level splits into 4.5 tokens/word (inefficient), while subword methods achieve 1.1-1.5 tokens/word, enabling longer effective context; (3) \textit{Unknown Token Rate} - character-level has 0\% UNK (can represent any text), BPE/SentencePiece have minimal UNK (0.1-0.2\%), while WordPiece shows slightly higher rates (0.5\%); (4) \textit{Training Speed} - larger vocabularies (50K) train 3× faster than character-level due to shorter sequences, though requiring more embedding parameters. Modern LLMs prefer BPE (GPT family) or SentencePiece (T5, LLaMA) for their optimal balance of efficiency, coverage, and language-independence.}
 \label{fig:tokenization_comparison}
 \end{figure}
@@ -2182,7 +2186,7 @@ v_t &= \beta_2 v_{t-1} + (1 - \beta_2) g_t^2 \\
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.93\textwidth]{visualization/images/pretraining/optimizer_comparison.png}
+\includegraphics[width=0.93\textwidth]{../visualization/images/pretraining/optimizer_comparison.png}
 \caption{\textbf{Optimizer Comparison for Pre-Training LLMs.} Left panel shows convergence curves for four optimizers over 10K training steps: AdamW achieves lowest final loss (1.95) with fastest initial descent, Adam reaches 2.05, SGD with momentum converges to 2.25, and RMSprop to 2.30. Right panel provides heatmap comparison across four critical dimensions: (1) \textit{Convergence Speed} - AdamW and Adam excel with adaptive learning rates, SGD requires more careful tuning; (2) \textit{Final Performance} - AdamW slightly outperforms Adam due to decoupled weight decay, both surpass SGD; (3) \textit{Memory Usage} - SGD is most memory-efficient, while Adam/AdamW maintain first and second moment estimates doubling memory overhead; (4) \textit{Training Stability} - AdamW provides most stable training with proper weight decay implementation. Modern LLMs (GPT-3, LLaMA, PaLM) universally adopt AdamW for its superior balance of convergence speed, final performance, and training stability despite higher memory cost.}
 \label{fig:optimizer_comparison}
 \end{figure}
@@ -2260,7 +2264,7 @@ Academic Papers & 5\% & Technical, formal \\
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.93\textwidth]{visualization/images/pretraining/data_mixture.png}
+\includegraphics[width=0.93\textwidth]{../visualization/images/pretraining/data_mixture.png}
 \caption{\textbf{Pre-Training Data Composition and Source Quality Analysis.} Left panel shows typical corpus composition used in modern LLM pre-training: Common Crawl (web crawl) dominates at 60\% providing diverse natural language, Books contribute 15\% for long-form narrative structure, Code repositories (GitHub) provide 10\% enhancing reasoning and structured thinking, Wikipedia adds 10\% for factual encyclopedic knowledge, Academic Papers supply 5\% for technical/formal writing, with remaining sources (News, Forums) at 3\% and 2\% respectively. Right panel analyzes quality-availability trade-off for each source: high-quality sources like Books (quality: 0.95) and Academic Papers (0.90) have limited availability (0.3-0.4), while Common Crawl offers massive availability (0.95) but moderate quality (0.65), and Code provides balanced metrics (quality: 0.80, availability: 0.75). This mixture strategy balances breadth (Common Crawl), depth (Books), factual knowledge (Wikipedia), reasoning ability (Code), and technical precision (Papers) to create well-rounded foundation models.}
 \label{fig:data_mixture}
 \end{figure}
@@ -2308,7 +2312,7 @@ Prefix LM & UniLM & Hybrid & Both \\
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.93\textwidth]{visualization/images/pretraining/compute_requirements.png}
+\includegraphics[width=0.93\textwidth]{../visualization/images/pretraining/compute_requirements.png}
 \caption{\textbf{Computational Requirements and Costs for Pre-Training LLMs.} Left panel shows GPU-days required for pre-training seven representative models at increasing scales: GPT-2 Small (124M params) requires only 2 GPU-days, GPT-2 Medium (355M) needs 8 days, GPT-2 Large (774M) requires 25 days, GPT-2 XL (1.5B) needs 100 days, GPT-3 6.7B requires 350 days, GPT-3 13B needs 700 days, and GPT-3 175B demands 3,500 GPU-days (nearly 10 years on a single GPU). Right panel translates these into estimated training costs using cloud GPU pricing (A100 GPUs at approximately \$2.40/hour): costs range from \$48 for GPT-2 Small to \$84,000 for GPT-3 175B. The exponential scaling demonstrates why most organizations use pre-trained models rather than training from scratch, and why compute-optimal scaling (Chinchilla approach) is economically critical. These estimates assume efficient distributed training; actual costs may vary based on infrastructure, optimization efficiency, and hardware pricing.}
 \label{fig:compute_requirements}
 \end{figure}
@@ -2966,14 +2970,14 @@ For GPT-2 with attention weight matrix $W_q \in \mathbb{R}^{768 \times 768}$ and
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/lora/lora_architecture.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/lora/lora_architecture.png}
 \caption{LoRA Architecture: Shows the forward pass with frozen pre-trained weights $W_0$ and trainable low-rank matrices $B$ and $A$. The output combines the original path ($W_0 x$) with the low-rank adaptation path ($\frac{\alpha}{r} BAx$). The example demonstrates 98\% parameter reduction for a GPT-2 layer.}
 \label{fig:lora_architecture}
 \end{figure}
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/lora/matrix_decomposition.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/lora/matrix_decomposition.png}
 \caption{Low-Rank Matrix Decomposition: Visualizes how the full update matrix $\Delta W \in \mathbb{R}^{d \times k}$ is approximated by the product of two smaller matrices $B \in \mathbb{R}^{d \times r}$ and $A \in \mathbb{R}^{r \times k}$, where rank $r \ll \min(d, k)$. This decomposition achieves 97.9\% parameter reduction while maintaining model expressiveness through the intrinsic dimensionality hypothesis.}
 \label{fig:matrix_decomposition}
 \end{figure}
@@ -2990,21 +2994,21 @@ For GPT-2 with attention weight matrix $W_q \in \mathbb{R}^{768 \times 768}$ and
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/lora/rank_comparison.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/lora/rank_comparison.png}
 \caption{Rank Selection Analysis: Left plot shows how trainable parameters scale with rank $r$ (logarithmic scale), demonstrating dramatic parameter reduction compared to full fine-tuning. Right plot reveals the performance vs rank trade-off, showing that $r=8-16$ achieves 93-96\% of full fine-tuning performance while using less than 2\% of parameters—the optimal "sweet spot" for most applications.}
 \label{fig:rank_comparison}
 \end{figure}
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.9\textwidth]{visualization/images/lora/scaling_factor_impact.png}
+\includegraphics[width=0.9\textwidth]{../visualization/images/lora/scaling_factor_impact.png}
 \caption{Impact of Scaling Factor $\alpha/r$: Left plot shows how different scaling factors affect training convergence—too small ($\alpha=1$) leads to slow convergence, too large ($\alpha=128$) causes instability, while the optimal $\alpha=16$ (with $r=8$, giving $\alpha/r=2$) provides stable and fast convergence. Right plot demonstrates the recommended relationship: $\alpha = 2r$ for different rank values, balancing learning rate and stability.}
 \label{fig:scaling_factor_impact}
 \end{figure}
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/lora/module_selection.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/lora/module_selection.png}
 \caption{LoRA Module Selection: Comparison of performance impact versus parameter cost when applying LoRA to different transformer modules. Query (Q) and Value (V) projection matrices (shown in green) are highly recommended as they provide the best performance-to-parameter ratio. Applying LoRA to all attention components (Q, K, V, O) and FFN layers increases parameters with diminishing returns.}
 \label{fig:module_selection}
 \end{figure}
@@ -3104,14 +3108,14 @@ For GPT-2 with attention weight matrix $W_q \in \mathbb{R}^{768 \times 768}$ and
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/lora/training_memory_breakdown.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/lora/training_memory_breakdown.png}
 \caption{Training Memory Breakdown: Detailed comparison of GPU memory consumption during training. Full fine-tuning requires 4 GB total (0.5 GB weights, 0.5 GB gradients, 2 GB optimizer states, 1 GB activations) while LoRA requires only 1 GB total, achieving 75\% memory savings. This dramatic reduction enables training larger models on consumer GPUs.}
 \label{fig:training_memory_breakdown}
 \end{figure}
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.9\textwidth]{visualization/images/lora/adapter_merging.png}
+\includegraphics[width=0.9\textwidth]{../visualization/images/lora/adapter_merging.png}
 \caption{LoRA Adapter Modularity: Demonstrates the ability to maintain one base model with multiple task-specific LoRA adapters (Medical, Legal, Code). Adapters can be swapped in under 1 second or merged into the base model ($W_{new} = W_0 + \frac{\alpha}{r} BA$) for deployment. Each adapter is only 10 MB compared to the 500 MB base model, enabling efficient multi-task systems.}
 \label{fig:adapter_merging}
 \end{figure}
@@ -3846,7 +3850,7 @@ Parameters: $O(r\sqrt{d} + r\sqrt{k})$ instead of $O(r(d+k))$.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/lora/lora_variants.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/lora/lora_variants.png}
 \caption{Comparison of LoRA Variants: Performance, memory efficiency, and training speed comparison across different LoRA variants for a 7B parameter model with 1K training samples. Standard LoRA provides the best balance, LoRA+ achieves highest performance at 97\%, QLoRA offers superior memory efficiency at 6 GB, while AdaLoRA and DoRA provide adaptive approaches with different trade-offs.}
 \label{fig:lora_variants}
 \end{figure}
@@ -3897,7 +3901,7 @@ Activations & 1.0 & 1.0 \\
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.9\textwidth]{visualization/images/lora/inference_speed_comparison.png}
+\includegraphics[width=0.9\textwidth]{../visualization/images/lora/inference_speed_comparison.png}
 \caption{LoRA Inference Performance: Comparison of inference speed, memory footprint, and storage requirements between full fine-tuned models, LoRA with dynamic adapters, and merged LoRA. Dynamic LoRA adds only 0.5 ms overhead per token (negligible 4\% increase) while reducing storage by 50x (10 MB vs 500 MB). Merging eliminates even this tiny overhead while retaining storage benefits during development.}
 \label{fig:inference_speed_comparison}
 \end{figure}
@@ -3935,7 +3939,7 @@ This enables fine-tuning of 65B models on a single 48GB GPU!
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.92\textwidth]{visualization/images/qlora/qlora_architecture.png}
+\includegraphics[width=0.92\textwidth]{../visualization/images/qlora/qlora_architecture.png}
 \caption{\textbf{QLoRA Architecture: 4-bit Quantized Base with 16-bit LoRA Adapters.} QLoRA combines three key components: (1) \textit{Frozen Base Model} stored in 4-bit NormalFloat (NF4) format reducing memory to 0.5 bytes per parameter (7B model → 3.5 GB); (2) \textit{Trainable LoRA Adapters} maintained in 16-bit precision with low-rank matrices A (d×r) and B (r×d), adding only ~32 MB for rank-8; (3) \textit{Combined Output} computed as W\_quantized·x + B·A·x in full precision during forward pass. The memory breakdown shows total usage of ~3.6 GB for a 7B model including base weights (3.5 GB), LoRA parameters (32 MB), and gradients (64 MB). QLoRA's three innovations (4-bit NF4 quantization, double quantization of scaling factors, paged optimizers for automatic GPU↔CPU memory management, and 16-bit compute precision) enable fine-tuning of massive models on consumer GPUs while maintaining 97-98\% of full fine-tuning accuracy.}
 \label{fig:qlora_architecture}
 \end{figure}
@@ -3979,7 +3983,7 @@ w_{NF4} &\xrightarrow{\text{Store}} 4 \text{ bits per weight}
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.93\textwidth]{visualization/images/qlora/quantization_comparison.png}
+\includegraphics[width=0.93\textwidth]{../visualization/images/qlora/quantization_comparison.png}
 \caption{\textbf{Comprehensive Quantization Scheme Comparison.} Four-panel analysis: (1) \textit{Memory Usage by Precision} - FP32 requires 28 GB, FP16 needs 14 GB, INT8 uses 7 GB, while NF4 achieves dramatic reduction to 3.5 GB for a 7B model; (2) \textit{Quantization Error} - FP16 baseline (0\%), INT8 uniform quantization (2.8\%), INT4 uniform (8.5\% exceeding acceptable 5\% threshold), and NF4 optimal bins (3.2\% staying within acceptable range); (3) \textit{NF4 Information-Theoretic Optimal Bins} - visualization of 16 bin edges aligned with N(0,1) distribution ensuring equal probability mass per bin, with non-uniform spacing denser near zero where most weights concentrate; (4) \textit{Trainable Model Size vs GPU Memory} - standard LoRA enables 0.5-5B models on 8-80 GB GPUs, while QLoRA achieves 4× improvement allowing 2-25B models on the same hardware. NF4's optimized bins for normally distributed neural network weights minimize quantization error while maximizing memory savings.}
 \label{fig:quantization_comparison}
 \end{figure}
@@ -4019,7 +4023,7 @@ where $s_k$ is the scale for block $k$ and $q_k^{(i)}$ are the quantized values.
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.93\textwidth]{visualization/images/qlora/double_quantization.png}
+\includegraphics[width=0.93\textwidth]{../visualization/images/qlora/double_quantization.png}
 \caption{\textbf{Double Quantization: Quantizing the Quantization Constants.} Three-stage process visualization: (1) \textit{Step 1 - FP16 Weights} - original weights stored at 2 bytes/parameter consuming significant memory; (2) \textit{Step 2 - First Quantization} - weights compressed to 4-bit NF4 (0.5 bytes/param) but scaling factors stored in FP32 (4 bytes per 64-element block) adding ~4 GB overhead for 65B model; (3) \textit{Step 3 - Double Quantization} - scaling factors themselves quantized from FP32 to 8-bit (1 byte/block) reducing overhead from 4 GB to 1 GB, achieving additional 8.2\% memory reduction. The detailed memory breakdown table compares single vs double quantization showing 3 GB savings for 65B models. Key insight: while 4-bit quantization provides the primary 75\% memory reduction, double quantization eliminates residual overhead from quantization metadata, crucial for extremely large models where even scaling factor storage becomes non-negligible.}
 \label{fig:double_quantization}
 \end{figure}
@@ -4061,7 +4065,7 @@ M_{total} = \frac{124M}{2} + 16 \times 124M \times 8 \approx 62\text{MB} + 15.9\
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.92\textwidth]{visualization/images/qlora/paged_optimizers.png}
+\includegraphics[width=0.92\textwidth]{../visualization/images/qlora/paged_optimizers.png}
 \caption{\textbf{Paged Optimizers: Automatic GPU ↔ CPU Memory Management.} The system divides memory between limited GPU memory (containing active gradients, hot optimizer states, and ~20\% free space) and abundant CPU memory (storing paged-out momentum and variance states with 100+ GB available). Bidirectional arrows show automatic paging: red arrow indicates paging out inactive states to CPU, green arrow shows paging in needed states from CPU. The timeline demonstrates layer-by-layer processing where Layer 1 activates while others are paged out, then Layer 1 pages out as Layer 2 activates, continuing sequentially until all layers are processed. Performance impact metrics show minimal <5\% overhead, prevention of OOM (out-of-memory) errors, and transparency to users through NVIDIA Unified Memory automatic management. This innovation enables training with larger batch sizes and bigger models by utilizing CPU RAM when GPU memory is exhausted, effectively treating CPU memory as extended virtual GPU memory with on-demand transfers via PCIe bus.}
 \label{fig:paged_optimizers}
 \end{figure}
@@ -4515,9 +4519,9 @@ Use Case & Max perf & Balanced & Low resources \\
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.93\textwidth]{visualization/images/qlora/memory_comparison.png}
+\includegraphics[width=0.93\textwidth]{../visualization/images/qlora/memory_comparison.png}
 \caption{\textbf{Memory Efficiency and Trainable Model Size Comparison.} Left panel shows stacked memory breakdown for 7B model across three methods: Full Fine-Tuning (56 GB total: 14 GB base weights + 14 GB gradients + 28 GB optimizer states), LoRA with FP16 base (20 GB: 14 GB base + 2 GB gradients + 4 GB optimizer), and QLoRA with 4-bit base (5 GB: 3.5 GB base + 0.5 GB gradients + 1 GB optimizer). Green arrows indicate 64\% reduction from Full to LoRA and additional 75\% reduction from LoRA to QLoRA. Right panel demonstrates maximum trainable model sizes across GPU configurations: GTX 1080 Ti (11 GB) enables 0.5B LoRA or 3B QLoRA, RTX 3090 (24 GB) allows 1.5B LoRA or 7B QLoRA, A100 40GB supports 3B LoRA or 13B QLoRA, and A100 80GB handles 7B LoRA or 25B QLoRA models. QLoRA's 4-bit quantization democratizes large language model fine-tuning by making 7B+ models accessible on consumer hardware.}
-\label{fig:memory_comparison}
+\label{fig:qlora_memory_comparison}
 \end{figure}
 
 \subsection{Extended Theory: QLoRA Quantization Deep Dive}
@@ -5450,7 +5454,7 @@ Activate only relevant adapter subsets:
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.93\textwidth]{visualization/images/qlora/training_efficiency.png}
+\includegraphics[width=0.93\textwidth]{../visualization/images/qlora/training_efficiency.png}
 \caption{\textbf{QLoRA Training Efficiency and Performance Analysis.} Four-panel comprehensive evaluation: (1) \textit{Training Speed vs Batch Size} - QLoRA (green triangles) and LoRA (blue squares) achieve similar throughput up to batch size 16 (13.5 samples/sec), while Full Fine-Tuning (red circles) hits OOM at batch size 4, demonstrating QLoRA's ability to use larger batches without memory constraints; (2) \textit{Time to Convergence} - Full Fine-Tuning requires 12 hours, LoRA needs 8 hours, and QLoRA takes 8.5 hours, showing minimal speed penalty despite 4-bit quantization; (3) \textit{Accuracy vs Memory Trade-off} - Full Fine-Tuning achieves 100\% baseline accuracy at 56 GB, LoRA reaches 98.5\% at 20 GB, and QLoRA maintains 97.2\% (above 98\% acceptable threshold) at only 5 GB, offering excellent balance; (4) \textit{Cloud Training Cost Comparison} - logarithmic scale shows QLoRA costs \$20-\$250 for 7B-65B models vs \$150-\$2000 for Full Fine-Tuning, representing 8-10× cost reduction. QLoRA enables efficient large model fine-tuning with <3\% accuracy loss while reducing memory by 75\% and costs by 90\%.}
 \label{fig:training_efficiency}
 \end{figure}
@@ -5482,7 +5486,7 @@ LangChain enables building context-aware, reasoning applications by:
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/langchain/langchain_architecture.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/langchain/langchain_architecture.png}
 \caption{\textbf{LangChain Core Architecture.} This diagram illustrates the foundational components of the LangChain framework and their interactions. At the bottom, the \textit{Models Layer} provides a unified interface to various LLM providers (OpenAI GPT, Anthropic Claude, Google PaLM, and local models), abstracting away provider-specific APIs through the \texttt{LLM} and \texttt{ChatModel} interfaces. Above this, three key component categories work together: \textit{Prompts} (template management and few-shot learning), \textit{Chains} (sequential operation composition), and \textit{Memory} (conversation state management including buffer and vector store implementations). The \textit{Agents} component enables dynamic decision-making using ReAct and Plan-Execute patterns, while the \textit{Tools \& Integrations} layer connects to external services (search engines, calculators, APIs, databases). All components feed into the top-level \textit{LangChain Application} layer. This modular architecture enables developers to build complex LLM applications by composing reusable components, swapping implementations without code changes, and maintaining clean separation of concerns between model interaction, prompt management, and application logic.}
 \label{fig:langchain_architecture}
 \end{figure}
@@ -5824,7 +5828,7 @@ Plan-and-Execute & Plans then executes steps & Multi-step tasks \\
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/langchain/chain_types.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/langchain/chain_types.png}
 \caption{\textbf{LangChain Chain Types and Patterns.} This comprehensive visualization showcases five fundamental chain patterns in LangChain: (1) \textit{Sequential Chain} demonstrates linear data flow where each LLM call processes the output of the previous step, ideal for multi-stage transformations; (2) \textit{Router Chain} implements conditional logic that dynamically selects specialized chains based on input characteristics (math, code, or text), enabling intelligent task delegation; (3) \textit{Map-Reduce Chain} processes multiple documents in parallel through individual Map operations, then combines results through a Reduce step, perfect for document summarization and batch processing; (4) \textit{Conversational Chain with Memory} maintains context across multiple turns using a Memory component that stores user-assistant exchanges, enabling coherent multi-turn dialogues; (5) \textit{RAG (Retrieval-Augmented Generation)} combines information retrieval with generation by querying a Vector DB for relevant documents, then providing them as context to the LLM for factually-grounded responses. Each pattern addresses specific use cases and can be composed to build sophisticated application workflows.}
 \label{fig:chain_types}
 \end{figure}
@@ -5964,7 +5968,7 @@ sentence-transformers & 384-768 & 512 & Free \\
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/langchain/memory_types.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/langchain/memory_types.png}
 \caption{\textbf{LangChain Memory Systems Comparison.} This four-panel analysis compares different memory implementations in LangChain. \textit{Top-left panel} shows performance metrics where Buffer Memory achieves 100\% information retention but with slower access speeds compared to Window Memory's constant 85\% performance; Summary Memory balances retention (60\%) with efficiency, while Vector and Entity Memory maintain high retention (95\% and 85\%) with moderate access speeds. \textit{Top-right panel} illustrates how memory performance degrades with conversation length: Buffer Memory quickly deteriorates after 100 messages, Window Memory maintains constant performance by keeping only recent messages, while Summary and Vector Memory degrade gracefully, preserving context even at 1000+ messages. \textit{Bottom-left panel} compares memory footprints, showing Buffer Memory consuming 500KB per 100 messages versus Window Memory's fixed 150KB and Summary Memory's efficient 80KB. \textit{Bottom-right heatmap} maps suitability scores (0-100) across use cases: Vector Memory excels for long conversations and QA systems, Buffer Memory is best for short chats requiring high accuracy, while Entity Memory handles multi-topic conversations effectively.}
 \label{fig:memory_types}
 \end{figure}
@@ -6330,12 +6334,12 @@ print(f"  - Lambda (relevance vs diversity): 0.7")
 print(f"  - Fetch pool size: 20")
 
 # MMR Formula:
-# MMR = argmax[λ * Sim(D_i, Q) - (1-λ) * max{Sim(D_i, D_j) for D_j in S}]
+# MMR = argmax[lambda * Sim(D_i, Q) - (1-lambda) * max{Sim(D_i, D_j) for D_j in S}]
 # where:
 #   D_i = candidate document
 #   Q = query
 #   S = already selected documents
-#   λ = 0.7 (balance parameter)
+#   lambda = 0.7 (balance parameter)
 
 # ===================================================================
 # PART 6: Prompt Engineering for RAG
@@ -6613,7 +6617,7 @@ Callbacks turn your black-box LLM chain into a transparent, observable system.
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/langchain/agent_workflow.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/langchain/agent_workflow.png}
 \caption{\textbf{LangChain Agent Workflow: ReAct Pattern.} This visualization demonstrates the ReAct (Reasoning + Acting) agent decision-making loop. The workflow begins with a User Question that triggers an iterative cycle of \textit{Thought → Action → Observation}. \textbf{Iteration 1:} The agent reasons "Need to search" (Thought in yellow), executes \texttt{Search("topic")} (Action in green), and receives "Found info..." (Observation in red). \textbf{Iteration 2:} Based on retrieved information, the agent determines "Need calculation" (Thought), calls \texttt{Calculator(expr)} (Action), and observes "Result: 42" (Observation). After gathering sufficient information through multiple iterations, the agent reaches a \textbf{Final} decision: "I have answer" (Thought) and provides a "Complete response to user" (Final Answer in blue). The right panel shows Available Tools (Search, Calculator, Database, API Call, Code Execution) that the agent can dynamically select from. The \textit{Agent Executor} (bottom-right) orchestrates this process using an LLM (GPT-4) combined with tool access, memory, and prompt templates. Unlike fixed chains, agents make runtime decisions about which tools to use and when to terminate, enabling flexible problem-solving for complex, unpredictable tasks.}
 \label{fig:agent_workflow}
 \end{figure}
@@ -7119,7 +7123,7 @@ providing speedup factor:
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/langchain/lcel_pipeline.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/langchain/lcel_pipeline.png}
 \caption{\textbf{LCEL (LangChain Expression Language) Pipeline Composition.} This diagram contrasts two approaches to building LangChain applications. The \textbf{Traditional Approach} (top) requires manual "glue code" between each component (Prompt → LLM → Parser → Store), where developers must explicitly handle data passing, error handling, and state management between steps. This results in verbose, brittle code that's difficult to maintain and lacks built-in features like streaming or retries. The \textbf{LCEL Approach} (bottom) uses the pipe operator (\texttt{|}) for declarative composition: \texttt{chain = prompt | llm | parser | store}. Each purple pipe automatically handles data flow, type conversions, and intermediate state management. The lower panel showcases four key LCEL features that are automatically enabled: \textit{Streaming Support} (process outputs as they arrive, don't wait for completion), \textit{Async Execution} (non-blocking I/O for concurrent requests), \textit{Batch Processing} (efficient handling of multiple inputs), and \textit{Parallel Branches} (split workflows for simultaneous operations). The bottom benefits panel lists additional advantages: type-safe composition prevents runtime errors, automatic retry logic handles transient failures, built-in observability tracks performance, optimized execution minimizes latency, and easy debugging with clear component boundaries. LCEL transforms complex chain construction from imperative plumbing to clean, declarative pipelines.}
 \label{fig:lcel_pipeline}
 \end{figure}
@@ -7408,7 +7412,7 @@ Typical value: $o = 0.1c$ to $0.2c$ (10-20\% overlap).
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/langchain/rag_architecture.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/langchain/rag_architecture.png}
 \caption{\textbf{RAG (Retrieval-Augmented Generation) Architecture.} This three-stage pipeline illustrates how RAG enhances LLM responses with external knowledge. \textbf{Stage 1: Indexing} (left) preprocesses documents through three steps: original documents are split into chunks (typically 512 tokens with overlap), chunks are converted to vector embeddings using models like OpenAI Embeddings or Sentence Transformers, and embeddings are stored in a Vector Database (Pinecone, ChromaDB) for efficient similarity search. This indexing happens once during system setup. \textbf{Stage 2: Retrieval} (center) occurs at query time: the user's query is embedded using the same model, a similarity search (cosine distance) identifies the Top-K most relevant chunks from the vector database, and retrieved documents are ranked by relevance scores (e.g., "Doc 1: relevance 0.95"). \textbf{Stage 3: Generation} (right) combines retrieval with generation: both the original query and retrieved context are merged into a single prompt ("Given context: [docs], answer: [query]"), this augmented prompt is sent to the LLM (GPT-4, Claude), and the LLM generates a factually-grounded answer based on the provided context rather than solely on training data. The bottom panel highlights four critical performance factors: \textit{Chunk Size} (smaller chunks are precise but may lack context, larger chunks provide more context but dilute relevance), \textit{Top-K} (more documents provide comprehensive coverage but increase noise, fewer are focused but may miss information), \textit{Embedding Model} (quality directly affects retrieval accuracy), and \textit{Reranking} (secondary scoring improves final result relevance). RAG addresses LLM limitations like knowledge cutoffs, hallucinations, and domain-specific accuracy by grounding responses in authoritative external documents.}
 \label{fig:rag_architecture}
 \end{figure}
@@ -7631,7 +7635,7 @@ Why does this matter? Without reducers, you'd need every node to manually read t
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/langgraph/state_management.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/langgraph/state_management.png}
 \caption{\textbf{LangGraph State Management System.} This comprehensive visualization demonstrates how state is managed in LangGraph through four key aspects. \textbf{Panel 1 (Top Left):} Shows the state structure defined using TypedDict with four essential fields - messages (conversation history), current\_step (workflow stage), iteration\_count (loop counter), and results (intermediate outputs). Each field is properly typed and documented. \textbf{Panel 2 (Top Right):} Compares three reducer behaviors - Replace (overwrites old values), Append (concatenates lists), and Custom (implements specialized logic like taking maximum values). The bar chart clearly shows how each reducer affects memory usage and data aggregation patterns. \textbf{Panel 3 (Bottom Left):} Illustrates the state update flow as a timeline, showing how state evolves through node executions: $S_0 \to$ Node1 $\to S_1 \to$ Node2 $\to S_2 \to$ Node3 $\to S_3$. This demonstrates the fundamental update equation $S_{t+1} = S_t \oplus \Delta S$ where new state is computed from old state plus node outputs. \textbf{Panel 4 (Bottom Right):} Displays memory growth patterns over 30 execution steps for different reducer types - Replace maintains constant memory (blue line), Append shows linear growth (green line), and Custom implements bounded growth (orange line) through intelligent aggregation. This visualization is crucial for understanding state management trade-offs in long-running agent workflows, particularly for applications requiring persistent conversation history versus memory-constrained environments.}
 \label{fig:langgraph_state_management}
 \end{figure}
@@ -7721,7 +7725,7 @@ The graph can loop multiple times (agent $\leftrightarrow$ tools) until the cond
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/langgraph/graph_execution.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/langgraph/graph_execution.png}
 \caption{\textbf{LangGraph Graph Construction and Execution Flow.} This split-view visualization contrasts the definition phase (left) with the runtime execution phase (right) of a LangGraph workflow. \textbf{Left Side - Graph Definition:} Shows the programmatic construction of the graph starting with StateGraph creation (light blue box), followed by adding three nodes - agent (blue), tools (green), and summarize (purple). The workflow then adds conditional edges for dynamic routing (purple box), sets the entry point to "agent" (red box), and compiles the graph into an executable application (dark box). Each step represents a method call that builds the graph structure. \textbf{Right Side - Execution Flow:} Displays the actual runtime execution starting from START (green circle), flowing through the Agent Node (blue box) which performs reasoning, then reaching a Conditional Router (orange diamond) that makes routing decisions based on state. The flow can proceed to Tools Node (green box) for tool execution, Summarize Node (purple box) for final processing, or END (red circle) for termination. The dashed green arrow shows the loop-back capability where execution can return from tools to agent for iterative reasoning. The bottom annotation explains state updates: at each node execution, the state is merged with node outputs using the equation $S_{t+1} = \text{Merge}(S_t, \text{Output}_t)$. This visualization is essential for understanding the fundamental distinction between static graph definition and dynamic execution in LangGraph, a key concept that enables building stateful, cyclic agent workflows.}
 \label{fig:langgraph_graph_execution}
 \end{figure}
@@ -7805,7 +7809,7 @@ This equation formalizes the routing logic: given current state $S_t$, evaluate 
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/langgraph/conditional_routing.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/langgraph/conditional_routing.png}
 \caption{\textbf{LangGraph Conditional Routing Decision Tree.} This comprehensive visualization maps the decision-making logic in LangGraph's conditional routing system. At the top, the Current State box (light blue) represents the input state containing messages, iteration count, and task status. This state flows into the should\_continue() Routing Function (orange box), which serves as the central decision engine. The routing function performs three critical checks shown in the middle row: (1) "Has tool\_calls?" examines if the last message contains tool invocation requests, leading to the TOOLS outcome (blue), (2) "iteration > 10?" checks if the iteration counter exceeds the maximum threshold to prevent infinite loops, leading to the END outcome (red), and (3) "Task complete?" verifies if the agent has finished its objective, leading to the AGENT outcome (green) for continued reasoning. The bottom row shows three possible destinations: the TOOLS Node (blue) for executing requested tools, the END state (red) for terminating execution, and the AGENT Node (green) for continuing the reasoning loop. The green dashed arrow from AGENT back to the router illustrates the loop-back mechanism that enables iterative refinement. Below the decision tree, a code example box (dark background, white monospace text) provides the actual Python implementation of the should\_continue function, showing the three conditional checks and their corresponding return values ("tools", "end", "agent"). This visualization is crucial for understanding how LangGraph implements dynamic, state-dependent routing - a fundamental capability that distinguishes it from linear chain-based frameworks and enables sophisticated multi-step agent behaviors.}
 \label{fig:langgraph_conditional_routing}
 \end{figure}
@@ -7905,7 +7909,7 @@ The supervisor acts as the "brain" that coordinates specialized "modules," simil
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/langgraph/multi_agent.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/langgraph/multi_agent.png}
 \caption{\textbf{Multi-Agent System with Supervisor Pattern.} This visualization illustrates the hub-and-spoke architecture of a multi-agent collaboration system. At the center, the SUPERVISOR (orange circle, labeled "Orchestrator") serves as the central coordinator that manages task distribution and result aggregation. Surrounding the supervisor are four specialized agents arranged in a circular pattern: Researcher (blue, top-left, "Search \& Gather"), Writer (green, top, "Generate Content"), Critic (red, right, "Review \& Improve"), and Executor (purple, bottom, "Execute Actions"). Each specialized agent is connected to the supervisor via bidirectional communication channels - solid black arrows labeled "task" show the supervisor assigning work to specialists, while dashed gray arrows labeled "result" indicate specialists returning their outputs to the supervisor. The system receives input from a User Request box (light blue, bottom-left) which flows upward to the supervisor, and produces output through a Final Answer box (green, bottom-right) which represents the synthesized result after all agent collaborations. On the left, a Shared State box (yellow, semi-transparent) lists the key state components accessible to all agents: messages (conversation history), next\_agent (routing control), task\_queue (pending work), and results (accumulated outputs), with a note indicating "All agents read/write" to emphasize the shared memory model. This architecture enables specialization (each agent optimized for its role), flexibility (supervisor can adapt workflow dynamically), scalability (easy to add new specialist agents), and observability (message history tracks which agent handled each task). The visualization clearly demonstrates how complex multi-agent systems can be orchestrated through a central supervisor pattern, essential for building sophisticated AI systems that decompose complex tasks across specialized components.}
 \label{fig:langgraph_multi_agent}
 \end{figure}
@@ -8119,7 +8123,7 @@ Each checkpoint stores the full state (messages, variables, etc.). For long-runn
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/langgraph/human_in_loop.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/langgraph/human_in_loop.png}
 \caption{\textbf{Human-in-the-Loop: Checkpointing and Interrupts System.} This visualization demonstrates the checkpoint-based human approval workflow in LangGraph. The main timeline (center, horizontal) shows the execution flow: Start (green circle) → Node 1 (blue circle) → CP₁ (gray checkpoint square, labeled "Auto-save") → Node 2 (blue circle) → CP₂ (gray checkpoint, "Auto-save") → Pause (orange box with pause symbol) → Human Review (red box) → Resume (green circle) → End (dark circle). Checkpoints CP₁ and CP₂ are automatically saved after each node execution, with gray dashed arrows pointing downward to indicate the save operation. At the Pause point, an Interrupt Point box (yellow, right side) details the four-step process: (1) Save current state, (2) Show planned action, (3) Wait for approval, (4) Resume or modify. This connects via bidirectional blue arrow to the Human Options box (light blue, bottom-right) which presents three choices: ✓ Approve (Continue), ✗ Reject (Stop), ✎ Modify (Edit and resume). On the bottom-left, the Thread Storage box (pink) shows persistent state management with thread\_id "user\_123", stored checkpoints CP₁ and CP₂, and the ability to "Resume anytime" across sessions. The bottom benefits banner (green) highlights three key advantages: Safety (human approval prevents harmful actions), Flexibility (resume later capability), and Transparency (visibility into planned actions before execution). This system is crucial for high-stakes applications where autonomous agent actions require human oversight, such as sending emails, making purchases, or modifying production databases. The checkpoint mechanism enables not just approval workflows but also time-travel debugging and error recovery.}
 \label{fig:langgraph_human_in_loop}
 \end{figure}
@@ -8218,7 +8222,7 @@ The agent cycles through these phases until it decides the task is complete. The
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/langgraph/react_loop.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/langgraph/react_loop.png}
 \caption{\textbf{ReAct Agent: Reasoning + Action Loop.} This visualization illustrates the ReAct (Reasoning and Acting) agent architecture's iterative three-phase cycle. At the center, three connected phases form a continuous loop: Thought (blue box, top, "Reason about next step"), Action (green box, bottom-right, "Execute tool or query"), and Observation (orange box, bottom-left, "Process result"). Thick black curved arrows connect these phases in a clockwise circular flow, demonstrating the iterative nature where each cycle refines the agent's understanding and progress toward the goal. The bottom-left Example box (light blue) provides a concrete walkthrough of solving "What is 25 × 37?": Thought₁ ("Need calculator for multiplication") → Action₁ ("calculator(25 * 37)") → Obs₁ ("Result: 925") → Thought₂ ("Have the answer") → Action₂ ("final\_answer(925)") → Done ("Answer: 925 ✓"). Each step is color-coded to match its phase. The bottom-right Available Tools box (yellow) lists four tools accessible to the agent: calculator (green badge, "Math operations"), search (blue badge, "Web search"), database (purple badge, "Query DB"), and file\_read (red badge, "Read files"), demonstrating the extensibility of the ReAct framework. The top-left Key Insight box (green) emphasizes the fundamental distinction: "Interleaved reasoning \& actions" versus "Plan-Execute: Separate phases," highlighting how ReAct dynamically adapts its approach based on intermediate observations rather than committing to a fixed plan upfront. This architecture is essential for tasks requiring adaptive problem-solving where the best approach emerges through interaction with tools and observation of results, making it ideal for complex question answering, research tasks, and interactive troubleshooting scenarios.}
 \label{fig:langgraph_react_loop}
 \end{figure}
@@ -8354,7 +8358,7 @@ app = workflow.compile()
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/langgraph/plan_execute.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/langgraph/plan_execute.png}
 \caption{\textbf{Plan-and-Execute Architecture.} This two-phase workflow visualization contrasts planning (left) with execution (right). \textbf{Phase 1 - Planning (Left, Blue Box):} The workflow begins with a User Query box (yellow, bottom) containing the initial objective. An upward orange arrow feeds this to the Planner LLM box (dark blue, top) which generates a comprehensive step-by-step plan. A black downward arrow connects to the Generated Plan box (white, middle) displaying three example steps: "1. Search for information", "2. Analyze results", "3. Synthesize answer" (shown in monospace font). This planning phase occurs once at the beginning and creates the complete roadmap. \textbf{Phase 2 - Execution (Right, Purple Box):} Sequential execution of the planned steps occurs top-to-bottom. Step 1 (green box, "search('topic')") executes first, followed by a black downward arrow to Step 2 (blue box, "analyze(results)"), then another arrow to Step 3 (purple box, "synthesize(data)"). A final green arrow descends to the Final Answer box (green, "Final Answer") representing the completed output. Below the execution steps, an Execution State box (yellow, bottom) shows the maintained state structure: plan (list of all steps), past\_steps (completed steps), and results (accumulated outputs), all in monospace font. A thick black arrow labeled "Pass Plan" (yellow highlight) connects the two phases, showing how the generated plan is transferred from planning to execution. The bottom comparison banner (light blue) emphasizes the key distinction: "vs. ReAct: Plan-Execute separates planning (upfront) from execution (sequential)" and "ReAct interleaves reasoning and actions dynamically." This architecture is optimal for complex tasks requiring coherent overall strategy, where upfront planning leads to more efficient execution than incremental decision-making, making it ideal for research projects, multi-step data analysis, and structured content generation.}
 \label{fig:langgraph_plan_execute}
 \end{figure}
@@ -8786,7 +8790,7 @@ Space for $T$ checkpoints:
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.95\textwidth]{visualization/images/langgraph/checkpoint_timeline.png}
+\includegraphics[width=0.95\textwidth]{../visualization/images/langgraph/checkpoint_timeline.png}
 \caption{\textbf{Checkpoint System: Time-Travel and Branching.} This visualization demonstrates LangGraph's powerful checkpoint-based time-travel debugging and branching capabilities. The top timeline (Main Timeline - Original Execution) shows the primary execution path with 11 checkpoints (CP0 through CP10) represented as blue circles connected by a black horizontal line. Each checkpoint is numbered below (0 through 10) and automatically saves the complete state at that point. Checkpoint 5 (CP₅) is specially highlighted with a red outline, indicating it as the branch point. A large red curved arrow labeled "Time-Travel Back to CP₅" connects from checkpoint 10 back to checkpoint 5, illustrating the time-travel mechanism where execution can jump backward to any previous checkpoint. From CP₅, a downward green arrow labeled "Branch Here" creates an alternative execution path. The bottom timeline (Alternative Branch - New Execution, green dashed line) shows six new checkpoints (CP₅' through CP₁₀') diverging from the original timeline, each represented as green circles. This demonstrates how loading a past checkpoint and continuing execution creates a new branch while preserving the original history. The bottom-left State Versioning box (light blue) shows example state snapshots: CP₅ (original), CP₁₀ (end of original path), and CP₅' (start of alternative branch), with the note "All versions persisted" emphasizing that no history is lost. The bottom-right Use Cases box (green) lists three practical applications: 🐛 Debug (go back to error point), 🔄 Replay (test different decisions), and 🌳 Explore (try multiple paths from checkpoint). This checkpoint system is invaluable for debugging complex agent behaviors, A/B testing different routing decisions, recovering from errors without full re-execution, and interactive development where you can experiment with different agent behaviors from any point in the execution history, saving both time and API costs.}
 \label{fig:langgraph_checkpoint_timeline}
 \end{figure}
@@ -13232,21 +13236,21 @@ print(f"  LoRA: {'Enabled' if use_lora else 'Disabled'}")
 def format_instruction(example: Dict) -> str:
     """
     Format a single example into Alpaca-style prompt
-    
+
     This function converts structured instruction data into a text format
     suitable for causal language modeling. The format follows the Alpaca
     template which has been shown to improve instruction-following.
-    
+
     Args:
         example: Dict with 'instruction', 'input', 'output' keys
-        
+
     Returns:
         Formatted string ready for tokenization
     """
     instruction = example.get('instruction', '').strip()
     input_text = example.get('input', '').strip()
     output = example.get('output', '').strip()
-    
+
     # Alpaca format: includes structured markers for clarity
     if input_text:
         prompt = f"""Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
@@ -13267,7 +13271,7 @@ def format_instruction(example: Dict) -> str:
 
 ### Response:
 {output}"""
-    
+
     return prompt
 
 # Load dataset
@@ -13317,7 +13321,7 @@ if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
     # GPT-style models don't have a pad token, use EOS instead
     # This prevents errors during batched training
-    
+
 tokenizer.padding_side = "right"  # Pad on the right for causal LM
                                   # Left padding can cause issues with attention
 
@@ -13350,10 +13354,10 @@ print(f"Model loaded: {total_params / 1e9:.2f}B parameters")
 
 if use_lora:
     print("\nApplying LoRA configuration...")
-    
+
     # Prepare model for k-bit training (enables gradient checkpointing)
     model = prepare_model_for_kbit_training(model)
-    
+
     # Configure LoRA
     lora_config = LoraConfig(
         r=lora_r,                      # Rank of adaptation matrices
@@ -13363,15 +13367,15 @@ if use_lora:
         bias="none",                   # Don't adapt bias terms
         task_type="CAUSAL_LM"          # Task type for proper initialization
     )
-    
+
     # Wrap model with LoRA
     model = get_peft_model(model, lora_config)
-    
+
     # Print trainable parameters
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total_params = sum(p.numel() for p in model.parameters())
     trainable_pct = 100 * trainable_params / total_params
-    
+
     print(f"Trainable parameters: {trainable_params / 1e6:.2f}M ({trainable_pct:.2f}%)")
     print(f"Total parameters: {total_params / 1e9:.2f}B")
     # Expected: <1% trainable for LoRA, significant memory savings
@@ -13382,20 +13386,20 @@ if use_lora:
 def preprocess_function(examples: Dict) -> Dict:
     """
     Tokenize examples with proper loss masking
-    
+
     Key concept: We only compute loss on the "Response" part,
     not on the instruction/input. This focuses learning on
     generating appropriate outputs.
-    
+
     Args:
         examples: Batch of examples from dataset
-        
+
     Returns:
         Dict with input_ids, attention_mask, labels
     """
     # Format all examples in batch
     formatted_texts = [format_instruction(ex) for ex in examples]
-    
+
     # Tokenize
     tokenized = tokenizer(
         formatted_texts,
@@ -13404,15 +13408,15 @@ def preprocess_function(examples: Dict) -> Dict:
         padding="max_length",
         return_tensors=None  # Return lists, not tensors (for datasets)
     )
-    
+
     # Create labels (copy of input_ids for causal LM)
     tokenized["labels"] = tokenized["input_ids"].copy()
-    
+
     # Optional: Mask instruction tokens (advanced technique)
     # This requires tracking where the response starts
     # For simplicity, we compute loss on full sequence here
     # Production systems should implement proper masking
-    
+
     return tokenized
 
 # Preprocess datasets
@@ -13436,13 +13440,13 @@ print("Tokenization complete")
 
 training_args = TrainingArguments(
     output_dir=output_dir,
-    
+
     # Training hyperparameters
     num_train_epochs=num_epochs,
     per_device_train_batch_size=batch_size,
     per_device_eval_batch_size=batch_size,
     gradient_accumulation_steps=gradient_accumulation,
-    
+
     # Optimizer settings
     learning_rate=learning_rate,
     weight_decay=0.01,              # L2 regularization
@@ -13450,12 +13454,12 @@ training_args = TrainingArguments(
     adam_beta2=0.999,               # Adam second moment
     adam_epsilon=1e-8,              # Numerical stability
     max_grad_norm=1.0,              # Gradient clipping (prevents exploding gradients)
-    
+
     # Learning rate schedule
     lr_scheduler_type="cosine",     # Cosine annealing works well
                                     # Alternatives: "linear", "constant_with_warmup"
     warmup_steps=warmup_steps,      # Gradual warmup prevents instability
-    
+
     # Logging and checkpointing
     logging_steps=logging_steps,
     save_steps=save_steps,
@@ -13464,13 +13468,13 @@ training_args = TrainingArguments(
     save_total_limit=3,             # Keep only last 3 checkpoints (saves disk space)
     load_best_model_at_end=True,    # Load best checkpoint at end
     metric_for_best_model="eval_loss",  # Use validation loss for selection
-    
+
     # Performance optimizations
     fp16=False,                     # Set True for older GPUs
     bf16=torch.cuda.is_bf16_supported(),  # Better numerical stability
     gradient_checkpointing=True,    # Trade compute for memory (enables larger models)
     optim="adamw_torch",            # Optimizer implementation
-    
+
     # Miscellaneous
     report_to="none",               # Disable wandb/tensorboard (set to "wandb" if needed)
     seed=42,                        # Reproducibility
@@ -13540,14 +13544,14 @@ def generate_response(
 ) -> str:
     """
     Generate response for a given instruction
-    
+
     Args:
         instruction: Task instruction
         input_text: Optional input context
         max_new_tokens: Maximum tokens to generate
         temperature: Sampling temperature (higher = more creative)
         top_p: Nucleus sampling threshold
-        
+
     Returns:
         Generated response string
     """
@@ -13571,10 +13575,10 @@ def generate_response(
 
 ### Response:
 """
-    
+
     # Tokenize
     inputs = tokenizer(prompt, return_tensors="pt").to(device)
-    
+
     # Generate
     with torch.no_grad():
         outputs = model.generate(
@@ -13586,14 +13590,14 @@ def generate_response(
             pad_token_id=tokenizer.pad_token_id,
             eos_token_id=tokenizer.eos_token_id
         )
-    
+
     # Decode
     response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    
+
     # Extract only the generated response (after "### Response:")
     if "### Response:" in response:
         response = response.split("### Response:")[-1].strip()
-    
+
     return response
 
 # Test examples
@@ -13617,7 +13621,7 @@ for i, test in enumerate(test_cases, 1):
     print(f"Instruction: {test['instruction']}")
     if test['input']:
         print(f"Input: {test['input']}")
-    
+
     response = generate_response(test['instruction'], test['input'])
     print(f"Response: {response}\n")
 
@@ -13632,13 +13636,13 @@ print("="*50)
 
 \begin{itemize}
     \item \textbf{LoRA instead of full fine-tuning:} Reduces trainable parameters from 7B to ~40M (0.5\%), making training feasible on consumer GPUs. Full fine-tuning a 7B model requires 80GB+ VRAM; LoRA needs only 24GB.
-    
+
     \item \textbf{Gradient accumulation:} Simulates larger batch sizes without OOM errors. Effective batch size of 16 (4 × 4) provides stable gradients while fitting in 24GB GPU memory.
-    
+
     \item \textbf{Cosine learning rate schedule:} Gradually reduces learning rate, allowing fine-grained optimization near convergence. More stable than constant LR.
-    
+
     \item \textbf{Gradient checkpointing:} Trades compute for memory by recomputing activations during backward pass. Increases training time by ~20\% but reduces memory by ~40\%.
-    
+
     \item \textbf{BFloat16 precision:} Better numerical stability than Float16, especially for large models. Prevents gradient underflow issues common in FP16 training.
 \end{itemize}
 
@@ -13663,24 +13667,24 @@ This fits comfortably in 24GB GPU memory with overhead.
     \\ \textit{Why:} Instruction tuning builds on pre-trained knowledge; too high LR destroys existing capabilities
     \\ \textit{Compute Impact:} No direct impact on memory/speed
     \\ \textit{Diagnostic:} If validation loss increases, reduce LR by 50\%
-    
+
     \item \textbf{Batch Size:} 4-8 per GPU with gradient accumulation
     \\ \textit{Why:} Effective batch of 16-32 provides stable gradients; smaller per-device batch saves memory
     \\ \textit{Memory Formula:} GPU memory ≈ params × 2 (model) + trainable × 12 (optimizer) + batch × seq\_len × hidden × layers × 2 (activations)
     \\ \textit{Adjustment:} If OOM error, reduce batch size or enable gradient checkpointing
-    
+
     \item \textbf{Epochs:} 1-3 for large datasets (>50K), 3-5 for medium (10K-50K), 5-10 for small (<10K)
     \\ \textit{Why:} More data = fewer epochs needed; small datasets require more passes to learn patterns
     \\ \textit{Overfitting Check:} If train loss ≪ val loss, reduce epochs or add dropout
-    
+
     \item \textbf{LoRA Rank:} 8-16 for most tasks, 32-64 for complex domains
     \\ \textit{Why:} Higher rank = more capacity but slower training and higher memory
     \\ \textit{Sweet Spot:} r=16 with α=32 works for 90\% of use cases
-    
+
     \item \textbf{Max Sequence Length:} 512 for most tasks, 1024-2048 for long-form generation
     \\ \textit{Why:} Longer sequences = quadratic memory growth in attention
     \\ \textit{Memory Impact:} Doubling max\_length roughly doubles activation memory
-    
+
     \item \textbf{Warmup Steps:} 100-500 (or 5-10\% of total steps)
     \\ \textit{Why:} Prevents initial training instability from cold start
     \\ \textit{Formula:} warmup = 0.1 × (dataset\_size / (batch\_size × accum\_steps) × epochs)
@@ -13710,7 +13714,7 @@ This fits comfortably in 24GB GPU memory with overhead.
     \item \textbf{Symptoms:} Output is incoherent, repeats input verbatim, or continues the instruction instead of providing response
     \item \textbf{Root Cause:} Improper prompt formatting or missing loss masking on instruction tokens
     \item \textbf{Diagnosis:} Check that prompt template includes clear delimiters (e.g., "\#\#\# Response:"). Verify tokenizer processes special tokens correctly.
-    \item \textbf{Solution:} 
+    \item \textbf{Solution:}
     \begin{lstlisting}[language=Python]
 # Ensure proper prompt structure
 prompt = f"""### Instruction:
@@ -13753,7 +13757,7 @@ augmented_data = generate_diverse_instructions(seed_set, target_count=10000)
     \item \textbf{Symptoms:} Model follows instructions well but loses general knowledge (e.g., can't answer factual questions unless phrased as instructions)
     \item \textbf{Root Cause:} Learning rate too high or too many epochs, destroying pre-trained weights
     \item \textbf{Diagnosis:} Test on general knowledge benchmarks (MMLU, TriviaQA). Significant drop from base model indicates forgetting.
-    \item \textbf{Solution:} 
+    \item \textbf{Solution:}
     \begin{lstlisting}[language=Python]
 # Option 1: Mix instruction data with general pre-training data
 mixed_dataset = concatenate_datasets([
@@ -13863,23 +13867,23 @@ outputs = model.generate(
 \begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title={Key Takeaways: Instruction Fine-Tuning}]
 \begin{enumerate}
     \item \textbf{Core Objective:} Train models to follow diverse instructions by maximizing $\mathbb{E}_{(I,x,y)} [\log P_\theta(y | I, x)]$ across multi-task datasets, enabling zero-shot generalization to novel tasks.
-    
+
     \item \textbf{Critical Implementation Detail:} Always mask instruction/input tokens in loss computation (set labels to -100 for these positions). This focuses learning on response generation, not instruction repetition.
-    
+
     \item \textbf{Prompt Template Consistency:} Use the same template structure during training and inference. Mismatched templates cause severe performance degradation. Alpaca format ("### Instruction: ... ### Response:") is a proven standard.
-    
+
     \item \textbf{LoRA Sweet Spot:} Rank r=16 with alpha=32 balances capacity and efficiency for most tasks. Only increase to r=32-64 for highly specialized domains. Full fine-tuning rarely necessary and wastes resources.
-    
+
     \item \textbf{Data Quality Over Quantity:} 10K high-quality, diverse instruction examples outperform 100K low-quality, repetitive ones. Prioritize task diversity (20+ task types) over raw dataset size.
-    
+
     \item \textbf{Learning Rate Rule:} Start at 2×10⁻⁵; halve if validation loss increases, double if training too slow. Never exceed 5×10⁻⁵ or risk catastrophic forgetting of base model knowledge.
-    
+
     \item \textbf{Memory Management:} GPU memory = model (2 bytes/param) + LoRA trainable (12 bytes/param) + activations (batch × seq² × hidden). Enable gradient checkpointing first, then reduce batch size if OOM.
-    
+
     \item \textbf{Evaluation Beyond Metrics:} Automatic metrics (ROUGE, BLEU) don't capture instruction-following quality. Test on diverse, unseen tasks with human evaluation. Win rate in pairwise comparison is most reliable.
-    
+
     \item \textbf{Preventing Catastrophic Forgetting:} Use 1-3 epochs max for large datasets (>50K). Mix 5-10\% general pre-training data to maintain base capabilities. Monitor general knowledge benchmarks (MMLU) before/after tuning.
-    
+
     \item \textbf{Production Checklist:} (1) Diverse training data (20+ task types), (2) Proper loss masking implemented, (3) Consistent prompt templates, (4) Warmup enabled (10\% of steps), (5) Gradient clipping (max\_norm=1.0), (6) Checkpointing every 500 steps, (7) Validation set monitoring, (8) Human evaluation on unseen tasks.
 \end{enumerate}
 \end{tcolorbox}
@@ -13892,6 +13896,78 @@ outputs = model.generate(
 \section{Evaluation of Fine-Tuned Models}
 
 \subsection{Introduction to Model Evaluation}
+
+\textbf{The Big Picture: Why Evaluation is the Hardest Problem in LLMs}
+
+Imagine you've spent weeks fine-tuning a medical chatbot. It generates fluent, professional-sounding responses. But is it actually \textit{good}? Does it understand medical concepts or just mimic patterns? Will it give dangerous advice? How do you know?
+
+This is the fundamental challenge of LLM evaluation: **language is creative and subjective**. Unlike image classification (cat vs dog = binary), evaluating generated text requires assessing:
+\begin{itemize}
+    \item \textbf{Correctness:} Is the information factually accurate?
+    \item \textbf{Fluency:} Does it sound natural, like a human wrote it?
+    \item \textbf{Coherence:} Do ideas flow logically?
+    \item \textbf{Relevance:} Does it address the actual question?
+    \item \textbf{Safety:} Could it cause harm?
+\end{itemize}
+
+No single number captures all these dimensions. A model might score high on fluency (generates grammatical text) but low on correctness (makes up facts). This is why evaluation requires **multiple complementary approaches**.
+
+\textbf{Real-World Motivation: When Evaluation Matters Most}
+
+\begin{enumerate}
+    \item \textbf{Research:} Publishing a new fine-tuning method requires proving it works better than baselines. You need objective metrics others can reproduce.
+
+    \item \textbf{Production:} Before deploying a chatbot to millions of users, you must ensure it won't generate harmful, biased, or incorrect responses.
+
+    \item \textbf{Iteration:} During development, you train multiple versions. How do you know v2 is better than v1? Evaluation guides improvement.
+
+    \item \textbf{Debugging:} Model performs poorly. Is it overfitting? Underfitting? Lacking diversity? Metrics help diagnose issues.
+\end{enumerate}
+
+\textbf{Historical Context: The Evolution of LLM Evaluation}
+
+\begin{itemize}
+    \item \textbf{2013-2018:} Traditional NLP used task-specific metrics (BLEU for translation, ROUGE for summarization). Each task had its own standard.
+
+    \item \textbf{2019-2020:} GPT-2/GPT-3 showed models could do many tasks. Perplexity became the universal metric, but it doesn't measure task performance.
+
+    \item \textbf{2021-2022:} RLHF introduced human preference evaluation. Metrics like "helpfulness" and "harmlessness" became critical.
+
+    \item \textbf{2023-Present:} Benchmark suites (HELM, MMLU, Big-Bench) test models across 100+ tasks. LLM-as-judge uses GPT-4 to evaluate outputs.
+\end{itemize}
+
+The field moved from "does it predict the next word well?" to "does it behave the way humans want?"
+
+\textbf{The Evaluation Hierarchy: From Simple to Comprehensive}
+
+Think of evaluation as a pyramid with three levels:
+
+\begin{enumerate}
+    \item \textbf{Base Level - Automatic Metrics:} Fast, cheap, reproducible but limited
+    \begin{itemize}
+        \item Perplexity: How surprised is the model by correct tokens?
+        \item BLEU/ROUGE: How much overlap with reference text?
+        \item Accuracy: For classification tasks, \% correct
+    \end{itemize}
+
+    \item \textbf{Middle Level - Benchmark Evaluation:} Standardized test suites
+    \begin{itemize}
+        \item MMLU: 57 multiple-choice tasks (math, history, law, medicine)
+        \item Big-Bench: 200+ diverse challenges
+        \item HumanEval: Code generation correctness
+    \end{itemize}
+
+    \item \textbf{Top Level - Human Evaluation:} Expensive, slow, but captures what matters
+    \begin{itemize}
+        \item Pairwise comparison: Is output A better than B?
+        \item Likert scales: Rate quality 1-5
+        \item Task completion: Can humans achieve their goal?
+    \end{itemize}
+\end{enumerate}
+
+**Best practice:** Use all three levels. Automatic metrics for rapid iteration, benchmarks for standardized comparison, human eval for final validation.
+
+\textbf{The Core Evaluation Question:}
 
 Evaluating fine-tuned language models is a multifaceted challenge that requires both automatic metrics and human judgment. A comprehensive evaluation strategy must assess:
 
@@ -13915,35 +13991,125 @@ No single metric captures all aspects of model quality. A comprehensive evaluati
 
 \subsubsection{Perplexity: The Foundation Metric}
 
+\textbf{What is Perplexity? - The Intuitive Understanding}
+
+Imagine you're reading a mystery novel. When a plot twist happens, you're "surprised" - you didn't expect that character to be the villain. When the detective follows obvious clues, you're not surprised - you saw it coming.
+
+Perplexity measures **how surprised a language model is** by the actual text. Lower surprise = better model. If the model assigns high probability to the words that actually appear, perplexity is low. If the model is constantly surprised ("I didn't expect the next word to be 'the' - I thought it would be 'elephant'!"), perplexity is high.
+
+\textbf{Concrete Example - Let's See It In Action:}
+
+Consider predicting the next word in: "The cat sat on the \_\_\_"
+
+\textbf{Good Model (Low Perplexity):}
+\begin{itemize}
+    \item P("mat") = 0.4
+    \item P("floor") = 0.3
+    \item P("chair") = 0.2
+    \item P("ceiling") = 0.05
+    \item P("elephant") = 0.0001
+\end{itemize}
+
+If the actual word is "mat", the model assigned 40\% probability - reasonable guess, low surprise.
+
+\textbf{Bad Model (High Perplexity):}
+\begin{itemize}
+    \item P("elephant") = 0.3
+    \item P("supernova") = 0.2
+    \item P("mat") = 0.01 ← actual word
+    \item P("floor") = 0.01
+\end{itemize}
+
+The model assigned only 1\% probability to the actual word "mat" - terrible guess, high surprise.
+
+\textbf{Why Use Perplexity Instead of Raw Probability?}
+
+Three reasons:
+
+\begin{enumerate}
+    \item \textbf{Geometric Mean:} Perplexity averages across all tokens. Long sequences have tiny probabilities (0.9 × 0.8 × 0.7 × ... → 0.00001), but perplexity stays interpretable.
+
+    \item \textbf{Scale-Invariant:} Probabilities shrink exponentially with sequence length. Perplexity remains comparable across short and long texts.
+
+    \item \textbf{Information Theory Connection:} Perplexity = 2^{entropy}. It represents the "effective vocabulary size" - how many words the model is genuinely uncertain about at each step.
+\end{enumerate}
+
+\textbf{Interpreting Perplexity Values:}
+
+\begin{itemize}
+    \item \textbf{PPL = 1:} Perfect model (assigns probability 1 to correct token every time). Impossible in practice except on memorized data.
+
+    \item \textbf{PPL = 10-20:} Excellent model. Means the model is uncertain among ~10-20 plausible next words.
+
+    \item \textbf{PPL = 50-100:} Decent model. Still learning patterns but not terrible.
+
+    \item \textbf{PPL = 1000+:} Poor model. Essentially random guessing.
+
+    \item \textbf{PPL = Vocab Size:} Random baseline. If vocabulary has 50K words, PPL ≈ 50K means model just picks uniformly.
+\end{itemize}
+
+\textbf{Real-World Example:}
+
+GPT-3 (175B parameters) achieves:
+\begin{itemize}
+    \item PPL ≈ 20 on general web text (excellent)
+    \item PPL ≈ 40 on specialized domains (medical, legal) before fine-tuning
+    \item PPL ≈ 15 on those domains after fine-tuning (improvement!)
+\end{itemize}
+
+The drop from 40 → 15 shows fine-tuning worked - the model is less surprised by domain-specific vocabulary.
+
+\textbf{Mathematical Definition - Building Up Gradually:}
+
+Now that we understand the intuition, let's formalize it.
+
 Perplexity measures how well a probability model predicts a sample. It's the most fundamental metric for language models.
 
-\textbf{Mathematical Definition:}
+For a sequence $w = (w_1, w_2, \ldots, w_N)$, perplexity measures how well the model predicts this specific sequence.
 
-For a sequence $w = (w_1, w_2, \ldots, w_N)$, the perplexity is:
+\textbf{Step 1: Start with the probability of the entire sequence}
 
-\begin{equation}
-\text{PPL}(w) = P(w_1, w_2, \ldots, w_N)^{-\frac{1}{N}}
-\end{equation}
-
-Using the chain rule of probability:
+Using the chain rule of probability (each word depends on previous words):
 
 \begin{equation}
 P(w_1, \ldots, w_N) = \prod_{i=1}^N P(w_i | w_{<i})
 \end{equation}
 
-Therefore:
+where $w_{<i} = (w_1, \ldots, w_{i-1})$ represents all previous words.
+
+\textbf{Why multiplication?} Each word's probability is conditional on what came before. To get the full sequence probability, we multiply: P(w1) × P(w2|w1) × P(w3|w1,w2) × ...
+
+\textbf{Step 2: Take the geometric mean to get per-token probability}
+
+We want average performance per token, not total sequence probability. Use the N-th root:
 
 \begin{equation}
-\text{PPL}(w) = \left(\prod_{i=1}^N P(w_i | w_{<i})\right)^{-\frac{1}{N}}
+\text{Geometric Mean} = \left(\prod_{i=1}^N P(w_i | w_{<i})\right)^{\frac{1}{N}}
 \end{equation}
 
-Taking logarithms:
+\textbf{Why geometric mean?} Arithmetic mean doesn't work for probabilities that multiply. Geometric mean is the right way to average multiplicative quantities.
+
+\textbf{Step 3: Take the inverse to convert "goodness" to "badness"}
+
+Lower probability = worse model, but we want lower perplexity = better model. So invert:
+
+\begin{equation}
+\text{PPL}(w) = P(w_1, w_2, \ldots, w_N)^{-\frac{1}{N}} = \left(\prod_{i=1}^N P(w_i | w_{<i})\right)^{-\frac{1}{N}}
+\end{equation}
+
+Now: High probability → Low perplexity (good). Low probability → High perplexity (bad).
+
+\textbf{Step 4: Convert to log space for numerical stability}
+
+Taking logarithms prevents underflow (multiplying many small numbers → 0):
 
 \begin{equation}
 \log \text{PPL}(w) = -\frac{1}{N} \sum_{i=1}^N \log P(w_i | w_{<i})
 \end{equation}
 
-\textbf{Interpretation:}
+This is exactly the **cross-entropy loss** used during training! Minimizing training loss = minimizing perplexity.
+
+\textbf{Connection to Cross-Entropy:}
 
 Perplexity can be interpreted as the weighted average branching factor:
 
@@ -14143,6 +14309,166 @@ def compute_conditional_perplexity(model, tokenizer, instruction_data):
 cond_ppl = compute_conditional_perplexity(model, tokenizer, test_instruction_data)
 print(f"Conditional Perplexity: {cond_ppl:.2f}")
 \end{lstlisting}
+
+\begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,title={Hyperparameter Guidance: Model Evaluation}]
+\textbf{Perplexity Computation:}
+\begin{itemize}
+    \item \textbf{Sequence Length:} Use max\_length=512-1024 for efficient computation
+          \\ \textit{Why:} Longer sequences increase memory usage quadratically in attention
+          \\ \textit{Memory:} GPU RAM = batch\_size × seq\_len × hidden\_dim × 4 bytes × overhead
+    \item \textbf{Stride:} Set stride = max\_length / 2 for sliding window approach
+          \\ \textit{Why:} Overlapping context prevents truncation artifacts
+          \\ \textit{Trade-off:} Smaller stride = more accurate but slower (2x overlap = 2x time)
+    \item \textbf{Test Set Size:} Minimum 1000 tokens for reliable perplexity estimates
+          \\ \textit{Why:} Variance decreases as $\sigma^2 / N$ where $N$ is token count
+          \\ \textit{Rule:} Standard error < 0.5 requires ~5000 tokens for PPL≈20
+\end{itemize}
+
+\textbf{Metric Selection Guide:}
+\begin{itemize}
+    \item \textbf{Perplexity:} Best for language modeling tasks, pre-training evaluation
+    \item \textbf{BLEU:} Best for machine translation (precision-focused)
+    \item \textbf{ROUGE:} Best for summarization (recall-focused)
+    \item \textbf{Exact Match + F1:} Best for question answering
+    \item \textbf{Human Evaluation:} Gold standard for open-ended generation
+\end{itemize}
+
+\textbf{Benchmark Configuration:}
+\begin{itemize}
+    \item \textbf{Few-Shot Examples:} Use 0-shot baseline, then 1-shot, 5-shot for comparison
+    \item \textbf{Temperature:} Set to 0 (greedy) for deterministic evaluation
+    \item \textbf{Batch Size:} 8-16 for evaluation (larger than training to maximize throughput)
+\end{itemize}
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title={Common Pitfalls and Debugging Tips: Evaluation}]
+
+\textbf{Pitfall 1: Overfitting to Metrics}
+\begin{itemize}
+    \item \textbf{Symptoms:} BLEU score increases but human evaluation ratings decrease
+    \item \textbf{Root Cause:} Model learns to game the metric (e.g., copying n-grams from input)
+    \item \textbf{Diagnosis:} Compare automatic metrics with human ratings on held-out set
+    \item \textbf{Solution:}
+          \begin{lstlisting}[language=Python]
+# Always include multiple metrics - don't optimize for just one
+evaluation_suite = {
+    'perplexity': compute_perplexity(model, test_data),
+    'bleu': compute_bleu_corpus(predictions, references),
+    'rouge': compute_rouge_corpus(predictions, references),
+    'human_rating': get_human_ratings(predictions)  # Sample 100 examples
+}
+# If metrics diverge, investigate specific examples
+          \end{lstlisting}
+    \item \textbf{Prevention:} Use diverse metric suite, include human evaluation regularly
+\end{itemize}
+
+\textbf{Pitfall 2: Comparing Across Different Datasets}
+\begin{itemize}
+    \item \textbf{Symptoms:} Model A has PPL=15 on Dataset X, Model B has PPL=18 on Dataset Y. Which is better?
+    \item \textbf{Root Cause:} Perplexity is dataset-dependent (different vocabularies, domains)
+    \item \textbf{Solution:} \textbf{Never compare perplexity across different datasets}
+          \\ Only compare models evaluated on the \textit{same} test set
+    \item \textbf{Correct Approach:}
+          \begin{lstlisting}[language=Python]
+# Evaluate both models on SAME test set
+test_set = load_dataset('common_test_set')
+ppl_a = compute_perplexity(model_a, test_set)  # e.g., 15.2
+ppl_b = compute_perplexity(model_b, test_set)  # e.g., 18.7
+# Now comparison is valid: Model A is better (15.2 < 18.7)
+          \end{lstlisting}
+\end{itemize}
+
+\textbf{Pitfall 3: Ignoring Statistical Significance}
+\begin{itemize}
+    \item \textbf{Symptoms:} Claim "Model A beats Model B" based on 0.002 F1 difference
+    \item \textbf{Root Cause:} Random variance makes small differences meaningless
+    \item \textbf{Diagnosis:} Run paired t-test (p < 0.05 required for significance)
+    \item \textbf{Solution:}
+          \begin{lstlisting}[language=Python]
+from scipy.stats import ttest_rel
+
+# Per-example scores (not averages!)
+scores_a = [compute_score(pred_a, ref) for pred_a, ref in zip(preds_a, refs)]
+scores_b = [compute_score(pred_b, ref) for pred_b, ref in zip(preds_b, refs)]
+
+t_stat, p_value = ttest_rel(scores_a, scores_b)
+mean_diff = np.mean(scores_a) - np.mean(scores_b)
+
+if p_value < 0.05:
+    print(f"Significant difference: {mean_diff:.4f} (p={p_value:.4f})")
+else:
+    print(f"No significant difference (p={p_value:.4f})")
+          \end{lstlisting}
+    \item \textbf{Prevention:} Always report confidence intervals and p-values
+\end{itemize}
+
+\textbf{Pitfall 4: Not Masking Prompt Tokens in Conditional Generation}
+\begin{itemize}
+    \item \textbf{Symptoms:} Perplexity seems too good (unrealistically low)
+    \item \textbf{Root Cause:} Including prompt tokens in loss calculation inflates scores
+    \item \textbf{Solution:} Mask prompt with label=-100 (only evaluate on generated output)
+          \begin{lstlisting}[language=Python]
+# Correct: Mask prompt tokens
+labels = input_ids.clone()
+labels[:, :prompt_length] = -100  # Don't compute loss on prompt
+loss = model(input_ids, labels=labels).loss  # Only output tokens
+          \end{lstlisting}
+    \item \textbf{Prevention:} Always use conditional perplexity for instruction-following
+\end{itemize}
+
+\textbf{Pitfall 5: Using Wrong Tokenizer for Evaluation}
+\begin{itemize}
+    \item \textbf{Symptoms:} Perplexity dramatically changes after model update
+    \item \textbf{Root Cause:} Different tokenizer produces different token counts
+    \item \textbf{Solution:} Always use the model's native tokenizer, never mix
+\end{itemize}
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title={Key Takeaways: Model Evaluation}]
+\begin{enumerate}
+    \item \textbf{Perplexity Formula:} $\text{PPL} = \exp\left(-\frac{1}{N}\sum_{i=1}^N \log P(w_i | w_{<i})\right)$ is the exponential of average negative log-likelihood. Lower is better.
+
+    \item \textbf{Success Indicators:}
+          \\ - Perplexity should be < 20 for good general models, < 15 after fine-tuning
+          \\ - BLEU > 0.3 for machine translation, ROUGE-L > 0.4 for summarization
+          \\ - Exact Match > 60\% and F1 > 70\% for question answering
+
+    \item \textbf{Metric Limitations:}
+          \\ - Perplexity: Dataset-dependent, not comparable across different test sets
+          \\ - BLEU: Zero if any 4-gram doesn't match, too harsh for open-ended generation
+          \\ - ROUGE: Doesn't capture semantic meaning, only n-gram overlap
+          \\ - All automatic metrics: Imperfect proxies for human judgment
+
+    \item \textbf{Evaluation Hierarchy:}
+          \\ (1) Human evaluation (expensive, gold standard)
+          \\ (2) LLM-as-judge (GPT-4 ratings, cheaper than humans)
+          \\ (3) Automatic metrics (fast, cheap, limited validity)
+
+    \item \textbf{Statistical Rigor:}
+          \\ - Always report mean ± std dev from multiple runs (3-5 seeds)
+          \\ - Use paired t-test for model comparison (p < 0.05 for significance)
+          \\ - Report 95\% confidence intervals with bootstrap (10K samples)
+
+    \item \textbf{Conditional Perplexity:} For instruction-following, mask prompt tokens (label=-100) and compute loss only on generated outputs. This prevents artificially low perplexity.
+
+    \item \textbf{Production Checklist:}
+          \\ (1) Multiple metrics (perplexity + task-specific + human eval)
+          \\ (2) Statistical significance testing (don't trust small differences)
+          \\ (3) Diverse test set (multiple domains, edge cases)
+          \\ (4) Regular monitoring (detect drift in production)
+
+    \item \textbf{When to Use Which Metric:}
+          \\ - Pre-training: Perplexity on held-out web text
+          \\ - Instruction tuning: Conditional perplexity + human preference
+          \\ - Translation: BLEU + human adequacy ratings
+          \\ - Summarization: ROUGE + factuality checks
+          \\ - QA: Exact Match + F1 + human verification
+
+    \item \textbf{Never Optimize Directly for Evaluation Metrics:} Goodhart's Law - "When a measure becomes a target, it ceases to be a good measure." Use metrics for monitoring, not as training objectives.
+
+    \item \textbf{Benchmark Contamination:} Check if test data was in pre-training corpus. Models may have memorized answers. Always validate on novel, held-out data.
+\end{enumerate}
+\end{tcolorbox}
 
 \subsection{Generation Quality Metrics}
 
@@ -15436,8 +15762,8 @@ scores_model_b = np.random.normal(0.70, 0.15, 100)
 
 comparison = compare_models_statistical(scores_model_a, scores_model_b)
 
-print(f"Model A mean: {comparison['mean_a']:.4f} ± {comparison['std_a']:.4f}")
-print(f"Model B mean: {comparison['mean_b']:.4f} ± {comparison['std_b']:.4f}")
+print(f"Model A mean: {comparison['mean_a']:.4f} +/- {comparison['std_a']:.4f}")
+print(f"Model B mean: {comparison['mean_b']:.4f} +/- {comparison['std_b']:.4f}")
 print(f"Mean difference: {comparison['mean_diff']:.4f}")
 print(f"95% CI: [{comparison['confidence_interval_95'][0]:.4f}, "
       f"{comparison['confidence_interval_95'][1]:.4f}]")
@@ -15872,6 +16198,445 @@ Model confidence should match empirical accuracy within each group:
 P(Y = 1 | \hat{P}(Y = 1) = p, G = g) = p \quad \forall p, \forall g
 \end{equation}
 
+\subsubsection{Mathematical Foundations of Fairness Metrics}
+
+\textbf{WHY Fairness Matters - The Fundamental Motivation:}
+
+In machine learning, models learn patterns from historical data. When this data reflects societal biases (e.g., hiring discrimination, loan denials based on protected attributes), models perpetuate and amplify these biases. Fairness metrics provide mathematical frameworks to detect and quantify discrimination, enabling us to build more equitable systems.
+
+\textbf{Real-World Impact:}
+\begin{itemize}
+    \item \textbf{Criminal Justice:} COMPAS algorithm showed higher false positive rates for Black defendants (45\% vs 24\% for white defendants) - violating equalized odds
+    \item \textbf{Healthcare:} Risk prediction models underestimate illness severity for Black patients, leading to reduced care access
+    \item \textbf{Hiring:} Amazon's recruiting tool penalized resumes containing "women's" keywords, violating demographic parity
+\end{itemize}
+
+\textbf{The Central Question:} How do we formalize "fairness" mathematically when groups have different base rates, different feature distributions, and different historical outcomes?
+
+\textbf{Step-by-Step Derivation of Demographic Parity:}
+
+\textbf{Intuition:} Demographic parity requires that the model's positive prediction rate be independent of group membership. This is analogous to saying "the probability of getting a loan should not depend on your race/gender."
+
+\textbf{Formal Derivation:}
+
+\textbf{Step 1: Define Independence}
+
+Two random variables $X$ and $Y$ are independent if:
+\begin{equation}
+P(X, Y) = P(X) \cdot P(Y)
+\end{equation}
+
+This implies: $P(X | Y) = P(X)$ (conditioning on $Y$ doesn't change $X$'s distribution)
+
+\textbf{Step 2: Apply to Predictions and Groups}
+
+Let $\hat{Y}$ be the model's prediction and $G$ be the group membership. Demographic parity requires:
+\begin{equation}
+\hat{Y} \perp G \quad \text{(predictions independent of group)}
+\end{equation}
+
+\textbf{Step 3: Expand Independence Condition}
+
+From independence, we have:
+\begin{equation}
+P(\hat{Y} | G) = P(\hat{Y})
+\end{equation}
+
+For binary predictions $\hat{Y} \in \{0, 1\}$, this means:
+\begin{equation}
+P(\hat{Y} = 1 | G = g) = P(\hat{Y} = 1) \quad \forall g
+\end{equation}
+
+\textbf{Step 4: Derive Multi-Group Equality}
+
+If the above holds for all groups, then for any two groups $g_1, g_2$:
+\begin{align}
+P(\hat{Y} = 1 | G = g_1) &= P(\hat{Y} = 1) \\
+P(\hat{Y} = 1 | G = g_2) &= P(\hat{Y} = 1) \\
+\therefore P(\hat{Y} = 1 | G = g_1) &= P(\hat{Y} = 1 | G = g_2)
+\end{align}
+
+\textbf{Quantifying Violations - The Demographic Parity Difference:}
+
+In practice, perfect parity is rare. We measure violation magnitude:
+
+\begin{equation}
+\Delta_{DP} = \max_{g_i, g_j \in \mathcal{G}} |P(\hat{Y} = 1 | G = g_i) - P(\hat{Y} = 1 | G = g_j)|
+\end{equation}
+
+\textbf{Interpretation:}
+\begin{itemize}
+    \item $\Delta_{DP} = 0$: Perfect demographic parity
+    \item $\Delta_{DP} \leq 0.1$: Generally acceptable (10\% difference)
+    \item $\Delta_{DP} > 0.2$: Significant disparity, investigation required
+\end{itemize}
+
+\textbf{Worked Example with Concrete Numbers:}
+
+\textbf{Scenario:} Loan approval model with two groups (Group A and Group B)
+
+\textbf{Given data:}
+\begin{itemize}
+    \item Group A: 1000 applicants, 600 approved → $P(\hat{Y} = 1 | G = A) = 0.60$
+    \item Group B: 1000 applicants, 400 approved → $P(\hat{Y} = 1 | G = B) = 0.40$
+\end{itemize}
+
+\textbf{Compute demographic parity violation:}
+\begin{align}
+\Delta_{DP} &= |P(\hat{Y} = 1 | G = A) - P(\hat{Y} = 1 | G = B)| \\
+&= |0.60 - 0.40| \\
+&= 0.20
+\end{align}
+
+\textbf{Conclusion:} 20\% disparity indicates potential discrimination. Group A is 50\% more likely to receive approval than Group B (0.60/0.40 = 1.5x).
+
+\textbf{Step-by-Step Derivation of Equalized Odds:}
+
+\textbf{Intuition:} Equalized odds requires that the model's error rates (both false positives and false negatives) be equal across groups. This is stronger than demographic parity because it conditions on the true outcome $Y$.
+
+\textbf{Formal Derivation:}
+
+\textbf{Step 1: Define Conditional Independence}
+
+Equalized odds requires:
+\begin{equation}
+\hat{Y} \perp G \mid Y \quad \text{(predictions independent of group, given true label)}
+\end{equation}
+
+\textbf{Step 2: Expand Conditional Independence}
+
+From the definition:
+\begin{equation}
+P(\hat{Y} | Y, G) = P(\hat{Y} | Y)
+\end{equation}
+
+This must hold for all values of $Y \in \{0, 1\}$.
+
+\textbf{Step 3: Decompose into Error Rates}
+
+For $Y = 1$ (positive class):
+\begin{equation}
+P(\hat{Y} = 1 | Y = 1, G = g) = P(\hat{Y} = 1 | Y = 1) = TPR \quad \forall g
+\end{equation}
+
+For $Y = 0$ (negative class):
+\begin{equation}
+P(\hat{Y} = 1 | Y = 0, G = g) = P(\hat{Y} = 1 | Y = 0) = FPR \quad \forall g
+\end{equation}
+
+\textbf{Step 4: Connect to Confusion Matrix}
+
+Recall confusion matrix definitions:
+\begin{align}
+TPR(g) &= \frac{TP(g)}{TP(g) + FN(g)} = P(\hat{Y} = 1 | Y = 1, G = g) \\
+FPR(g) &= \frac{FP(g)}{FP(g) + TN(g)} = P(\hat{Y} = 1 | Y = 0, G = g)
+\end{align}
+
+Equalized odds requires:
+\begin{align}
+TPR(g_1) &= TPR(g_2) \quad \forall g_1, g_2 \\
+FPR(g_1) &= FPR(g_2) \quad \forall g_1, g_2
+\end{align}
+
+\textbf{TikZ Diagram 1: ROC Curves for Fairness Evaluation}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    width=12cm,
+    height=10cm,
+    xlabel={False Positive Rate (FPR)},
+    ylabel={True Positive Rate (TPR)},
+    xmin=0, xmax=1,
+    ymin=0, ymax=1,
+    grid=major,
+    legend pos=south east,
+    title={ROC Curves for Two Groups - Equalized Odds Visualization}
+]
+
+% Perfect classifier line
+\addplot[black, dashed, ultra thick] coordinates {(0,0) (0,1) (1,1)};
+\addlegendentry{Perfect Classifier}
+
+% Random classifier diagonal
+\addplot[gray, dashed, thick] coordinates {(0,0) (1,1)};
+\addlegendentry{Random Classifier}
+
+% Group A ROC curve (higher TPR at same FPR)
+\addplot[blue, ultra thick, mark=*, mark size=3pt] coordinates {
+    (0,0) (0.05,0.65) (0.10,0.75) (0.15,0.82) (0.20,0.87)
+    (0.30,0.92) (0.40,0.95) (0.60,0.98) (1,1)
+};
+\addlegendentry{Group A (AUC=0.93)}
+
+% Group B ROC curve (lower TPR at same FPR - violates equalized odds)
+\addplot[red, ultra thick, mark=square*, mark size=3pt] coordinates {
+    (0,0) (0.05,0.50) (0.10,0.62) (0.15,0.70) (0.20,0.76)
+    (0.30,0.84) (0.40,0.88) (0.60,0.93) (1,1)
+};
+\addlegendentry{Group B (AUC=0.85)}
+
+% Operating point for Group A (FPR=0.15, TPR=0.82)
+\addplot[blue, only marks, mark=*, mark size=5pt, mark options={fill=blue}]
+    coordinates {(0.15,0.82)};
+\node[above right, blue] at (axis cs:0.15,0.82) {Op. Point A};
+
+% Operating point for Group B (FPR=0.15, TPR=0.70)
+\addplot[red, only marks, mark=square*, mark size=5pt, mark options={fill=red}]
+    coordinates {(0.15,0.70)};
+\node[below right, red] at (axis cs:0.15,0.70) {Op. Point B};
+
+% Arrow showing TPR gap at same FPR
+\draw[<->, very thick, purple] (axis cs:0.15,0.70) -- (axis cs:0.15,0.82);
+\node[right, purple] at (axis cs:0.16,0.76) {$\Delta TPR = 0.12$};
+
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+\textbf{Interpretation of Diagram:}
+\begin{itemize}
+    \item At FPR = 0.15, Group A achieves TPR = 0.82, but Group B only reaches TPR = 0.70
+    \item This violates equalized odds: different TPRs at the same FPR
+    \item Group B has 12\% lower true positive rate, meaning qualified Group B applicants are more likely to be incorrectly rejected
+    \item Even though both models perform above random chance (AUC > 0.5), the disparity indicates unfair treatment
+\end{itemize}
+
+\textbf{The Fairness Impossibility Theorem:}
+
+\textbf{Theorem (Chouldechova, 2017; Kleinberg et al., 2017):}
+
+If the base rates differ between groups (i.e., $P(Y = 1 | G = g_1) \neq P(Y = 1 | G = g_2)$), then it is \textit{impossible} to simultaneously satisfy:
+\begin{enumerate}
+    \item Calibration: $P(Y = 1 | \hat{Y} = \hat{y}, G = g) = P(Y = 1 | \hat{Y} = \hat{y})$
+    \item Equalized odds: $P(\hat{Y} | Y, G = g) = P(\hat{Y} | Y)$
+    \item Demographic parity: $P(\hat{Y} | G = g) = P(\hat{Y})$
+\end{enumerate}
+
+unless the classifier is perfect (TPR = 1, FPR = 0).
+
+\textbf{Proof Sketch:}
+
+\textbf{Step 1: Assume Different Base Rates}
+
+Let $p_1 = P(Y = 1 | G = g_1)$ and $p_2 = P(Y = 1 | G = g_2)$ with $p_1 \neq p_2$ (without loss of generality, $p_1 > p_2$).
+
+\textbf{Step 2: Bayes' Rule Decomposition}
+
+For calibration, we need:
+\begin{equation}
+P(Y = 1 | \hat{Y} = 1, G = g) = \frac{P(\hat{Y} = 1 | Y = 1, G = g) \cdot P(Y = 1 | G = g)}{P(\hat{Y} = 1 | G = g)}
+\end{equation}
+
+\textbf{Step 3: Apply Equalized Odds Constraint}
+
+If equalized odds holds:
+\begin{align}
+P(\hat{Y} = 1 | Y = 1, G = g_1) &= P(\hat{Y} = 1 | Y = 1, G = g_2) = TPR \\
+P(\hat{Y} = 1 | Y = 0, G = g_1) &= P(\hat{Y} = 1 | Y = 0, G = g_2) = FPR
+\end{align}
+
+\textbf{Step 4: Compute Marginal Positive Rates}
+
+\begin{align}
+P(\hat{Y} = 1 | G = g_i) &= P(\hat{Y} = 1 | Y = 1, G = g_i) \cdot P(Y = 1 | G = g_i) \\
+&\quad + P(\hat{Y} = 1 | Y = 0, G = g_i) \cdot P(Y = 0 | G = g_i) \\
+&= TPR \cdot p_i + FPR \cdot (1 - p_i)
+\end{align}
+
+For group 1: $P(\hat{Y} = 1 | G = g_1) = TPR \cdot p_1 + FPR \cdot (1 - p_1)$
+
+For group 2: $P(\hat{Y} = 1 | G = g_2) = TPR \cdot p_2 + FPR \cdot (1 - p_2)$
+
+\textbf{Step 5: Show Demographic Parity is Violated}
+
+For demographic parity, we need:
+\begin{equation}
+P(\hat{Y} = 1 | G = g_1) = P(\hat{Y} = 1 | G = g_2)
+\end{equation}
+
+Substituting:
+\begin{equation}
+TPR \cdot p_1 + FPR \cdot (1 - p_1) = TPR \cdot p_2 + FPR \cdot (1 - p_2)
+\end{equation}
+
+Simplifying:
+\begin{align}
+TPR(p_1 - p_2) &= -FPR(p_1 - p_2) \\
+TPR(p_1 - p_2) &= FPR(p_2 - p_1) \\
+(TPR + FPR)(p_1 - p_2) &= 0
+\end{align}
+
+Since $p_1 \neq p_2$ (our assumption), this requires:
+\begin{equation}
+TPR + FPR = 0
+\end{equation}
+
+But TPR, FPR $\in [0, 1]$, so this is only possible if TPR = FPR = 0 (always predict negative) or by contradiction, requiring TPR = 1 and FPR = 0 (perfect classifier).
+
+\textbf{Step 6: Show Calibration Conflict}
+
+Similarly, enforcing calibration across groups with different base rates creates tension with equalized odds. The positive predictive values become:
+
+\begin{equation}
+PPV(g_i) = \frac{TPR \cdot p_i}{TPR \cdot p_i + FPR \cdot (1 - p_i)}
+\end{equation}
+
+For calibration to hold globally:
+\begin{equation}
+PPV(g_1) = PPV(g_2)
+\end{equation}
+
+Expanding and simplifying (similar algebra) shows this conflicts with equalized odds unless the classifier is perfect.
+
+\textbf{Conclusion:} This impossibility result forces practitioners to make deliberate trade-offs based on application context. There is no universal "fair" classifier when base rates differ.
+
+\textbf{TikZ Diagram 2: Fairness Trade-off Triangle}
+
+\begin{center}
+\begin{tikzpicture}[scale=1.2]
+% Triangle vertices
+\coordinate (DP) at (0,4);
+\coordinate (EO) at (-3,0);
+\coordinate (CAL) at (3,0);
+
+% Draw triangle
+\draw[ultra thick, blue] (DP) -- (EO) -- (CAL) -- cycle;
+
+% Labels at vertices
+\node[above, font=\Large\bfseries] at (DP) {Demographic Parity};
+\node[below left, font=\Large\bfseries] at (EO) {Equalized Odds};
+\node[below right, font=\Large\bfseries] at (CAL) {Calibration};
+
+% Impossibility region (center of triangle)
+\filldraw[red, opacity=0.3] (0,1.3) circle (1.2cm);
+\node[font=\Large\bfseries, red] at (0,1.3) {Impossible};
+\node[font=\small, red] at (0,0.6) {(unless TPR=1, FPR=0)};
+
+% Annotations for each edge
+\node[rotate=60, font=\small, blue] at (-1.2,2.5) {Can satisfy both only};
+\node[rotate=60, font=\small, blue] at (-1.2,2.1) {if $p_1 = p_2$};
+
+\node[rotate=-60, font=\small, blue] at (1.2,2.5) {Requires perfect};
+\node[rotate=-60, font=\small, blue] at (1.2,2.1) {classifier};
+
+\node[font=\small, blue] at (0,-0.5) {Trade-off required};
+
+% Decision points (application-specific choices)
+\filldraw[green!60!black] (-1.5,2) circle (3pt);
+\node[left, font=\small, green!30!black] at (-1.5,2) {Criminal justice};
+\node[left, font=\tiny, green!30!black] at (-1.5,1.7) {(Prefer EO)};
+
+\filldraw[orange] (0,3) circle (3pt);
+\node[above, font=\small, orange!80!black] at (0,3.2) {Hiring/Admissions};
+\node[above, font=\tiny, orange!80!black] at (0,2.9) {(Prefer DP)};
+
+\filldraw[purple] (1.5,2) circle (3pt);
+\node[right, font=\small, purple] at (1.5,2) {Medical diagnosis};
+\node[right, font=\tiny, purple] at (1.5,1.7) {(Prefer Calibration)};
+
+\end{tikzpicture}
+\end{center}
+
+\textbf{Interpretation - Choosing the Right Fairness Metric:}
+
+\begin{itemize}
+    \item \textbf{Criminal Justice (Equalized Odds):} Equal error rates across groups are crucial. False positives (innocent people jailed) and false negatives (criminals released) must be balanced across demographics.
+
+    \item \textbf{Hiring/College Admissions (Demographic Parity):} Equal opportunity regardless of protected attributes. The proportion of each group receiving offers should reflect workforce/student body diversity goals.
+
+    \item \textbf{Medical Diagnosis (Calibration):} When a doctor sees a 70\% risk prediction, it must mean the same thing regardless of patient demographics. Miscalibration can lead to over/under-treatment.
+\end{itemize}
+
+\textbf{TikZ Diagram 3: Calibration Curves Across Groups}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    width=12cm,
+    height=10cm,
+    xlabel={Predicted Probability $\hat{P}(Y=1)$},
+    ylabel={Empirical Probability $P(Y=1|\hat{P})$},
+    xmin=0, xmax=1,
+    ymin=0, ymax=1,
+    grid=major,
+    legend pos=north west,
+    title={Calibration Curves - Well-Calibrated vs Miscalibrated Models}
+]
+
+% Perfect calibration line
+\addplot[black, dashed, ultra thick] coordinates {(0,0) (1,1)};
+\addlegendentry{Perfect Calibration}
+
+% Well-calibrated Group A
+\addplot[blue, ultra thick, mark=*, mark size=3pt, smooth] coordinates {
+    (0.1,0.12) (0.2,0.21) (0.3,0.29) (0.4,0.39) (0.5,0.51)
+    (0.6,0.61) (0.7,0.71) (0.8,0.79) (0.9,0.88)
+};
+\addlegendentry{Group A (Well-Calibrated)}
+
+% Miscalibrated Group B (overconfident)
+\addplot[red, ultra thick, mark=square*, mark size=3pt, smooth] coordinates {
+    (0.1,0.05) (0.2,0.12) (0.3,0.18) (0.4,0.25) (0.5,0.33)
+    (0.6,0.42) (0.7,0.53) (0.8,0.65) (0.9,0.78)
+};
+\addlegendentry{Group B (Overconfident)}
+
+% Example point showing miscalibration
+\draw[<->, very thick, purple] (axis cs:0.7,0.53) -- (axis cs:0.7,0.71);
+\node[right, purple, font=\small] at (axis cs:0.72,0.62) {Calibration gap};
+\node[right, purple, font=\small] at (axis cs:0.72,0.58) {18\% at $\hat{p}=0.7$};
+
+% Annotation boxes
+\node[draw, fill=white, font=\footnotesize, align=center] at (axis cs:0.25,0.85) {
+    Well-calibrated: \\
+    If $\hat{P}(Y=1) = 0.7$ \\
+    then 70\% of cases \\ are truly positive
+};
+
+\node[draw, fill=white, font=\footnotesize, align=center] at (axis cs:0.75,0.25) {
+    Overconfident: \\
+    $\hat{P}(Y=1) = 0.7$ \\
+    but only 53\% \\ truly positive
+};
+
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+\textbf{Calibration Error Metrics:}
+
+\textbf{Expected Calibration Error (ECE):}
+
+Divide prediction space into $M$ bins and compute:
+
+\begin{equation}
+ECE = \sum_{m=1}^M \frac{|B_m|}{N} \left| \text{acc}(B_m) - \text{conf}(B_m) \right|
+\end{equation}
+
+where:
+\begin{itemize}
+    \item $B_m$ = set of predictions in bin $m$ (e.g., $\hat{p} \in [0.5, 0.6)$)
+    \item $|B_m|$ = number of predictions in bin $m$
+    \item $N$ = total number of predictions
+    \item $\text{acc}(B_m) = \frac{1}{|B_m|} \sum_{i \in B_m} \mathbb{1}[y_i = 1]$ = empirical accuracy in bin
+    \item $\text{conf}(B_m) = \frac{1}{|B_m|} \sum_{i \in B_m} \hat{p}_i$ = average confidence in bin
+\end{itemize}
+
+\textbf{Group-Specific Calibration Error:}
+
+For fairness, compute ECE separately for each group:
+\begin{equation}
+ECE(g) = \sum_{m=1}^M \frac{|B_m^{(g)}|}{N_g} \left| \text{acc}(B_m^{(g)}) - \text{conf}(B_m^{(g)}) \right|
+\end{equation}
+
+where $B_m^{(g)}$ are predictions for group $g$ in bin $m$.
+
+\textbf{Fairness Violation:}
+\begin{equation}
+\Delta_{ECE} = \max_{g_i, g_j} |ECE(g_i) - ECE(g_j)|
+\end{equation}
+
 \textbf{Implementation:}
 
 \begin{lstlisting}[language=Python]
@@ -15990,6 +16755,220 @@ print(f"  Accuracy Difference: {fairness['accuracy_diff']:.4f}")
 print(f"\nTPR by group: {fairness['tpr_by_group']}")
 print(f"FPR by group: {fairness['fpr_by_group']}")
 \end{lstlisting}
+
+\begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,title={Hyperparameter Guidance: Fairness Metrics Selection}]
+\textbf{Metric Selection by Application Domain:}
+\begin{itemize}
+    \item \textbf{Demographic Parity Threshold:} $\Delta_{DP} \leq 0.1$ (10\% disparity)
+    \begin{itemize}
+        \item \textit{Why:} Industry standard (e.g., EEOC 80\% rule: 0.8 $\leq$ ratio $\leq$ 1.25)
+        \item \textit{Use when:} Equal opportunity laws apply (hiring, lending, admissions)
+        \item \textit{Warning:} May sacrifice accuracy if base rates differ significantly
+    \end{itemize}
+
+    \item \textbf{Equalized Odds Threshold:} $\Delta_{TPR}, \Delta_{FPR} \leq 0.05$ (5\% disparity)
+    \begin{itemize}
+        \item \textit{Why:} Error rates directly impact individual harm (false arrest, denied care)
+        \item \textit{Use when:} Mistakes have severe consequences (criminal justice, medical diagnosis)
+        \item \textit{Compute:} Requires ground truth labels for both groups
+    \end{itemize}
+
+    \item \textbf{Calibration Error:} $ECE \leq 0.03$ per group (3\% calibration error)
+    \begin{itemize}
+        \item \textit{Why:} Predictions guide human decision-making (doctors, judges)
+        \item \textit{Use when:} Probability estimates matter, not just binary decisions
+        \item \textit{Implementation:} Use 10-15 bins for ECE computation
+    \end{itemize}
+\end{itemize}
+
+\textbf{Multi-Metric Monitoring:}
+
+Track all three simultaneously and investigate when ANY threshold is exceeded:
+\begin{equation}
+\text{Alert} = \mathbb{1}[\Delta_{DP} > 0.1] \lor \mathbb{1}[\Delta_{EO} > 0.05] \lor \mathbb{1}[\Delta_{ECE} > 0.03]
+\end{equation}
+
+\textbf{Sample Size Requirements:}
+\begin{itemize}
+    \item Minimum per group: $n \geq 1000$ for reliable metric estimation
+    \item For rare events ($p < 0.1$): Need $n \geq 10,000$ to estimate FPR/TPR accurately
+    \item Confidence intervals: Use bootstrap (1000 samples) to quantify uncertainty
+\end{itemize}
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title={Common Pitfalls and Debugging Tips: Fairness Metrics}]
+
+\textbf{Pitfall 1: Ignoring Base Rate Differences}
+\begin{itemize}
+    \item \textbf{Symptoms:} Demographic parity and equalized odds give contradictory signals
+    \item \textbf{Root Cause:} Groups have different prevalence rates: $P(Y=1 | G=A) \neq P(Y=1 | G=B)$
+    \item \textbf{Diagnosis:} Compute base rates first:
+\begin{lstlisting}[language=Python]
+for g in groups:
+    base_rate = df[df['group'] == g]['y_true'].mean()
+    print(f"Group {g} base rate: {base_rate:.3f}")
+# If base rates differ by >5%, expect metric conflicts
+\end{lstlisting}
+    \item \textbf{Solution:} Choose metric based on application context (see Impossibility Theorem), document trade-off explicitly
+    \item \textbf{Prevention:} Always report base rates alongside fairness metrics
+\end{itemize}
+
+\textbf{Pitfall 2: Small Sample Sizes for Minority Groups}
+\begin{itemize}
+    \item \textbf{Symptoms:} Fairness metrics show large disparities with high variance
+    \item \textbf{Root Cause:} Insufficient data for minority group (e.g., 50 samples vs 5000 for majority)
+    \item \textbf{Diagnosis:} Check group sizes and compute confidence intervals:
+\begin{lstlisting}[language=Python]
+from scipy import stats
+
+def bootstrap_tpr(y_true, y_pred, n_bootstrap=1000):
+    tprs = []
+    for _ in range(n_bootstrap):
+        idx = np.random.choice(len(y_true), len(y_true), replace=True)
+        tp = ((y_true[idx] == 1) & (y_pred[idx] == 1)).sum()
+        fn = ((y_true[idx] == 1) & (y_pred[idx] == 0)).sum()
+        tpr = tp / (tp + fn) if (tp + fn) > 0 else 0
+        tprs.append(tpr)
+
+    ci_low, ci_high = np.percentile(tprs, [2.5, 97.5])
+    return np.mean(tprs), ci_low, ci_high
+
+# If CI width > 0.1, sample size too small
+\end{lstlisting}
+    \item \textbf{Solution:} Stratified sampling to ensure minimum 500 samples per group, or use Bayesian methods with informative priors
+    \item \textbf{Prevention:} Plan data collection to oversample minority groups (2x-3x)
+\end{itemize}
+
+\textbf{Pitfall 3: Confusing Individual and Group Fairness}
+\begin{itemize}
+    \item \textbf{Symptoms:} Model passes group fairness tests but exhibits unfair treatment of similar individuals
+    \item \textbf{Example:} Two loan applicants with identical credit scores but different races receive different decisions
+    \item \textbf{Root Cause:} Group fairness (e.g., demographic parity) does not guarantee similar individuals are treated similarly
+    \item \textbf{Solution:} Complement group metrics with individual fairness checks:
+\begin{lstlisting}[language=Python]
+def check_individual_fairness(X, y_pred, sensitive_idx, epsilon=0.1):
+    """
+    Find similar individuals with different predictions
+    """
+    from sklearn.neighbors import NearestNeighbors
+
+    # Remove sensitive attribute for similarity
+    X_fair = np.delete(X, sensitive_idx, axis=1)
+
+    nbrs = NearestNeighbors(n_neighbors=5).fit(X_fair)
+    violations = []
+
+    for i in range(len(X)):
+        distances, indices = nbrs.kneighbors([X_fair[i]])
+        neighbors = indices[0][1:]  # Exclude self
+
+        # Check if similar neighbors get different predictions
+        for j in neighbors:
+            if abs(y_pred[i] - y_pred[j]) > epsilon:
+                violations.append((i, j, distances[0][1]))
+
+    return violations
+\end{lstlisting}
+    \item \textbf{Prevention:} Use both group AND individual fairness metrics in production monitoring
+\end{itemize}
+
+\textbf{Pitfall 4: Post-Processing Without Understanding}
+\begin{itemize}
+    \item \textbf{Symptoms:} Applying threshold adjustments per group without analyzing why disparities exist
+    \item \textbf{Root Cause:} Treating symptoms (unfair outputs) rather than cause (biased features/data)
+    \item \textbf{Example:} Lowering decision threshold for Group B to achieve demographic parity masks underlying data bias
+    \item \textbf{Solution:} Root cause analysis before post-processing:
+\begin{lstlisting}[language=Python]
+# 1. Feature importance by group
+for g in groups:
+    group_X = X[df['group'] == g]
+    # Train separate model to see if features differ
+
+# 2. Check for proxy variables
+correlations = {}
+for col in feature_names:
+    correlations[col] = df.groupby('group')[col].mean().diff().abs()
+# High correlation indicates proxy for sensitive attribute
+
+# 3. Analyze data collection process
+# Was one group systematically under/over-represented?
+\end{lstlisting}
+    \item \textbf{Prevention:} Document fairness interventions with justification, prefer in-processing (fair training) over post-processing when possible
+\end{itemize}
+
+\textbf{Pitfall 5: Optimizing for Metrics, Not Fairness}
+\begin{itemize}
+    \item \textbf{Symptoms:} Metric scores improve but real-world fairness worsens (Goodhart's Law)
+    \item \textbf{Example:} Achieving demographic parity by randomly rejecting qualified Group A applicants
+    \item \textbf{Root Cause:} Metrics are proxies for fairness, not definitions of fairness
+    \item \textbf{Solution:} Combine quantitative metrics with qualitative evaluation:
+    \begin{itemize}
+        \item User studies with affected populations
+        \item Fairness impact assessments
+        \item External audits by domain experts
+        \item Ongoing monitoring of real-world outcomes
+    \end{itemize}
+    \item \textbf{Prevention:} Use metrics as diagnostic tools, not optimization targets; involve stakeholders in metric selection
+\end{itemize}
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title={Key Takeaways: Fairness Metrics}]
+\begin{enumerate}
+    \item \textbf{Core Impossibility Result:} Cannot simultaneously satisfy demographic parity, equalized odds, and calibration when base rates differ across groups (unless perfect classifier). This is mathematical fact, not engineering limitation.
+
+    \item \textbf{Metric Selection Hierarchy:}
+    \begin{itemize}
+        \item High-stakes decisions (justice, healthcare): Equalized Odds (equal error rates)
+        \item Equal opportunity contexts (hiring, admissions): Demographic Parity (equal selection rates)
+        \item Risk assessment (lending, insurance): Calibration (accurate probabilities)
+    \end{itemize}
+
+    \item \textbf{Essential Formulas to Remember:}
+    \begin{align*}
+    \text{Demographic Parity:} &\quad \Delta_{DP} = \max_{g_i, g_j} |P(\hat{Y}=1|G=g_i) - P(\hat{Y}=1|G=g_j)| \\
+    \text{Equalized Odds:} &\quad \Delta_{EO} = \max(\Delta_{TPR}, \Delta_{FPR}) \\
+    \text{Calibration:} &\quad ECE = \sum_{m=1}^M \frac{|B_m|}{N} |\text{acc}(B_m) - \text{conf}(B_m)|
+    \end{align*}
+
+    \item \textbf{Success Indicators:}
+    \begin{itemize}
+        \item $\Delta_{DP} \leq 0.1$: Acceptable demographic parity (10\% rule)
+        \item $\Delta_{EO} \leq 0.05$: Strong equalized odds (5\% error rate difference)
+        \item $ECE \leq 0.03$: Well-calibrated model (3\% expected calibration error)
+        \item Confidence intervals overlap between groups (no statistically significant disparity)
+    \end{itemize}
+
+    \item \textbf{Critical Implementation Details:}
+    \begin{itemize}
+        \item Always report base rates alongside fairness metrics: $P(Y=1|G=g)$ for all $g$
+        \item Use bootstrap (n=1000 samples) for confidence intervals, especially with small groups
+        \item Monitor metrics over time - fairness can degrade as data distribution shifts
+        \item Intersectional analysis: Check fairness for combinations (e.g., Black women, not just Black or women separately)
+    \end{itemize}
+
+    \item \textbf{Production Monitoring Checklist:}
+    \begin{itemize}
+        \item[\checkmark] Compute all three metrics (DP, EO, Cal) even if optimizing for one
+        \item[\checkmark] Alert when any metric exceeds threshold (multi-metric dashboard)
+        \item[\checkmark] Track metrics per day/week to detect temporal drift
+        \item[\checkmark] Maintain audit logs linking predictions to protected attributes for retrospective analysis
+        \item[\checkmark] Automated A/B testing: Compare new model's fairness to baseline before deployment
+    \end{itemize}
+
+    \item \textbf{Mathematical Insight:} The impossibility theorem is not a bug - it reflects genuine tension between different notions of fairness. The "right" metric depends on:
+    \begin{itemize}
+        \item Legal/regulatory requirements (what does law mandate?)
+        \item Ethical priorities (which errors are more harmful?)
+        \item Stakeholder values (what do affected communities prioritize?)
+    \end{itemize}
+
+    \item \textbf{Common Misconception:} "Fairness means treating everyone identically." FALSE. True fairness often requires \textit{different} treatment to achieve \textit{equitable} outcomes (e.g., different thresholds to offset historical discrimination).
+
+    \item \textbf{ROC Curve Interpretation:} If Group A's ROC curve dominates Group B's (higher TPR at every FPR), the model is fundamentally better at predicting for Group A. No threshold adjustment fixes this - need better features or more data for Group B.
+
+    \item \textbf{Calibration as Trust Metric:} Miscalibration breaks trust. If a doctor sees "90\% risk" but knows it means different things for different demographics, they will stop using the model. Calibration matters most when humans act on probabilities, not just classifications.
+\end{enumerate}
+\end{tcolorbox}
 
 \subsubsection{Individual Fairness}
 
@@ -17255,6 +18234,334 @@ Transform text to fixed-dimensional vector:
     where $\Sigma$ is the covariance matrix.
 \end{itemize}
 
+\textbf{Mathematical Foundations of Similarity Metrics - Deep Dive:}
+
+\textbf{WHY Similarity Metrics Matter in RAG:}
+
+Retrieval quality directly determines generation quality. If we retrieve irrelevant documents, the LLM has no chance of producing a correct answer, no matter how powerful. The choice of similarity metric determines which documents are considered "relevant" - this is the foundation of the entire RAG system.
+
+\textbf{Real-World Impact:}
+\begin{itemize}
+    \item \textbf{Medical Q\&A:} Wrong similarity metric retrieves general health advice instead of specific drug interactions → potential patient harm
+    \item \textbf{Legal Research:} Missing key precedents because cosine similarity focuses on word frequency, not legal concepts
+    \item \textbf{Customer Support:} Retrieving syntactically similar but semantically different previous tickets
+\end{itemize}
+
+\textbf{Step-by-Step Derivation of Cosine Similarity:}
+
+\textbf{Intuition:} Cosine similarity measures the \textit{angle} between two vectors, ignoring magnitude. Two documents about the same topic should point in the same direction in embedding space, even if one is much longer.
+
+\textbf{Geometric Foundation:}
+
+\textbf{Step 1: Recall Dot Product Definition}
+
+The dot product of two vectors measures both angle AND magnitude:
+\begin{equation}
+\mathbf{u} \cdot \mathbf{v} = \|\mathbf{u}\| \|\mathbf{v}\| \cos\theta
+\end{equation}
+
+where $\theta$ is the angle between vectors.
+
+\textbf{Step 2: Isolate the Angle}
+
+To get just the angle (direction), normalize out the magnitudes:
+\begin{equation}
+\cos\theta = \frac{\mathbf{u} \cdot \mathbf{v}}{\|\mathbf{u}\| \|\mathbf{v}\|}
+\end{equation}
+
+This is the cosine of the angle $\theta$.
+
+\textbf{Step 3: Expand to Component Form}
+
+Express in terms of vector components $\mathbf{u} = (u_1, \ldots, u_d)$ and $\mathbf{v} = (v_1, \ldots, v_d)$:
+
+\begin{align}
+\mathbf{u} \cdot \mathbf{v} &= \sum_{i=1}^d u_i v_i \\
+\|\mathbf{u}\| &= \sqrt{\sum_{i=1}^d u_i^2} \\
+\|\mathbf{v}\| &= \sqrt{\sum_{i=1}^d v_i^2}
+\end{align}
+
+\textbf{Step 4: Combine for Final Formula}
+
+\begin{equation}
+\cos(\mathbf{u}, \mathbf{v}) = \frac{\sum_{i=1}^d u_i v_i}{\sqrt{\sum_{i=1}^d u_i^2} \sqrt{\sum_{i=1}^d v_i^2}}
+\end{equation}
+
+\textbf{Properties and Interpretation:}
+
+\begin{itemize}
+    \item \textbf{Range:} $\cos\theta \in [-1, 1]$
+    \begin{itemize}
+        \item $\cos\theta = 1$: Vectors point in exactly same direction (identical documents)
+        \item $\cos\theta = 0$: Vectors are orthogonal (completely unrelated topics)
+        \item $\cos\theta = -1$: Vectors point in opposite directions (contradictory content)
+    \end{itemize}
+
+    \item \textbf{Scale Invariance:} Duplicating a document doesn't change similarity
+    \begin{equation}
+    \cos(\alpha \mathbf{u}, \mathbf{v}) = \cos(\mathbf{u}, \mathbf{v}) \quad \forall \alpha > 0
+    \end{equation}
+
+    \item \textbf{Computational Efficiency:} For L2-normalized embeddings ($\|\mathbf{u}\| = \|\mathbf{v}\| = 1$):
+    \begin{equation}
+    \cos(\mathbf{u}, \mathbf{v}) = \mathbf{u} \cdot \mathbf{v} = \sum_{i=1}^d u_i v_i
+    \end{equation}
+    This is just a dot product (O($d$) instead of O($d$) + normalization)
+\end{itemize}
+
+\textbf{Worked Example with Concrete Numbers:}
+
+\textbf{Scenario:} Compare two document embeddings in 3D space (simplified from typical 768D)
+
+\textbf{Given:}
+\begin{align}
+\mathbf{query} &= (0.5, 0.3, 0.2) \\
+\mathbf{doc}_1 &= (0.6, 0.4, 0.1) \quad \text{(relevant document)} \\
+\mathbf{doc}_2 &= (0.1, 0.1, 0.8) \quad \text{(different topic)}
+\end{align}
+
+\textbf{Step 1: Compute Dot Products}
+
+\begin{align}
+\mathbf{query} \cdot \mathbf{doc}_1 &= (0.5)(0.6) + (0.3)(0.4) + (0.2)(0.1) \\
+&= 0.30 + 0.12 + 0.02 = 0.44
+\end{align}
+
+\begin{align}
+\mathbf{query} \cdot \mathbf{doc}_2 &= (0.5)(0.1) + (0.3)(0.1) + (0.2)(0.8) \\
+&= 0.05 + 0.03 + 0.16 = 0.24
+\end{align}
+
+\textbf{Step 2: Compute Norms}
+
+\begin{align}
+\|\mathbf{query}\| &= \sqrt{0.5^2 + 0.3^2 + 0.2^2} = \sqrt{0.25 + 0.09 + 0.04} \\
+&= \sqrt{0.38} \approx 0.616
+\end{align}
+
+\begin{align}
+\|\mathbf{doc}_1\| &= \sqrt{0.6^2 + 0.4^2 + 0.1^2} = \sqrt{0.36 + 0.16 + 0.01} \\
+&= \sqrt{0.53} \approx 0.728
+\end{align}
+
+\begin{align}
+\|\mathbf{doc}_2\| &= \sqrt{0.1^2 + 0.1^2 + 0.8^2} = \sqrt{0.01 + 0.01 + 0.64} \\
+&= \sqrt{0.66} \approx 0.812
+\end{align}
+
+\textbf{Step 3: Compute Cosine Similarities}
+
+\begin{align}
+\cos(\mathbf{query}, \mathbf{doc}_1) &= \frac{0.44}{(0.616)(0.728)} = \frac{0.44}{0.448} \approx 0.982
+\end{align}
+
+\begin{align}
+\cos(\mathbf{query}, \mathbf{doc}_2) &= \frac{0.24}{(0.616)(0.812)} = \frac{0.24}{0.500} \approx 0.480
+\end{align}
+
+\textbf{Conclusion:} Document 1 has cosine similarity 0.982 (nearly parallel, highly relevant), while Document 2 has 0.480 (moderate angle, less relevant). We would retrieve Document 1.
+
+\textbf{Derivation of Euclidean vs Cosine Relationship:}
+
+\textbf{Theorem:} For L2-normalized vectors, Euclidean distance and cosine similarity are related by:
+
+\begin{equation}
+d_{\text{Euclidean}}^2(\mathbf{u}, \mathbf{v}) = 2(1 - \cos(\mathbf{u}, \mathbf{v}))
+\end{equation}
+
+\textbf{Proof:}
+
+\textbf{Step 1: Expand Euclidean Distance}
+
+\begin{align}
+d^2 &= \|\mathbf{u} - \mathbf{v}\|^2 \\
+&= (\mathbf{u} - \mathbf{v}) \cdot (\mathbf{u} - \mathbf{v}) \\
+&= \mathbf{u} \cdot \mathbf{u} - 2\mathbf{u} \cdot \mathbf{v} + \mathbf{v} \cdot \mathbf{v}
+\end{align}
+
+\textbf{Step 2: Apply Normalization Constraint}
+
+Given $\|\mathbf{u}\| = \|\mathbf{v}\| = 1$, we have:
+\begin{align}
+\mathbf{u} \cdot \mathbf{u} &= \|\mathbf{u}\|^2 = 1 \\
+\mathbf{v} \cdot \mathbf{v} &= \|\mathbf{v}\|^2 = 1
+\end{align}
+
+\textbf{Step 3: Substitute}
+
+\begin{align}
+d^2 &= 1 - 2\mathbf{u} \cdot \mathbf{v} + 1 \\
+&= 2 - 2\mathbf{u} \cdot \mathbf{v} \\
+&= 2(1 - \mathbf{u} \cdot \mathbf{v})
+\end{align}
+
+\textbf{Step 4: Recall Cosine Definition}
+
+For normalized vectors: $\mathbf{u} \cdot \mathbf{v} = \cos(\mathbf{u}, \mathbf{v})$
+
+Therefore:
+\begin{equation}
+d^2 = 2(1 - \cos(\mathbf{u}, \mathbf{v}))
+\end{equation}
+
+\textbf{Implications:}
+\begin{itemize}
+    \item When embeddings are normalized, cosine similarity and Euclidean distance are equivalent (monotonically related)
+    \item Minimizing Euclidean distance $\Leftrightarrow$ Maximizing cosine similarity
+    \item This is why most vector databases normalize embeddings before indexing
+\end{itemize}
+
+\textbf{TikZ Diagram 1: Embedding Space Visualization}
+
+\begin{center}
+\begin{tikzpicture}[scale=1.5]
+% Origin
+\coordinate (O) at (0,0);
+
+% Query vector
+\draw[->, ultra thick, blue] (O) -- (3,2) node[right] {$\mathbf{q}$ (Query)};
+
+% Relevant document (small angle)
+\draw[->, ultra thick, green!60!black] (O) -- (3.5,1.8) node[right] {$\mathbf{d}_1$ (Relevant)};
+
+% Somewhat relevant document (moderate angle)
+\draw[->, ultra thick, orange] (O) -- (2.5,1) node[below right] {$\mathbf{d}_2$ (Moderate)};
+
+% Irrelevant document (large angle)
+\draw[->, ultra thick, red] (O) -- (1,3) node[above] {$\mathbf{d}_3$ (Irrelevant)};
+
+% Angles
+\draw[blue, thin] (2,0) arc (0:33.7:2cm);
+\node[blue, font=\small] at (1.8,0.5) {$\theta_1 \approx 10°$};
+
+\draw[orange, thin] (1.5,0) arc (0:21.8:1.5cm);
+\node[orange, font=\small] at (1.3,0.3) {$\theta_2 \approx 22°$};
+
+\draw[red, thin] (0.8,0) arc (0:71.6:0.8cm);
+\node[red, font=\small] at (0.4,0.6) {$\theta_3 \approx 72°$};
+
+% Cosine similarity annotations
+\node[draw, fill=white, font=\footnotesize, align=left] at (5,3) {
+    Cosine Similarities: \\
+    $\cos(\mathbf{q}, \mathbf{d}_1) = 0.98$ \\
+    $\cos(\mathbf{q}, \mathbf{d}_2) = 0.93$ \\
+    $\cos(\mathbf{q}, \mathbf{d}_3) = 0.31$
+};
+
+% Retrieval decision (top-1)
+\draw[<->, green!60!black, very thick] (3,2) -- (3.5,1.8);
+\node[below, green!60!black, font=\small] at (3.2,1.8) {Retrieved (closest)};
+
+% Grid for reference
+\draw[gray, thin, dashed] (0,-0.5) grid[step=1] (4,3.5);
+
+% Axes labels
+\draw[->] (-0.5,0) -- (4.5,0) node[right] {Dimension 1};
+\draw[->] (0,-0.5) -- (0,3.8) node[above] {Dimension 2};
+
+\end{tikzpicture}
+\end{center}
+
+\textbf{Interpretation:} In embedding space, documents closer to the query (smaller angle) have higher cosine similarity. Document $\mathbf{d}_1$ has the smallest angle (10°) and would be retrieved first.
+
+\textbf{TikZ Diagram 2: Similarity Metric Comparison}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    width=14cm,
+    height=10cm,
+    xlabel={Document 1 Embedding Magnitude $\|\mathbf{d}_1\|$},
+    ylabel={Similarity Score},
+    xmin=0, xmax=3,
+    ymin=0, ymax=1.2,
+    grid=major,
+    legend pos=north east,
+    title={How Similarity Metrics Respond to Document Length}
+]
+
+% Fixed query magnitude = 1, fixed angle θ = 30°
+% Cosine similarity (constant at cos(30°) ≈ 0.866)
+\addplot[blue, ultra thick, dashed] coordinates {(0.5,0.866) (3,0.866)};
+\addlegendentry{Cosine (scale-invariant)}
+
+% Dot product = ||d1|| * cos(θ) (linear growth)
+\addplot[red, ultra thick, domain=0.5:3, samples=50] {x * 0.866};
+\addlegendentry{Dot Product (grows with length)}
+
+% Euclidean distance converted to similarity: 1 / (1 + distance)
+% distance = sqrt(1 + d1^2 - 2*d1*cos(30°))
+\addplot[green!60!black, ultra thick, domain=0.5:3, samples=100]
+    {1 / (1 + sqrt(1 + x^2 - 2*x*0.866))};
+\addlegendentry{Euclidean (penalizes length diff)}
+
+% Annotation for key insight
+\node[draw, fill=white, font=\footnotesize, align=left] at (axis cs:1.5,0.3) {
+    Same angle ($\theta = 30°$), \\
+    varying document length \\
+    \\
+    Cosine: Constant (ideal) \\
+    Dot: Favors longer docs \\
+    Euclidean: Penalizes length
+};
+
+% Mark reference point
+\draw[black, dashed] (axis cs:1,0) -- (axis cs:1,0.866);
+\node[below, font=\small] at (axis cs:1,0) {Query length};
+
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+\textbf{Key Insight:} Cosine similarity is scale-invariant - a document about "machine learning" has the same similarity whether it's a short abstract or a full textbook. Dot product favors longer documents, which can bias retrieval.
+
+\textbf{Mahalanobis Distance - Accounting for Feature Correlations:}
+
+\textbf{Motivation:} Standard Euclidean distance treats all dimensions equally. But in embedding space, dimensions may be correlated. Mahalanobis distance accounts for covariance structure.
+
+\textbf{Formal Definition:}
+
+\begin{equation}
+d_M(\mathbf{u}, \mathbf{v}) = \sqrt{(\mathbf{u} - \mathbf{v})^T \Sigma^{-1} (\mathbf{u} - \mathbf{v})}
+\end{equation}
+
+where $\Sigma$ is the covariance matrix of embeddings in the database.
+
+\textbf{Derivation - Why This Form?}
+
+\textbf{Step 1: Whitening Transformation}
+
+Transform embeddings to decorrelate them:
+\begin{equation}
+\mathbf{z} = \Sigma^{-1/2} \mathbf{x}
+\end{equation}
+
+where $\Sigma^{-1/2}$ is the matrix square root of the inverse covariance.
+
+\textbf{Step 2: Apply Euclidean Distance in Whitened Space}
+
+\begin{align}
+d^2 &= \|\mathbf{z}_u - \mathbf{z}_v\|^2 \\
+&= \|\Sigma^{-1/2}(\mathbf{u} - \mathbf{v})\|^2 \\
+&= (\Sigma^{-1/2}(\mathbf{u} - \mathbf{v}))^T (\Sigma^{-1/2}(\mathbf{u} - \mathbf{v}))
+\end{align}
+
+\textbf{Step 3: Simplify Using Symmetry}
+
+Since $\Sigma$ is symmetric: $(\Sigma^{-1/2})^T = \Sigma^{-1/2}$
+
+\begin{align}
+d^2 &= (\mathbf{u} - \mathbf{v})^T (\Sigma^{-1/2})^T \Sigma^{-1/2} (\mathbf{u} - \mathbf{v}) \\
+&= (\mathbf{u} - \mathbf{v})^T \Sigma^{-1} (\mathbf{u} - \mathbf{v})
+\end{align}
+
+\textbf{When to Use Mahalanobis:}
+\begin{itemize}
+    \item Domain-specific embeddings with known covariance structure
+    \item Small, curated datasets where computing $\Sigma$ is feasible
+    \item NOT recommended for large-scale RAG (computing $\Sigma^{-1}$ for millions of docs is prohibitive)
+\end{itemize}
+
 \textbf{Implementation:}
 
 \begin{lstlisting}[language=Python]
@@ -17390,6 +18697,276 @@ print(f"\nSimilarity matrix shape: {sim_matrix.shape}")
 print("Similarity matrix:")
 print(sim_matrix)
 \end{lstlisting}
+
+\begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,title={Hyperparameter Guidance: Embedding and Similarity Metrics for RAG}]
+\textbf{Embedding Model Selection:}
+\begin{itemize}
+    \item \textbf{Dimension vs Performance Trade-off:}
+    \begin{itemize}
+        \item 384-dim (all-MiniLM-L6-v2): Fast encoding (50ms/text), moderate recall@10 ≈ 85\%
+        \item 768-dim (SBERT, E5-base): Balanced (100ms/text), recall@10 ≈ 91\%
+        \item 1024-dim (BGE-large, E5-large): Best quality (150ms/text), recall@10 ≈ 95\%
+        \item \textit{Why:} Higher dimensions capture more semantic nuance but require more compute and storage
+        \item \textit{Rule of Thumb:} Use 1024-dim for accuracy-critical applications (medical, legal), 384-dim for high-throughput (customer support chatbots)
+    \end{itemize}
+
+    \item \textbf{Normalization:} ALWAYS L2-normalize before storing in vector DB
+    \begin{itemize}
+        \item \textit{Why:} Enables cosine similarity via fast dot product: $\cos(\mathbf{u}, \mathbf{v}) = \mathbf{u} \cdot \mathbf{v}$ when $\|\mathbf{u}\| = \|\mathbf{v}\| = 1$
+        \item \textit{Performance:} 2-3x speedup over un-normalized cosine computation
+        \item \textit{Implementation:} `embeddings / np.linalg.norm(embeddings, axis=1, keepdims=True)`
+    \end{itemize}
+
+    \item \textbf{Batch Size for Embedding Generation:}
+    \begin{itemize}
+        \item Small texts (<100 tokens): Batch size = 128-256 (GPU memory permitting)
+        \item Long documents (>500 tokens): Batch size = 16-32
+        \item \textit{Compute:} Memory usage ≈ batch\_size × max\_seq\_len × hidden\_dim × 4 bytes
+        \item \textit{Example:} Batch=32, seq\_len=512, dim=768 → 32×512×768×4 = 50MB
+    \end{itemize}
+
+    \item \textbf{Similarity Metric Selection:}
+    \begin{itemize}
+        \item \textbf{Cosine (Default):} Best for semantic search (scale-invariant, handles variable document lengths)
+        \item \textbf{Dot Product:} When magnitude matters (e.g., combining semantic + relevance score)
+        \item \textbf{Euclidean:} Only for normalized embeddings (equivalent to cosine then) or specific domain requirements
+        \item \textit{Production Standard:} 95\% of RAG systems use cosine similarity
+    \end{itemize}
+\end{itemize}
+
+\textbf{Quick Start Configurations by Use Case:}
+\begin{itemize}
+    \item \textbf{Medical/Legal Q\&A:} BGE-large-1024dim, cosine, top-k=5-10, rerank with cross-encoder
+    \item \textbf{Customer Support:} all-MiniLM-384dim, cosine, top-k=3, no reranking (speed priority)
+    \item \textbf{Research Literature:} E5-large-1024dim, cosine, top-k=20, aggressive reranking
+    \item \textbf{Multi-lingual:} mE5-large, cosine, top-k=10 (handles 100+ languages)
+\end{itemize}
+
+\textbf{Retrieval Quality Benchmarks:}
+\begin{itemize}
+    \item \textbf{Recall@5:} Proportion of relevant docs in top-5 results
+    \begin{itemize}
+        \item Good: R@5 ≥ 0.80 (80\% of relevant docs found)
+        \item Excellent: R@5 ≥ 0.90
+        \item \textit{Impact:} Each 5\% drop in recall → 10-15\% drop in end-to-end answer quality
+    \end{itemize}
+
+    \item \textbf{MRR (Mean Reciprocal Rank):} Average 1/rank of first relevant document
+    \begin{itemize}
+        \item Good: MRR ≥ 0.60 (relevant doc usually in top-2)
+        \item Excellent: MRR ≥ 0.80
+        \item \textit{Why it matters:} LLMs attend more to earlier context (position bias)
+    \end{itemize}
+\end{itemize}
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title={Common Pitfalls and Debugging Tips: RAG Embeddings}]
+
+\textbf{Pitfall 1: Not Normalizing Embeddings}
+\begin{itemize}
+    \item \textbf{Symptoms:} Retrieval favors longer documents, shorter relevant docs get missed
+    \item \textbf{Root Cause:} Using dot product on un-normalized embeddings → magnitude (document length) dominates similarity
+    \item \textbf{Example:} Query: "What is Python?" Document A (short): "Python is a programming language." (score=0.45) Document B (long, less relevant): "Python, Java, C++, JavaScript are programming languages used in software development across many domains..." (score=0.82 due to length)
+    \item \textbf{Diagnosis:}
+\begin{lstlisting}[language=Python]
+# Check if embeddings are normalized
+norms = np.linalg.norm(embeddings, axis=1)
+print(f"Norm range: [{norms.min():.3f}, {norms.max():.3f}]")
+# Should be ~1.0 if normalized (+/-0.001 tolerance)
+
+# Check correlation between length and score
+doc_lengths = [len(doc.split()) for doc in documents]
+scores = [similarity(query, doc) for doc in documents]
+correlation = np.corrcoef(doc_lengths, scores)[0,1]
+print(f"Length-score correlation: {correlation:.3f}")
+# Should be near 0 for normalized, >0.5 indicates length bias
+\end{lstlisting}
+    \item \textbf{Solution:} Always normalize embeddings before indexing and querying
+    \item \textbf{Prevention:} Add assertion in embedding pipeline: `assert abs(np.linalg.norm(emb) - 1.0) < 0.01`
+\end{itemize}
+
+\textbf{Pitfall 2: Query-Document Mismatch in Embedding Space}
+\begin{itemize}
+    \item \textbf{Symptoms:} Queries retrieve semantically unrelated documents, but retrieved docs are similar to each other
+    \item \textbf{Root Cause:} Embedding model trained on document-document similarity, not query-document
+    \item \textbf{Example:} Query: "How to fix Python error?" retrieves Python documentation (doc-doc similar) instead of Stack Overflow answers (query-answer similar)
+    \item \textbf{Solution:} Use asymmetric embedding models (different encoders for queries vs documents):
+\begin{lstlisting}[language=Python]
+from sentence_transformers import SentenceTransformer
+
+# Asymmetric models (e.g., DPR, Contriever, E5 with prefixes)
+model = SentenceTransformer('intfloat/e5-large-v2')
+
+# Add prefixes to distinguish query vs passage
+query_emb = model.encode("query: How to fix Python error?")
+doc_embs = model.encode(["passage: " + doc for doc in documents])
+\end{lstlisting}
+    \item \textbf{Alternative:} Fine-tune embedding model on (query, relevant\_doc) pairs from your domain
+    \item \textbf{Prevention:} Evaluate retrieval on actual queries, not just document similarity benchmarks
+\end{itemize}
+
+\textbf{Pitfall 3: High-Dimensional Curse - Nearest Neighbors Become Meaningless}
+\begin{itemize}
+    \item \textbf{Symptoms:} All documents have similar similarity scores (e.g., 0.45-0.55 range), hard to distinguish relevant from irrelevant
+    \item \textbf{Root Cause:} In very high dimensions (>10,000), distance concentration: all points appear equidistant
+    \item \textbf{Mathematical Insight:} For random vectors in $d$ dimensions:
+    \begin{equation}
+    \frac{\text{max\_dist} - \text{min\_dist}}{\text{min\_dist}} \rightarrow 0 \text{ as } d \rightarrow \infty
+    \end{equation}
+    \item \textbf{Diagnosis:}
+\begin{lstlisting}[language=Python]
+# Compute similarity distribution
+all_similarities = []
+for q in queries:
+    sims = [cosine_sim(q, d) for d in documents]
+    all_similarities.extend(sims)
+
+std_dev = np.std(all_similarities)
+print(f"Similarity std dev: {std_dev:.4f}")
+# If <0.1, scores too concentrated (problem)
+# Healthy range: 0.15-0.30
+\end{lstlisting}
+    \item \textbf{Solution:} Use dimensionality reduction (PCA, UMAP) to 256-512 dims while preserving 95\% variance, or use models with intrinsic lower dimensions (e.g., all-MiniLM-384dim)
+    \item \textbf{Prevention:} Choose embedding dimension based on data scale: 384-dim for <100K docs, 768-dim for 100K-1M, 1024-dim only for >1M docs with high quality
+\end{itemize}
+
+\textbf{Pitfall 4: Ignoring Out-of-Distribution Queries}
+\begin{itemize}
+    \item \textbf{Symptoms:} System retrieves random documents for queries outside training domain
+    \item \textbf{Example:} Medical Q\&A system trained on clinical notes, user asks "What's the weather?" → retrieves unrelated medical docs with "temperature" keyword
+    \item \textbf{Root Cause:} No OOD detection, system forced to retrieve something even for nonsensical queries
+    \item \textbf{Solution:} Add confidence threshold based on max similarity:
+\begin{lstlisting}[language=Python]
+def retrieve_with_confidence(query, threshold=0.5):
+    results = vector_db.search(query_emb, k=5)
+
+    if results[0]['score'] < threshold:
+        return {
+            'status': 'OOD',
+            'message': 'Query outside system knowledge',
+            'results': []
+        }
+
+    return {
+        'status': 'OK',
+        'results': results
+    }
+
+# Calibrate threshold on validation set:
+# - Sort queries by max similarity score
+# - Manually label as in-domain / out-of-domain
+# - Choose threshold where precision ≥ 95%
+\end{lstlisting}
+    \item \textbf{Prevention:} Monitor similarity score distribution, alert when median drops below baseline
+\end{itemize}
+
+\textbf{Pitfall 5: Forgetting to Update Embeddings After Model Changes}
+\begin{itemize}
+    \item \textbf{Symptoms:} After switching embedding models, retrieval quality drops catastrophically
+    \item \textbf{Root Cause:} Query embeddings from new model, document embeddings from old model → incompatible vector spaces
+    \item \textbf{Example:} Upgrade from SBERT (768-dim) to BGE (1024-dim), query embeddings are 1024-dim but indexed docs are 768-dim → error or zero-padding (meaningless)
+    \item \textbf{Solution:} Versioned embedding indices:
+\begin{lstlisting}[language=Python]
+class VersionedVectorDB:
+    def __init__(self):
+        self.indices = {}  # model_version -> FAISS index
+        self.current_version = "bge-large-v1.5"
+
+    def add_documents(self, docs, model_version):
+        if model_version not in self.indices:
+            self.indices[model_version] = create_faiss_index(...)
+
+        embeddings = embed_with_model(docs, model_version)
+        self.indices[model_version].add(embeddings)
+
+    def search(self, query, model_version=None):
+        version = model_version or self.current_version
+        query_emb = embed_with_model([query], version)[0]
+        return self.indices[version].search(query_emb)
+\end{lstlisting}
+    \item \textbf{Prevention:} Include model version in metadata, automated alerts when embedding model changes, phased rollout with A/B testing
+\end{itemize}
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title={Key Takeaways: Embeddings and Similarity for RAG}]
+\begin{enumerate}
+    \item \textbf{Core Mathematical Relationship:} For L2-normalized embeddings:
+    \begin{equation}
+    d_{\text{Euclidean}}^2(\mathbf{u}, \mathbf{v}) = 2(1 - \cos(\mathbf{u}, \mathbf{v}))
+    \end{equation}
+    This means Euclidean distance and cosine similarity are equivalent when embeddings are normalized. Always normalize to enable fast cosine via dot product.
+
+    \item \textbf{Metric Choice Hierarchy:}
+    \begin{itemize}
+        \item \textbf{Default:} Cosine similarity (scale-invariant, handles variable document lengths)
+        \item \textbf{Special Case:} Dot product if you explicitly want to favor longer documents (rare)
+        \item \textbf{Avoid:} Raw Euclidean distance without normalization (biased by magnitude)
+    \end{itemize}
+
+    \item \textbf{Essential Formulas:}
+    \begin{align*}
+    \text{Cosine:} &\quad \cos(\mathbf{u}, \mathbf{v}) = \frac{\sum_i u_i v_i}{\sqrt{\sum_i u_i^2}\sqrt{\sum_i v_i^2}} \\
+    \text{Normalized Dot:} &\quad \mathbf{u} \cdot \mathbf{v} = \sum_i u_i v_i \quad (\text{when } \|\mathbf{u}\|=\|\mathbf{v}\|=1) \\
+    \text{Recall@k:} &\quad \frac{|\text{relevant} \cap \text{top-k}|}{|\text{relevant}|}
+    \end{align*}
+
+    \item \textbf{Success Indicators:}
+    \begin{itemize}
+        \item Recall@5 ≥ 0.85: Strong retrieval (85\% of relevant docs in top-5)
+        \item MRR ≥ 0.70: Relevant docs consistently in top-2 positions
+        \item Similarity score std dev ≥ 0.15: Good separation between relevant/irrelevant
+        \item Embedding norms = 1.0 ± 0.001: Properly normalized
+    \end{itemize}
+
+    \item \textbf{Critical Implementation Details:}
+    \begin{itemize}
+        \item ALWAYS L2-normalize embeddings before indexing: `emb / np.linalg.norm(emb)`
+        \item Use asymmetric models (E5, DPR) or prefixes for query vs document encoding
+        \item Monitor embedding model version with metadata (re-index if model changes)
+        \item Set confidence threshold (typically 0.5) to reject out-of-distribution queries
+        \item Batch encoding: Use batch\_size=32-128 for GPU efficiency
+    \end{itemize}
+
+    \item \textbf{Production Monitoring Checklist:}
+    \begin{itemize}
+        \item[\checkmark] Track median similarity score per hour (alert if drops >10\%)
+        \item[\checkmark] Monitor Recall@5 on evaluation set weekly (target ≥ 0.85)
+        \item[\checkmark] Log queries with max\_similarity < 0.3 (likely OOD or system failures)
+        \item[\checkmark] A/B test embedding model changes (new model must beat baseline by ≥ 3\% Recall@5)
+        \item[\checkmark] Automated normalization checks: assert embedding norms ≈ 1.0
+    \end{itemize}
+
+    \item \textbf{Embedding Dimension Trade-offs:}
+    \begin{itemize}
+        \item 384-dim: 2x faster encoding, 70\% less storage, -3\% recall vs 1024-dim
+        \item 768-dim: Balanced (industry standard for most applications)
+        \item 1024-dim: +2\% recall, use only for accuracy-critical domains (medical, legal)
+        \item \textit{Rule:} Start with 768-dim, drop to 384-dim if latency critical, upgrade to 1024-dim only if Recall@5 < 0.85
+    \end{itemize}
+
+    \item \textbf{The Normalization Imperative:} Un-normalized embeddings in RAG systems are a top-3 production bug. Symptoms:
+    \begin{itemize}
+        \item Short, highly relevant documents get ranked below long, tangential ones
+        \item Correlation between document length and retrieval score > 0.3
+        \item Impossible to set meaningful similarity thresholds (scores scale with doc length)
+    \end{itemize}
+    Fix: One-line normalization before ALL vector operations.
+
+    \item \textbf{Query-Document Asymmetry:} Generic BERT models encode "What is Python?" similarly to "Python is a programming language" (both mention Python). But for RAG, we want query→answer similarity, not statement→statement. Use:
+    \begin{itemize}
+        \item E5 with prefixes: `query: <text>` vs `passage: <text>`
+        \item DPR: Separate query\_encoder and passage\_encoder
+        \item Fine-tuned models: Train on (question, answer) pairs from your domain
+    \end{itemize}
+
+    \item \textbf{When Embeddings Fail - Know the Limits:}
+    \begin{itemize}
+        \item Keyword-heavy queries: "Find document containing PATIENT-ID-123456" → Use hybrid search (BM25 + embeddings)
+        \item Multi-hop reasoning: "What did the person who invented Python also create?" → Embeddings can't handle this, need query decomposition
+        \item Exact match requirements: Legal citations, code snippets → Supplement with exact string matching
+    \end{itemize}
+\end{enumerate}
+\end{tcolorbox}
 
 \newpage
 
