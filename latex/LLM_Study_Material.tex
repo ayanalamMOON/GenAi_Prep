@@ -150,6 +150,312 @@
 \newpage
 
 %============================================================================
+% GETTING STARTED & ROADMAP
+%============================================================================
+\section*{Getting Started \& Roadmap}
+\addcontentsline{toc}{section}{Getting Started \& Roadmap}
+
+\subsection*{How to Use This Guide}
+
+This 391-page comprehensive reference covers the entire Large Language Model lifecycle from pre-training to production deployment. Whether you're a student preparing for exams, a developer building applications, or a researcher exploring state-of-the-art techniques, this roadmap will help you navigate to the most relevant content for your goals.
+
+\subsection*{Quick Navigation by Goal}
+
+\subsubsection*{🎯 For Application Developers}
+
+\textbf{Goal: Build a RAG (Retrieval-Augmented Generation) Chatbot}
+\begin{itemize}
+    \item \textbf{Start Here:} Section 12 (RAG Systems) - Complete implementation guide
+    \item \textbf{Also Read:} Section 11 (LangChain) - Framework integration
+    \item \textbf{Time Required:} 4-6 hours
+    \item \textbf{Key Takeaways:} Vector databases, retrieval strategies, prompt engineering for RAG
+\end{itemize}
+
+\textbf{Goal: Fine-Tune a Model for Your Project (Limited GPU)}
+\begin{itemize}
+    \item \textbf{Start Here:} Section 3 (LoRA) - Efficient fine-tuning
+    \item \textbf{Then Read:} Section 4 (QLoRA) - Even more memory-efficient (4-bit quantization)
+    \item \textbf{Optional:} Section 1 (Fine-Tuning Basics) - Theoretical foundation
+    \item \textbf{Time Required:} 6-8 hours
+    \item \textbf{Key Takeaways:} Adapter-based training, memory optimization, hyperparameter selection
+\end{itemize}
+
+\textbf{Goal: Build Production LLM Applications}
+\begin{itemize}
+    \item \textbf{Core Reading:} Sections 11 (LangChain), 12 (RAG), 13 (LangGraph)
+    \item \textbf{Essential:} Section 10.2 (Evaluation Metrics) - Monitoring performance
+    \item \textbf{Critical:} Section 10 (Safety \& Ethics) - Responsible deployment
+    \item \textbf{Time Required:} 12-15 hours
+    \item \textbf{Key Takeaways:} Agent workflows, production patterns, safety guardrails
+\end{itemize}
+
+\subsubsection*{📚 For Students \& Exam Preparation}
+
+\textbf{Goal: Ace the Final Exam}
+\begin{itemize}
+    \item \textbf{Priority 1:} Read all \textcolor{blue}{\textbf{Hyperparameter Guidance}} boxes (blue boxes)
+    \item \textbf{Priority 2:} Study all \textcolor{green}{\textbf{Key Takeaways}} boxes (green boxes)
+    \item \textbf{Priority 3:} Review \textcolor{orange}{\textbf{Common Pitfalls}} boxes (orange boxes)
+    \item \textbf{Focus Sections:} 1.6 (Theory), 3.4 (LoRA Math), 8.3 (RLHF Theory), 9.5 (Evaluation)
+    \item \textbf{Time Required:} 8-10 hours for focused review
+    \item \textbf{Pro Tip:} All mathematical derivations include step-by-step explanations
+\end{itemize}
+
+\textbf{Goal: Deep Understanding of LLM Theory}
+\begin{itemize}
+    \item \textbf{Foundation:} Section 2 (Pre-Training) - How models learn language
+    \item \textbf{Adaptation:} Sections 1 (Fine-Tuning), 3 (LoRA), 4 (QLoRA)
+    \item \textbf{Alignment:} Section 8 (RLHF) - Making models helpful and safe
+    \item \textbf{Advanced:} Section 9 (Instruction Fine-Tuning) - Multi-task learning
+    \item \textbf{Time Required:} 20+ hours for complete mastery
+    \item \textbf{Study Strategy:} Read mathematical derivations, work through examples, implement code
+\end{itemize}
+
+\subsubsection*{🔬 For Researchers \& Advanced Users}
+
+\textbf{Goal: Understand State-of-the-Art Techniques}
+\begin{itemize}
+    \item \textbf{Efficient Training:} Sections 3 (LoRA), 4 (QLoRA), 5 (PEFT Overview)
+    \item \textbf{Alignment:} Section 8 (RLHF with PPO and DPO implementations)
+    \item \textbf{Evaluation:} Section 10 (Comprehensive benchmarking strategies)
+    \item \textbf{Novel Architectures:} Section 6 (Prefix Tuning), Section 7 (Prompt Tuning)
+    \item \textbf{Time Required:} 25+ hours
+    \item \textbf{Research Focus:} Mathematical proofs, convergence analysis, ablation studies
+\end{itemize}
+
+\textbf{Goal: Implement Custom Training Pipelines}
+\begin{itemize}
+    \item \textbf{Essential:} All code examples (400-700 lines each with extensive comments)
+    \item \textbf{Start With:} Section 1.6.5 (Complete Fine-Tuning Implementation)
+    \item \textbf{Advanced:} Section 8.4 (TRL PPO Implementation - 725 lines)
+    \item \textbf{Production:} Section 9.6 (Instruction Fine-Tuning Pipeline)
+    \item \textbf{Time Required:} 30+ hours including implementation
+    \item \textbf{Prerequisites:} PyTorch, Hugging Face Transformers, CUDA programming
+\end{itemize}
+
+\subsection*{Document Structure Overview}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{|l|l|p{4.5cm}|c|}
+\hline
+\textbf{Section} & \textbf{Topic} & \textbf{Key Focus} & \textbf{Difficulty} \\
+\hline
+1 & Fine-Tuning & Transfer learning, catastrophic forgetting & Beginner \\
+\hline
+2 & Pre-Training & Language modeling objectives, tokenization & Intermediate \\
+\hline
+3 & LoRA & Low-rank adaptation, memory efficiency & Intermediate \\
+\hline
+4 & QLoRA & Quantization, 4-bit training & Advanced \\
+\hline
+5 & PEFT Overview & Comparison of efficient methods & Intermediate \\
+\hline
+6 & Prefix Tuning & Continuous prompts, virtual tokens & Advanced \\
+\hline
+7 & Prompt Tuning & Soft prompts, gradient-based optimization & Advanced \\
+\hline
+8 & RLHF & PPO, DPO, reward modeling & Advanced \\
+\hline
+9 & Instruction Tuning & Multi-task learning, SFT datasets & Intermediate \\
+\hline
+10 & Evaluation & Benchmarks, metrics, human evaluation & Intermediate \\
+\hline
+11 & Safety \& Ethics & Bias mitigation, responsible AI & Beginner \\
+\hline
+12 & RAG Systems & Vector search, retrieval strategies & Intermediate \\
+\hline
+13 & LangChain & Chains, agents, memory management & Beginner \\
+\hline
+14 & LangGraph & State graphs, multi-agent workflows & Intermediate \\
+\hline
+\end{tabular}
+\caption{Section Overview with Difficulty Ratings}
+\end{table}
+
+\subsection*{Learning Path Recommendations}
+
+\subsubsection*{Beginner Path (20 hours)}
+\begin{enumerate}
+    \item Section 1: Fine-Tuning Basics (4 hours)
+    \item Section 13: LangChain for Applications (3 hours)
+    \item Section 12: RAG Systems (4 hours)
+    \item Section 9: Instruction Fine-Tuning (4 hours)
+    \item Section 10: Evaluation Basics (3 hours)
+    \item Section 11: Safety \& Ethics (2 hours)
+\end{enumerate}
+
+\subsubsection*{Intermediate Path (40 hours)}
+\begin{enumerate}
+    \item Complete Beginner Path (20 hours)
+    \item Section 2: Pre-Training (6 hours)
+    \item Section 3: LoRA (5 hours)
+    \item Section 4: QLoRA (4 hours)
+    \item Section 14: LangGraph (3 hours)
+    \item Review all Hyperparameter Guidance boxes (2 hours)
+\end{enumerate}
+
+\subsubsection*{Advanced Path (60+ hours)}
+\begin{enumerate}
+    \item Complete Intermediate Path (40 hours)
+    \item Section 5: PEFT Methods Comparison (4 hours)
+    \item Section 6: Prefix Tuning (3 hours)
+    \item Section 7: Prompt Tuning (3 hours)
+    \item Section 8: RLHF (8 hours)
+    \item Deep dive into all mathematical derivations (10+ hours)
+    \item Implement all code examples from scratch (20+ hours)
+\end{enumerate}
+
+\subsection*{Special Features Guide}
+
+\subsubsection*{Color-Coded Information Boxes}
+
+This guide uses three types of colored boxes for quick reference:
+
+\begin{itemize}
+    \item \textcolor{blue}{\textbf{Hyperparameter Guidance (Blue)}} - Recommended values with compute/memory impact
+    \item \textcolor{orange}{\textbf{Common Pitfalls (Orange)}} - Debugging tips, symptoms, solutions, prevention
+    \item \textcolor{green}{\textbf{Key Takeaways (Green)}} - Core equations, success indicators, production checklists
+\end{itemize}
+
+\textbf{Study Tip:} Each section has 3-5 of these boxes. Reading only these boxes provides a 2-hour crash course!
+
+\subsubsection*{Code Examples}
+
+\begin{itemize}
+    \item \textbf{Production-Ready:} All code examples are 400-700 lines with extensive inline comments
+    \item \textbf{Runnable:} Every example includes setup, configuration, training, and evaluation
+    \item \textbf{Explained:} Code is accompanied by step-by-step walkthroughs
+    \item \textbf{Real Hyperparameters:} All values justified (e.g., "LR=2e-5 prevents catastrophic forgetting")
+\end{itemize}
+
+\subsubsection*{Visualizations}
+
+\begin{itemize}
+    \item \textbf{47 Publication-Quality Figures:} 300 DPI PNG images with detailed captions
+    \item \textbf{Multi-Panel Dashboards:} Comprehensive analysis (e.g., 9-panel evaluation dashboard)
+    \item \textbf{Mathematical Diagrams:} TikZ figures for geometric understanding
+    \item \textbf{All figures are referenced in context} with explanations of what to observe
+\end{itemize}
+
+\subsection*{Prerequisites \& Background}
+
+\subsubsection*{Minimum Prerequisites}
+\begin{itemize}
+    \item Basic Python programming
+    \item Linear algebra (vectors, matrices, dot products)
+    \item Calculus (derivatives, gradients)
+    \item Basic machine learning concepts (loss functions, backpropagation)
+\end{itemize}
+
+\subsubsection*{Recommended Prerequisites}
+\begin{itemize}
+    \item PyTorch or TensorFlow experience
+    \item Familiarity with neural networks (MLPs, CNNs, RNNs)
+    \item Understanding of attention mechanisms
+    \item Experience with Hugging Face Transformers library
+\end{itemize}
+
+\subsubsection*{Advanced Prerequisites (for Research Sections)}
+\begin{itemize}
+    \item Optimization theory (Adam, SGD, learning rate schedules)
+    \item Information theory (entropy, KL divergence)
+    \item Reinforcement learning basics (for RLHF section)
+    \item Distributed training (for large-scale sections)
+\end{itemize}
+
+\subsection*{How Content is Structured}
+
+Each major section follows the \textbf{70-50-35-35 pedagogical philosophy}:
+
+\begin{enumerate}
+    \item \textbf{70\% Conceptual Explanation} - Intuition before formalization, real-world examples
+    \item \textbf{50\% Mathematical Derivations} - Step-by-step proofs with intermediate steps
+    \item \textbf{35\% Visual Representations} - TikZ diagrams, architecture flowcharts, plots
+    \item \textbf{35\% Production Code} - Extensively commented, runnable implementations
+\end{enumerate}
+
+\textit{Note: Percentages overlap intentionally - concepts are explained verbally, derived mathematically, visualized geometrically, AND implemented in code for deep multi-modal understanding.}
+
+\subsection*{Quick Reference Tables}
+
+\textbf{GPU Memory Requirements:}
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Method} & \textbf{7B Model} & \textbf{13B Model} & \textbf{70B Model} \\
+\hline
+Full Fine-Tuning & 28 GB & 52 GB & 280 GB \\
+LoRA (r=8) & 12 GB & 20 GB & 80 GB \\
+QLoRA (4-bit) & 6 GB & 10 GB & 35 GB \\
+\hline
+\end{tabular}
+\caption{Approximate GPU Memory Requirements (Training)}
+\end{table}
+
+\textbf{Time Estimates by Section:}
+\begin{itemize}
+    \item \textbf{Quick Skim (Boxes Only):} 2-3 hours for entire document
+    \item \textbf{Focused Reading:} 1-2 hours per section
+    \item \textbf{Deep Study (Math + Code):} 3-5 hours per section
+    \item \textbf{Complete Mastery:} 60+ hours for entire document
+\end{itemize}
+
+\subsection*{Companion Resources}
+
+\textbf{Included in Repository:}
+\begin{itemize}
+    \item \textbf{Jupyter Notebooks:} 4 complete implementations (Finetuning, LoRA, QLoRA, Pre-training)
+    \item \textbf{Visualization Scripts:} 7 Python scripts generating all 47 figures
+    \item \textbf{Code Examples:} All listings are extracted and runnable
+\end{itemize}
+
+\textbf{External Resources (Referenced Throughout):}
+\begin{itemize}
+    \item Hugging Face Transformers documentation
+    \item PyTorch tutorials and API reference
+    \item Original research papers (cited in each section)
+    \item LangChain and LangGraph official docs
+\end{itemize}
+
+\subsection*{Version \& Updates}
+
+\textbf{Current Version:} November 2025 Edition (v1.2)
+
+\textbf{Document Statistics:}
+\begin{itemize}
+    \item 391 pages
+    \item 21,120 lines of LaTeX source
+    \item 47 visualizations (2.9 MB of images per major section)
+    \item 12+ complete code implementations
+    \item 50+ mathematical derivations
+\end{itemize}
+
+\textbf{Update Frequency:}
+\begin{itemize}
+    \item Major updates: Monthly (new sections, significant enhancements)
+    \item Minor updates: Bi-weekly (fixes, clarifications, examples)
+    \item Repository: \texttt{github.com/ayanalamMOON/GenAi\_Prep}
+\end{itemize}
+
+\subsection*{Contact \& Contributions}
+
+This is a living document! If you find errors, have suggestions, or want to contribute:
+\begin{itemize}
+    \item Open an issue on GitHub
+    \item Submit a pull request with corrections
+    \item Share your implementations and extensions
+\end{itemize}
+
+\vspace{1em}
+\noindent\textit{Now, let's begin your journey into Large Language Models! Turn to the section that matches your goal, and remember: the colored boxes are your friends for quick reference.}
+
+\newpage
+
+%============================================================================
 % SECTION 1: FINE-TUNING
 %============================================================================
 \section{Fine-Tuning}
