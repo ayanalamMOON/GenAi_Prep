@@ -61,3 +61,6 @@ env/
 *.tmp
 *.bak
 nul
+
+# GitHub Copilot - Private instructions (workflows can be committed)
+.github/copilot-instructions.md
