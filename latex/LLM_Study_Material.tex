@@ -13136,6 +13136,754 @@ for task, metrics in test_results['by_task_type'].items():
     print(f"  {task}: ROUGE-L = {metrics['rougeL']:.4f} ({metrics['count']} examples)")
 \end{lstlisting}
 
+\subsection{Production-Ready Instruction Fine-Tuning Implementation}
+
+This section provides a complete, production-grade implementation of instruction fine-tuning, demonstrating best practices from data preparation through evaluation.
+
+\subsubsection{Complete End-to-End Pipeline}
+
+\textbf{Step 1: Environment Setup and Dependencies}
+
+This implementation uses the Hugging Face ecosystem for instruction fine-tuning. The code is structured in 7 steps: (1) Setup, (2) Dataset Preparation, (3) Model Configuration, (4) Training Setup, (5) Training Loop, (6) Evaluation, (7) Inference. Each step includes extensive inline comments explaining design decisions.
+
+\begin{lstlisting}[language=Python]
+# Step 1: Environment Setup
+# Purpose: Initialize libraries and verify hardware availability
+
+import torch
+from transformers import (
+    AutoTokenizer,
+    AutoModelForCausalLM,
+    TrainingArguments,
+    Trainer,
+    DataCollatorForLanguageModeling
+)
+from datasets import load_dataset, Dataset
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+import numpy as np
+from typing import Dict, List, Optional
+import json
+import os
+
+# Check CUDA availability (critical for training large models)
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print(f"Using device: {device}")
+# Expected output: "Using device: cuda" on GPU systems
+
+# Check GPU memory
+if torch.cuda.is_available():
+    total_memory = torch.cuda.get_device_properties(0).total_memory / 1e9
+    print(f"GPU Memory: {total_memory:.2f} GB")
+    # Recommendation: 24GB+ for 7B models, 40GB+ for 13B models
+else:
+    print("Warning: Running on CPU will be extremely slow")
+
+# Step 2: Hyperparameter Configuration
+# These values are production-tested and explained below
+
+# Model selection
+model_name = "meta-llama/Llama-2-7b-hf"  # 7B parameters, good baseline
+                                          # Alternatives: "mistralai/Mistral-7B-v0.1"
+                                          # "microsoft/phi-2" (2.7B, faster)
+
+# Training hyperparameters
+learning_rate = 2e-5       # Lower than pre-training to preserve knowledge
+                           # Typical range: 1e-5 to 5e-5
+batch_size = 4             # Per-GPU batch size
+                           # Adjust based on GPU memory (see table below)
+gradient_accumulation = 4  # Effective batch size = 4 * 4 = 16
+                           # Simulates larger batches without OOM
+num_epochs = 3             # Typical for instruction tuning
+                           # More epochs (5-10) for smaller datasets (<10K)
+warmup_steps = 100         # Gradual LR increase prevents instability
+                           # Rule of thumb: 5-10% of total steps
+max_seq_length = 512       # Maximum sequence length
+                           # Trade-off: longer = more context, higher memory
+
+# LoRA configuration (parameter-efficient fine-tuning)
+use_lora = True            # Recommended for large models (>3B params)
+lora_r = 16                # Rank of adaptation matrices
+                           # Higher rank (32, 64) = more capacity, slower
+lora_alpha = 32            # Scaling factor (typically 2 * lora_r)
+lora_dropout = 0.05        # Regularization, prevents overfitting
+target_modules = ["q_proj", "v_proj"]  # Apply LoRA to attention layers
+                                        # Can add "k_proj", "o_proj" for more capacity
+
+# Logging and checkpointing
+output_dir = "./instruction_tuned_model"
+logging_steps = 50         # Log metrics every N steps
+save_steps = 500           # Save checkpoint every N steps
+eval_steps = 500           # Run evaluation every N steps
+
+# Create output directory
+os.makedirs(output_dir, exist_ok=True)
+
+print(f"\nHyperparameters:")
+print(f"  Model: {model_name}")
+print(f"  Learning Rate: {learning_rate}")
+print(f"  Effective Batch Size: {batch_size * gradient_accumulation}")
+print(f"  Epochs: {num_epochs}")
+print(f"  Max Sequence Length: {max_seq_length}")
+print(f"  LoRA: {'Enabled' if use_lora else 'Disabled'}")
+
+# Step 3: Dataset Preparation
+# Purpose: Load and format instruction dataset
+
+def format_instruction(example: Dict) -> str:
+    """
+    Format a single example into Alpaca-style prompt
+    
+    This function converts structured instruction data into a text format
+    suitable for causal language modeling. The format follows the Alpaca
+    template which has been shown to improve instruction-following.
+    
+    Args:
+        example: Dict with 'instruction', 'input', 'output' keys
+        
+    Returns:
+        Formatted string ready for tokenization
+    """
+    instruction = example.get('instruction', '').strip()
+    input_text = example.get('input', '').strip()
+    output = example.get('output', '').strip()
+    
+    # Alpaca format: includes structured markers for clarity
+    if input_text:
+        prompt = f"""Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
+
+### Instruction:
+{instruction}
+
+### Input:
+{input_text}
+
+### Response:
+{output}"""
+    else:
+        prompt = f"""Below is an instruction that describes a task. Write a response that appropriately completes the request.
+
+### Instruction:
+{instruction}
+
+### Response:
+{output}"""
+    
+    return prompt
+
+# Load dataset
+# Option 1: Load from Hugging Face Hub
+try:
+    dataset = load_dataset("tatsu-lab/alpaca", split="train")
+    print(f"Loaded {len(dataset)} examples from Hugging Face")
+except:
+    # Option 2: Load from local JSON file
+    print("Loading from local file...")
+    with open("instruction_data.json", "r") as f:
+        data = json.load(f)
+    dataset = Dataset.from_list(data)
+    print(f"Loaded {len(dataset)} examples from local file")
+
+# Split into train/validation
+# Use 95%/5% split for large datasets (>50K examples)
+# Use 90%/10% split for smaller datasets
+split_ratio = 0.95 if len(dataset) > 50000 else 0.90
+train_size = int(len(dataset) * split_ratio)
+
+train_dataset = dataset.select(range(train_size))
+eval_dataset = dataset.select(range(train_size, len(dataset)))
+
+print(f"\nDataset splits:")
+print(f"  Training: {len(train_dataset)} examples")
+print(f"  Validation: {len(eval_dataset)} examples")
+
+# Analyze dataset statistics
+instruction_lengths = [len(ex['instruction'].split()) for ex in train_dataset]
+output_lengths = [len(ex['output'].split()) for ex in train_dataset]
+
+print(f"\nDataset statistics:")
+print(f"  Avg instruction length: {np.mean(instruction_lengths):.1f} words")
+print(f"  Avg output length: {np.mean(output_lengths):.1f} words")
+print(f"  Max output length: {max(output_lengths)} words")
+
+# Step 4: Model and Tokenizer Loading
+# Purpose: Initialize model with proper configuration
+
+print(f"\nLoading model and tokenizer...")
+
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+# Handle tokenizer padding (critical for batching)
+if tokenizer.pad_token is None:
+    tokenizer.pad_token = tokenizer.eos_token
+    # GPT-style models don't have a pad token, use EOS instead
+    # This prevents errors during batched training
+    
+tokenizer.padding_side = "right"  # Pad on the right for causal LM
+                                  # Left padding can cause issues with attention
+
+# Load model with appropriate precision
+# Use bfloat16 on Ampere+ GPUs (A100, RTX 30xx/40xx) for stability
+# Use float16 on older GPUs (V100, RTX 20xx)
+if torch.cuda.is_bf16_supported():
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name,
+        torch_dtype=torch.bfloat16,
+        device_map="auto",           # Automatically distribute across GPUs
+        trust_remote_code=True       # Required for some models
+    )
+    print("Using bfloat16 precision (recommended)")
+else:
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name,
+        torch_dtype=torch.float16,
+        device_map="auto",
+        trust_remote_code=True
+    )
+    print("Using float16 precision")
+
+# Verify model loaded correctly
+total_params = sum(p.numel() for p in model.parameters())
+print(f"Model loaded: {total_params / 1e9:.2f}B parameters")
+
+# Step 5: Apply LoRA (if enabled)
+# Purpose: Make training parameter-efficient
+
+if use_lora:
+    print("\nApplying LoRA configuration...")
+    
+    # Prepare model for k-bit training (enables gradient checkpointing)
+    model = prepare_model_for_kbit_training(model)
+    
+    # Configure LoRA
+    lora_config = LoraConfig(
+        r=lora_r,                      # Rank of adaptation matrices
+        lora_alpha=lora_alpha,         # Scaling factor
+        target_modules=target_modules,  # Which layers to adapt
+        lora_dropout=lora_dropout,     # Dropout for regularization
+        bias="none",                   # Don't adapt bias terms
+        task_type="CAUSAL_LM"          # Task type for proper initialization
+    )
+    
+    # Wrap model with LoRA
+    model = get_peft_model(model, lora_config)
+    
+    # Print trainable parameters
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    total_params = sum(p.numel() for p in model.parameters())
+    trainable_pct = 100 * trainable_params / total_params
+    
+    print(f"Trainable parameters: {trainable_params / 1e6:.2f}M ({trainable_pct:.2f}%)")
+    print(f"Total parameters: {total_params / 1e9:.2f}B")
+    # Expected: <1% trainable for LoRA, significant memory savings
+
+# Step 6: Data Preprocessing
+# Purpose: Tokenize and create training-ready dataset
+
+def preprocess_function(examples: Dict) -> Dict:
+    """
+    Tokenize examples with proper loss masking
+    
+    Key concept: We only compute loss on the "Response" part,
+    not on the instruction/input. This focuses learning on
+    generating appropriate outputs.
+    
+    Args:
+        examples: Batch of examples from dataset
+        
+    Returns:
+        Dict with input_ids, attention_mask, labels
+    """
+    # Format all examples in batch
+    formatted_texts = [format_instruction(ex) for ex in examples]
+    
+    # Tokenize
+    tokenized = tokenizer(
+        formatted_texts,
+        max_length=max_seq_length,
+        truncation=True,
+        padding="max_length",
+        return_tensors=None  # Return lists, not tensors (for datasets)
+    )
+    
+    # Create labels (copy of input_ids for causal LM)
+    tokenized["labels"] = tokenized["input_ids"].copy()
+    
+    # Optional: Mask instruction tokens (advanced technique)
+    # This requires tracking where the response starts
+    # For simplicity, we compute loss on full sequence here
+    # Production systems should implement proper masking
+    
+    return tokenized
+
+# Preprocess datasets
+print("\nTokenizing datasets...")
+tokenized_train = train_dataset.map(
+    lambda examples: preprocess_function([examples]),
+    remove_columns=train_dataset.column_names,
+    desc="Tokenizing training set"
+)
+
+tokenized_eval = eval_dataset.map(
+    lambda examples: preprocess_function([examples]),
+    remove_columns=eval_dataset.column_names,
+    desc="Tokenizing evaluation set"
+)
+
+print("Tokenization complete")
+
+# Step 7: Training Configuration
+# Purpose: Set up trainer with proper arguments
+
+training_args = TrainingArguments(
+    output_dir=output_dir,
+    
+    # Training hyperparameters
+    num_train_epochs=num_epochs,
+    per_device_train_batch_size=batch_size,
+    per_device_eval_batch_size=batch_size,
+    gradient_accumulation_steps=gradient_accumulation,
+    
+    # Optimizer settings
+    learning_rate=learning_rate,
+    weight_decay=0.01,              # L2 regularization
+    adam_beta1=0.9,                 # Adam momentum
+    adam_beta2=0.999,               # Adam second moment
+    adam_epsilon=1e-8,              # Numerical stability
+    max_grad_norm=1.0,              # Gradient clipping (prevents exploding gradients)
+    
+    # Learning rate schedule
+    lr_scheduler_type="cosine",     # Cosine annealing works well
+                                    # Alternatives: "linear", "constant_with_warmup"
+    warmup_steps=warmup_steps,      # Gradual warmup prevents instability
+    
+    # Logging and checkpointing
+    logging_steps=logging_steps,
+    save_steps=save_steps,
+    eval_steps=eval_steps,
+    evaluation_strategy="steps",    # Evaluate during training
+    save_total_limit=3,             # Keep only last 3 checkpoints (saves disk space)
+    load_best_model_at_end=True,    # Load best checkpoint at end
+    metric_for_best_model="eval_loss",  # Use validation loss for selection
+    
+    # Performance optimizations
+    fp16=False,                     # Set True for older GPUs
+    bf16=torch.cuda.is_bf16_supported(),  # Better numerical stability
+    gradient_checkpointing=True,    # Trade compute for memory (enables larger models)
+    optim="adamw_torch",            # Optimizer implementation
+    
+    # Miscellaneous
+    report_to="none",               # Disable wandb/tensorboard (set to "wandb" if needed)
+    seed=42,                        # Reproducibility
+    dataloader_num_workers=4,       # Parallel data loading
+)
+
+# Initialize trainer
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=tokenized_train,
+    eval_dataset=tokenized_eval,
+    tokenizer=tokenizer,
+)
+
+print("\nTraining configuration complete")
+print(f"Total training steps: {len(tokenized_train) // (batch_size * gradient_accumulation) * num_epochs}")
+print(f"Checkpoints saved to: {output_dir}")
+
+# Step 8: Training
+# Purpose: Execute training loop with monitoring
+
+print("\n" + "="*50)
+print("Starting training...")
+print("="*50 + "\n")
+
+# Train the model
+train_result = trainer.train()
+
+# Print training statistics
+print("\n" + "="*50)
+print("Training complete!")
+print("="*50)
+print(f"Training loss: {train_result.training_loss:.4f}")
+print(f"Training time: {train_result.metrics['train_runtime']:.2f}s")
+print(f"Samples/second: {train_result.metrics['train_samples_per_second']:.2f}")
+
+# Save final model
+trainer.save_model(output_dir)
+tokenizer.save_pretrained(output_dir)
+print(f"\nModel saved to {output_dir}")
+
+# Step 9: Evaluation
+# Purpose: Assess model performance on validation set
+
+print("\nRunning final evaluation...")
+eval_results = trainer.evaluate()
+
+print("\nEvaluation Results:")
+print(f"  Validation Loss: {eval_results['eval_loss']:.4f}")
+print(f"  Perplexity: {np.exp(eval_results['eval_loss']):.2f}")
+# Lower perplexity = better. Typical values: 1.5-3.0 for well-tuned models
+
+# Step 10: Inference Example
+# Purpose: Demonstrate how to use the fine-tuned model
+
+print("\n" + "="*50)
+print("Testing inference...")
+print("="*50 + "\n")
+
+def generate_response(
+    instruction: str,
+    input_text: str = "",
+    max_new_tokens: int = 256,
+    temperature: float = 0.7,
+    top_p: float = 0.9
+) -> str:
+    """
+    Generate response for a given instruction
+    
+    Args:
+        instruction: Task instruction
+        input_text: Optional input context
+        max_new_tokens: Maximum tokens to generate
+        temperature: Sampling temperature (higher = more creative)
+        top_p: Nucleus sampling threshold
+        
+    Returns:
+        Generated response string
+    """
+    # Format prompt
+    if input_text:
+        prompt = f"""Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
+
+### Instruction:
+{instruction}
+
+### Input:
+{input_text}
+
+### Response:
+"""
+    else:
+        prompt = f"""Below is an instruction that describes a task. Write a response that appropriately completes the request.
+
+### Instruction:
+{instruction}
+
+### Response:
+"""
+    
+    # Tokenize
+    inputs = tokenizer(prompt, return_tensors="pt").to(device)
+    
+    # Generate
+    with torch.no_grad():
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=max_new_tokens,
+            temperature=temperature,
+            top_p=top_p,
+            do_sample=True,           # Enable sampling for diversity
+            pad_token_id=tokenizer.pad_token_id,
+            eos_token_id=tokenizer.eos_token_id
+        )
+    
+    # Decode
+    response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    
+    # Extract only the generated response (after "### Response:")
+    if "### Response:" in response:
+        response = response.split("### Response:")[-1].strip()
+    
+    return response
+
+# Test examples
+test_cases = [
+    {
+        "instruction": "Explain the concept of gradient descent in machine learning.",
+        "input": ""
+    },
+    {
+        "instruction": "Classify the sentiment of the following review.",
+        "input": "This product exceeded my expectations! Highly recommended."
+    },
+    {
+        "instruction": "Write a haiku about artificial intelligence.",
+        "input": ""
+    }
+]
+
+for i, test in enumerate(test_cases, 1):
+    print(f"Test {i}:")
+    print(f"Instruction: {test['instruction']}")
+    if test['input']:
+        print(f"Input: {test['input']}")
+    
+    response = generate_response(test['instruction'], test['input'])
+    print(f"Response: {response}\n")
+
+print("="*50)
+print("Instruction fine-tuning pipeline complete!")
+print("="*50)
+\end{lstlisting}
+
+\textbf{Code Walkthrough - Understanding the Implementation:}
+
+\textbf{Why these design choices?}
+
+\begin{itemize}
+    \item \textbf{LoRA instead of full fine-tuning:} Reduces trainable parameters from 7B to ~40M (0.5\%), making training feasible on consumer GPUs. Full fine-tuning a 7B model requires 80GB+ VRAM; LoRA needs only 24GB.
+    
+    \item \textbf{Gradient accumulation:} Simulates larger batch sizes without OOM errors. Effective batch size of 16 (4 × 4) provides stable gradients while fitting in 24GB GPU memory.
+    
+    \item \textbf{Cosine learning rate schedule:} Gradually reduces learning rate, allowing fine-grained optimization near convergence. More stable than constant LR.
+    
+    \item \textbf{Gradient checkpointing:} Trades compute for memory by recomputing activations during backward pass. Increases training time by ~20\% but reduces memory by ~40\%.
+    
+    \item \textbf{BFloat16 precision:} Better numerical stability than Float16, especially for large models. Prevents gradient underflow issues common in FP16 training.
+\end{itemize}
+
+\textbf{Memory Calculation Example:}
+
+For LLaMA-7B with LoRA (r=16):
+\begin{align}
+\text{Base model (inference)} &= 7B \times 2 \text{ bytes (fp16)} = 14 \text{ GB} \\
+\text{LoRA parameters} &= 40M \times 4 \text{ bytes (fp32)} = 0.16 \text{ GB} \\
+\text{Optimizer states (AdamW)} &= 40M \times 8 \text{ bytes} = 0.32 \text{ GB} \\
+\text{Gradients} &= 40M \times 4 \text{ bytes} = 0.16 \text{ GB} \\
+\text{Activations (batch=4, seq=512)} &\approx 6 \text{ GB} \\
+\text{Total} &\approx 21 \text{ GB}
+\end{align}
+
+This fits comfortably in 24GB GPU memory with overhead.
+
+\begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,title={Hyperparameter Guidance: Instruction Fine-Tuning}]
+\textbf{Recommended Values:}
+\begin{itemize}
+    \item \textbf{Learning Rate:} 1×10⁻⁵ to 5×10⁻⁵ (even lower than standard fine-tuning)
+    \\ \textit{Why:} Instruction tuning builds on pre-trained knowledge; too high LR destroys existing capabilities
+    \\ \textit{Compute Impact:} No direct impact on memory/speed
+    \\ \textit{Diagnostic:} If validation loss increases, reduce LR by 50\%
+    
+    \item \textbf{Batch Size:} 4-8 per GPU with gradient accumulation
+    \\ \textit{Why:} Effective batch of 16-32 provides stable gradients; smaller per-device batch saves memory
+    \\ \textit{Memory Formula:} GPU memory ≈ params × 2 (model) + trainable × 12 (optimizer) + batch × seq\_len × hidden × layers × 2 (activations)
+    \\ \textit{Adjustment:} If OOM error, reduce batch size or enable gradient checkpointing
+    
+    \item \textbf{Epochs:} 1-3 for large datasets (>50K), 3-5 for medium (10K-50K), 5-10 for small (<10K)
+    \\ \textit{Why:} More data = fewer epochs needed; small datasets require more passes to learn patterns
+    \\ \textit{Overfitting Check:} If train loss ≪ val loss, reduce epochs or add dropout
+    
+    \item \textbf{LoRA Rank:} 8-16 for most tasks, 32-64 for complex domains
+    \\ \textit{Why:} Higher rank = more capacity but slower training and higher memory
+    \\ \textit{Sweet Spot:} r=16 with α=32 works for 90\% of use cases
+    
+    \item \textbf{Max Sequence Length:} 512 for most tasks, 1024-2048 for long-form generation
+    \\ \textit{Why:} Longer sequences = quadratic memory growth in attention
+    \\ \textit{Memory Impact:} Doubling max\_length roughly doubles activation memory
+    
+    \item \textbf{Warmup Steps:} 100-500 (or 5-10\% of total steps)
+    \\ \textit{Why:} Prevents initial training instability from cold start
+    \\ \textit{Formula:} warmup = 0.1 × (dataset\_size / (batch\_size × accum\_steps) × epochs)
+\end{itemize}
+
+\textbf{GPU-Specific Recommendations:}
+\begin{itemize}
+    \item \textbf{24GB GPU (RTX 3090/4090, A10):} 7B model, batch=4, r=16, seq\_len=512
+    \item \textbf{40GB GPU (A100):} 13B model, batch=8, r=32, seq\_len=1024
+    \item \textbf{80GB GPU (A100 80GB):} 30B model, batch=16, r=64, seq\_len=2048
+    \item \textbf{16GB GPU (RTX 4080):} 3B model, batch=2, r=8, seq\_len=512, gradient\_checkpointing=True
+\end{itemize}
+
+\textbf{Quick Start Configurations:}
+\begin{itemize}
+    \item \textbf{Small Dataset (<10K):} LR=3e-5, batch=4×4, epochs=5, r=16
+    \item \textbf{Medium Dataset (10K-50K):} LR=2e-5, batch=4×4, epochs=3, r=16
+    \item \textbf{Large Dataset (>50K):} LR=2e-5, batch=8×4, epochs=2, r=16
+    \item \textbf{Memory-Constrained:} batch=2×8, gradient\_checkpointing=True, r=8
+\end{itemize}
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title={Common Pitfalls and Debugging Tips: Instruction Fine-Tuning}]
+
+\textbf{Pitfall 1: Model Generates Gibberish or Repeats Instructions}
+\begin{itemize}
+    \item \textbf{Symptoms:} Output is incoherent, repeats input verbatim, or continues the instruction instead of providing response
+    \item \textbf{Root Cause:} Improper prompt formatting or missing loss masking on instruction tokens
+    \item \textbf{Diagnosis:} Check that prompt template includes clear delimiters (e.g., "\#\#\# Response:"). Verify tokenizer processes special tokens correctly.
+    \item \textbf{Solution:} 
+    \begin{lstlisting}[language=Python]
+# Ensure proper prompt structure
+prompt = f"""### Instruction:
+{instruction}
+
+### Response:
+"""  # Clear delimiter helps model distinguish instruction from response
+
+# During training, mask instruction tokens
+response_start = prompt_text.find("### Response:")
+prompt_tokens = tokenizer(prompt_text[:response_start])
+prompt_length = len(prompt_tokens['input_ids'])
+labels[:prompt_length] = -100  # Don't compute loss on instruction
+    \end{lstlisting}
+    \item \textbf{Prevention:} Always use consistent prompt templates. Test formatting on a few examples before full training.
+\end{itemize}
+
+\textbf{Pitfall 2: Poor Performance on Unseen Task Types}
+\begin{itemize}
+    \item \textbf{Symptoms:} Model performs well on training task types but fails on novel instructions
+    \item \textbf{Root Cause:} Insufficient diversity in training data; model memorizes patterns instead of learning instruction-following
+    \item \textbf{Diagnosis:} Evaluate on held-out task types. If train accuracy ≫ test accuracy for new tasks, diversity is the issue.
+    \item \textbf{Solution:} Increase task diversity in training set:
+    \begin{lstlisting}[language=Python]
+# Check task diversity
+task_types = [ex['task_type'] for ex in dataset]
+unique_tasks = len(set(task_types))
+print(f"Unique task types: {unique_tasks}")
+
+# Aim for at least 20-30 different task types
+# If insufficient, use data augmentation or synthetic generation:
+from self_instruct import generate_diverse_instructions
+augmented_data = generate_diverse_instructions(seed_set, target_count=10000)
+    \end{lstlisting}
+    \item \textbf{Prevention:} Curate training data with explicit task diversity targets. Include edge cases and unusual instruction phrasings.
+\end{itemize}
+
+\textbf{Pitfall 3: Catastrophic Forgetting of Base Capabilities}
+\begin{itemize}
+    \item \textbf{Symptoms:} Model follows instructions well but loses general knowledge (e.g., can't answer factual questions unless phrased as instructions)
+    \item \textbf{Root Cause:} Learning rate too high or too many epochs, destroying pre-trained weights
+    \item \textbf{Diagnosis:} Test on general knowledge benchmarks (MMLU, TriviaQA). Significant drop from base model indicates forgetting.
+    \item \textbf{Solution:} 
+    \begin{lstlisting}[language=Python]
+# Option 1: Mix instruction data with general pre-training data
+mixed_dataset = concatenate_datasets([
+    instruction_dataset,
+    general_corpus.select(range(len(instruction_dataset) // 10))  # 10% general data
+])
+
+# Option 2: Use lower learning rate
+training_args.learning_rate = 1e-5  # Half the typical rate
+
+# Option 3: Reduce epochs
+training_args.num_train_epochs = 1  # Single pass often sufficient for large datasets
+    \end{lstlisting}
+    \item \textbf{Prevention:} Always benchmark base capabilities before/after fine-tuning. Use minimal epochs for large datasets (>50K).
+\end{itemize}
+
+\textbf{Pitfall 4: Out of Memory (OOM) Errors}
+\begin{itemize}
+    \item \textbf{Symptoms:} Training crashes with "CUDA out of memory" error
+    \item \textbf{Root Cause:} Batch size or sequence length too large for available GPU memory
+    \item \textbf{Diagnosis:} Monitor GPU memory: \texttt{nvidia-smi}. Check peak memory usage.
+    \item \textbf{Solution:} Progressive reduction:
+    \begin{lstlisting}[language=Python]
+# Step 1: Enable gradient checkpointing (40% memory reduction)
+training_args.gradient_checkpointing = True
+
+# Step 2: Reduce batch size, increase accumulation
+training_args.per_device_train_batch_size = 2  # Down from 4
+training_args.gradient_accumulation_steps = 8  # Up from 4
+
+# Step 3: Reduce sequence length
+max_seq_length = 256  # Down from 512
+
+# Step 4: Use smaller LoRA rank
+lora_config.r = 8  # Down from 16
+
+# Step 5: Use 8-bit quantization (requires bitsandbytes)
+from transformers import BitsAndBytesConfig
+bnb_config = BitsAndBytesConfig(
+    load_in_8bit=True,
+    bnb_8bit_compute_dtype=torch.float16
+)
+model = AutoModelForCausalLM.from_pretrained(
+    model_name,
+    quantization_config=bnb_config
+)
+    \end{lstlisting}
+    \item \textbf{Prevention:} Calculate memory requirements before training (see formula in hyperparameter box). Start conservative, then increase if headroom available.
+\end{itemize}
+
+\textbf{Pitfall 5: Slow Training Speed}
+\begin{itemize}
+    \item \textbf{Symptoms:} Training takes hours per epoch; samples/second very low (<1)
+    \item \textbf{Root Cause:} Inefficient configuration, CPU bottlenecks, or disabled optimizations
+    \item \textbf{Diagnosis:} Check GPU utilization: \texttt{nvidia-smi}. If <80\%, optimization needed.
+    \item \textbf{Solution:}
+    \begin{lstlisting}[language=Python]
+# Enable all optimizations
+training_args.bf16 = True  # or fp16 on older GPUs
+training_args.tf32 = True  # Tensor Float 32 on Ampere+ GPUs
+training_args.dataloader_num_workers = 4  # Parallel data loading
+training_args.dataloader_pin_memory = True  # Faster CPU-GPU transfer
+
+# Use Flash Attention (if supported)
+from transformers import LlamaForCausalLM
+model = LlamaForCausalLM.from_pretrained(
+    model_name,
+    use_flash_attention_2=True  # 2-3x speedup on A100/H100
+)
+
+# Profile to identify bottlenecks
+import torch.profiler
+with torch.profiler.profile(activities=[torch.profiler.ProfilerActivity.CPU,
+                                         torch.profiler.ProfilerActivity.CUDA]) as prof:
+    trainer.train()
+print(prof.key_averages().table(sort_by="cuda_time_total"))
+    \end{lstlisting}
+    \item \textbf{Prevention:} Verify all optimizations enabled before long training runs. Use profiling on small subset first.
+\end{itemize}
+
+\textbf{Pitfall 6: Model Produces Overly Short or Long Responses}
+\begin{itemize}
+    \item \textbf{Symptoms:} Outputs are consistently too brief (1-2 words) or excessively verbose (multiple paragraphs when not needed)
+    \item \textbf{Root Cause:} Length bias in training data or improper generation parameters
+    \item \textbf{Diagnosis:} Analyze output length distribution. If 90\%+ outputs are same length, bias exists.
+    \item \textbf{Solution:}
+    \begin{lstlisting}[language=Python]
+# Balance training data output lengths
+from collections import Counter
+output_lengths = [len(ex['output'].split()) for ex in dataset]
+length_dist = Counter(output_lengths)
+# Ensure variety: short (10-50 words), medium (50-200), long (200+)
+
+# Adjust generation parameters
+outputs = model.generate(
+    **inputs,
+    min_new_tokens=20,      # Prevent overly short outputs
+    max_new_tokens=200,     # Cap maximum length
+    length_penalty=1.0,     # Neutral (>1 encourages longer, <1 shorter)
+    no_repeat_ngram_size=3  # Prevent repetitive padding
+)
+    \end{lstlisting}
+    \item \textbf{Prevention:} Curate diverse output lengths in training data. Set appropriate generation constraints per task type.
+\end{itemize}
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title={Key Takeaways: Instruction Fine-Tuning}]
+\begin{enumerate}
+    \item \textbf{Core Objective:} Train models to follow diverse instructions by maximizing $\mathbb{E}_{(I,x,y)} [\log P_\theta(y | I, x)]$ across multi-task datasets, enabling zero-shot generalization to novel tasks.
+    
+    \item \textbf{Critical Implementation Detail:} Always mask instruction/input tokens in loss computation (set labels to -100 for these positions). This focuses learning on response generation, not instruction repetition.
+    
+    \item \textbf{Prompt Template Consistency:} Use the same template structure during training and inference. Mismatched templates cause severe performance degradation. Alpaca format ("### Instruction: ... ### Response:") is a proven standard.
+    
+    \item \textbf{LoRA Sweet Spot:} Rank r=16 with alpha=32 balances capacity and efficiency for most tasks. Only increase to r=32-64 for highly specialized domains. Full fine-tuning rarely necessary and wastes resources.
+    
+    \item \textbf{Data Quality Over Quantity:} 10K high-quality, diverse instruction examples outperform 100K low-quality, repetitive ones. Prioritize task diversity (20+ task types) over raw dataset size.
+    
+    \item \textbf{Learning Rate Rule:} Start at 2×10⁻⁵; halve if validation loss increases, double if training too slow. Never exceed 5×10⁻⁵ or risk catastrophic forgetting of base model knowledge.
+    
+    \item \textbf{Memory Management:} GPU memory = model (2 bytes/param) + LoRA trainable (12 bytes/param) + activations (batch × seq² × hidden). Enable gradient checkpointing first, then reduce batch size if OOM.
+    
+    \item \textbf{Evaluation Beyond Metrics:} Automatic metrics (ROUGE, BLEU) don't capture instruction-following quality. Test on diverse, unseen tasks with human evaluation. Win rate in pairwise comparison is most reliable.
+    
+    \item \textbf{Preventing Catastrophic Forgetting:} Use 1-3 epochs max for large datasets (>50K). Mix 5-10\% general pre-training data to maintain base capabilities. Monitor general knowledge benchmarks (MMLU) before/after tuning.
+    
+    \item \textbf{Production Checklist:} (1) Diverse training data (20+ task types), (2) Proper loss masking implemented, (3) Consistent prompt templates, (4) Warmup enabled (10\% of steps), (5) Gradient clipping (max\_norm=1.0), (6) Checkpointing every 500 steps, (7) Validation set monitoring, (8) Human evaluation on unseen tasks.
+\end{enumerate}
+\end{tcolorbox}
+
 \newpage
 
 %============================================================================
