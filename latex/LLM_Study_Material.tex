@@ -57,11 +57,83 @@
 \setlength{\parskip}{0.3em}
 \setlength{\itemsep}{0pt}
 
+% Enhanced syntax highlighting configuration
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.96}
+\definecolor{keywordcolor}{rgb}{0.0,0.0,0.8}
+\definecolor{stringcolor}{rgb}{0.6,0.1,0.0}
+\definecolor{commentcolor}{rgb}{0.25,0.5,0.35}
+
+% Default lstlisting style
 \lstset{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{commentcolor}\itshape,
+    keywordstyle=\color{keywordcolor}\bfseries,
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{stringcolor},
     basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=4,
+    frame=single,
+    rulecolor=\color{black!30},
+    xleftmargin=2em,
+    framexleftmargin=1.5em
+}
+
+% Python-specific highlighting
+\lstdefinestyle{pythoncode}{
+    language=Python,
+    morekeywords={True,False,None,self,as,with,yield,lambda,assert,async,await},
+    keywordstyle=\color{keywordcolor}\bfseries,
+    stringstyle=\color{stringcolor},
+    commentstyle=\color{commentcolor}\itshape,
+    morecomment=[l][\color{commentcolor}]{\#},
+    morestring=[b]",
+    morestring=[b]',
+    basicstyle=\ttfamily\small,
+    numberstyle=\tiny\color{codegray},
+    showstringspaces=false
+}
+
+% Bash/Shell highlighting
+\lstdefinestyle{bashcode}{
+    language=bash,
+    keywordstyle=\color{keywordcolor}\bfseries,
+    stringstyle=\color{stringcolor},
+    commentstyle=\color{commentcolor}\itshape,
+    basicstyle=\ttfamily\small,
+    showstringspaces=false
+}
+
+% JSON highlighting
+\lstdefinestyle{jsoncode}{
+    basicstyle=\ttfamily\small,
+    stringstyle=\color{stringcolor},
+    numberstyle=\tiny\color{codegray},
+    showstringspaces=false,
     breaklines=true,
     frame=single,
-    backgroundcolor=\color{gray!10}
+    backgroundcolor=\color{backcolour}
+}
+
+% Plain text/output style (no syntax highlighting)
+\lstdefinestyle{plaintext}{
+    language={},
+    basicstyle=\ttfamily\small,
+    numbers=none,
+    frame=single,
+    backgroundcolor=\color{gray!10},
+    breaklines=true
 }
 
 % Define theorem environments
@@ -242,7 +314,7 @@ The fine-tuning process consists of the following steps:
 \subsection{Expected Output and Results}
 
 \subsubsection{During Training}
-\begin{lstlisting}
+\begin{lstlisting}[style=plaintext]
 Training Output:
 Epoch 1/5:  20%|====      | 100/500 [00:45<03:00, 2.22it/s]
 Loss: 3.245
@@ -259,7 +331,7 @@ Training complete! Model saved to ./dr_patient_finetuned/
 \end{lstlisting}
 
 \subsubsection{Saved Files Structure}
-\begin{lstlisting}
+\begin{lstlisting}[style=plaintext]
 ./dr_patient_finetuned/
     |-- config.json          # Model configuration
     |-- pytorch_model.bin    # Model weights (~500MB for GPT-2)
@@ -1943,7 +2015,7 @@ Cost & Very high & Moderate \\
 \subsection{Expected Output and Results}
 
 \subsubsection{During Pre-Training}
-\begin{lstlisting}
+\begin{lstlisting}[style=plaintext]
 Pre-Training Output:
 Epoch 1/5:  10%|==        | 50/500 [02:15<20:15, 2.70s/it]
 Loss: 8.456  (High initial loss - random weights)
@@ -1963,7 +2035,7 @@ Pre-training complete! Model saved to ./gpt2-shoolini/
 \end{lstlisting}
 
 \subsubsection{Model Configuration Comparison}
-\begin{lstlisting}
+\begin{lstlisting}[style=plaintext]
 Custom Model (gpt2-shoolini):
 - Layers: 6
 - Attention Heads: 6
@@ -2368,7 +2440,7 @@ Let's walk through a complete, practical example with actual code you can run. W
 
 \textbf{Step 1: Understanding the Data Pipeline}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Install required libraries
 # !pip install datasets transformers tokenizers accelerate torch
 
@@ -2401,7 +2473,7 @@ if device == "cuda":
 
 \textbf{Step 2: Loading and Preparing Training Data}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Load a text dataset (using Wikitext as example)
 # For real pre-training, you'd use much larger corpora (Common Crawl, Books, etc.)
 dataset = load_dataset("wikitext", "wikitext-2-raw-v1")
@@ -2442,7 +2514,7 @@ print(f"\nFirst example:\n{dataset['train'][0]['text'][:500]}")
 
 \textbf{Step 3: Building a Custom Tokenizer}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # For demonstration, we'll use pre-trained GPT-2 tokenizer
 # In real pre-training, you'd train tokenizer from scratch on your corpus
 tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
@@ -2490,7 +2562,7 @@ For GPT-2 with $d=768$, that's \textbf{38.6M parameters} just for embeddings! Th
 
 \textbf{Step 4: Tokenizing the Entire Dataset}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Define tokenization function
 def tokenize_function(examples):
     """
@@ -2542,7 +2614,7 @@ Without \texttt{batched=True}, the function would be called 36,718 times (once p
 
 \textbf{Step 5: Block Processing - Creating Fixed-Length Sequences}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Concatenate all texts and split into fixed-length blocks
 # This is crucial for efficient training
 block_size = 128  # Shorter than GPT-2's max (1024) to save memory for demo
@@ -2613,7 +2685,7 @@ Without blocking, examples would have variable lengths (some 50 tokens, others 5
 
 \textbf{Step 6: Configuring Model Architecture from Scratch}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Define custom GPT-2 configuration
 # We'll make a smaller model for demonstration
 config = GPT2Config(
@@ -2740,7 +2812,7 @@ For $L=6$ layers: $6 \times 788{,}736 = 4{,}732{,}416$
 
 \textbf{Step 7: Initialize Model with Random Weights}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Create model from scratch (random initialization)
 model = GPT2LMHeadModel(config)
 
@@ -2792,7 +2864,7 @@ where $n_{in}$ is the input dimension (Xavier/Glorot initialization). This keeps
 
 \textbf{Step 8: Setting Up the Training Loop}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Define training arguments
 training_args = TrainingArguments(
     output_dir="./gpt2-pretrained-demo",
@@ -3227,7 +3299,7 @@ Let's implement LoRA from scratch and then use the PEFT library, understanding e
 
 \textbf{Step 1: Setup and Imports}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Install required libraries
 # !pip install transformers peft datasets accelerate bitsandbytes torch
 
@@ -3260,7 +3332,7 @@ if torch.cuda.is_available():
 
 \textbf{Step 2: Load Pre-trained Model and Tokenizer}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Load base model (GPT-2 for demonstration)
 model_name = "gpt2"  # 124M parameters
 print(f"Loading model: {model_name}")
@@ -3300,7 +3372,7 @@ Modern GPUs have specialized FP16 compute units (Tensor Cores) that are 2-8x fas
 
 \textbf{Step 3: Inspect Model Architecture}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Let's understand the model structure to know which modules to target
 print("\nModel Architecture:")
 print(model)
@@ -3351,7 +3423,7 @@ for name, module in model.named_modules():
 
 \textbf{Step 4: Configure LoRA}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Configure LoRA parameters
 lora_config = LoraConfig(
     r=8,                              # Rank of LoRA matrices
@@ -3421,7 +3493,7 @@ For very simple tasks, you might use $\alpha = r$ (scaling=1). For complex tasks
 
 \textbf{Step 5: Apply LoRA to Model}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Apply LoRA adapters to the model
 peft_model = get_peft_model(model, lora_config)
 
@@ -3480,7 +3552,7 @@ We have 2 modules per layer (\texttt{c\_attn}, \texttt{c\_proj}) and 12 layers, 
 
 \textbf{Step 6: Visualizing LoRA Forward Pass}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Let's manually perform a forward pass to understand what happens
 print("Simulating LoRA forward pass:")
 
@@ -3567,7 +3639,7 @@ Therefore: $\text{rank}(BA) \leq \min(r, r) = r$
 This proves that the LoRA update is guaranteed to be rank-$r$ or lower, drastically reducing the degrees of freedom compared to full fine-tuning.
 
 \subsubsection{Trainable Parameters Output}
-\begin{lstlisting}
+\begin{lstlisting}[style=plaintext]
 trainable params: 294,912 || all params: 124,734,720 || trainable%: 0.2364%
 
 This means:
@@ -3578,7 +3650,7 @@ This means:
 \end{lstlisting}
 
 \subsubsection{Training Output}
-\begin{lstlisting}
+\begin{lstlisting}[style=plaintext]
 Epoch 1/5:  20%|====      | 100/500 [00:25<01:40, 4.00it/s]
 Loss: 2.456  (Faster training than full fine-tuning)
 
@@ -3589,7 +3661,7 @@ Training complete! LoRA adapters saved to ./Lora_dr_patient_finetuned/
 \end{lstlisting}
 
 \subsubsection{Saved Files Structure}
-\begin{lstlisting}
+\begin{lstlisting}[style=plaintext]
 ./Lora_dr_patient_finetuned/
     |-- adapter_config.json      # LoRA configuration
     |-- adapter_model.bin        # LoRA weights (~5MB only!)
@@ -4172,7 +4244,7 @@ M_{total} = \frac{124M}{2} + 16 \times 124M \times 8 \approx 62\text{MB} + 15.9\
 \subsection{Expected Output and Results}
 
 \subsubsection{Memory Usage Comparison}
-\begin{lstlisting}
+\begin{lstlisting}[style=plaintext]
 GPU Memory Usage During Training:
 
 Standard Fine-Tuning (GPT-2 124M params):
@@ -4348,7 +4420,7 @@ Savings: $\approx 8.3\%$ additional memory reduction!
 
 \textbf{Step 1: Understanding Bits and Bytes Config}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
@@ -4390,7 +4462,7 @@ print(f"  Compute dtype: {bnb_config.bnb_4bit_compute_dtype}")
 
 \textbf{Step 2: Load Model in 4-bit with Memory Tracking}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Check initial GPU memory
 if torch.cuda.is_available():
     torch.cuda.empty_cache()
@@ -4459,7 +4531,7 @@ The actual memory (0.14 GB) is more than theoretical 4-bit (0.06 GB) because of:
 Despite overhead, we still achieve $\approx 75\%$ reduction vs FP16!
 
 \newpage\subsubsection{Training Output}
-\begin{lstlisting}
+\begin{lstlisting}[style=plaintext]
 trainable params: 294,912 || all params: 124,734,720 || trainable%: 0.2364%
 
 Epoch 1/3:  33%|======    | 100/300 [00:30<01:00, 3.33it/s]
@@ -5033,7 +5105,7 @@ Load Base + Adapters for Inference
 \subsection{Expected Output and Results}
 
 \subsubsection{Training Progress}
-\begin{lstlisting}
+\begin{lstlisting}[style=plaintext]
 ***** Running training *****
   Num examples = 1000
   Num Epochs = 3
@@ -5062,7 +5134,7 @@ Time taken: 1.5 hours
 \end{lstlisting}
 
 \subsubsection{Saved Adapter Files}
-\begin{lstlisting}
+\begin{lstlisting}[style=plaintext]
 ./peft-lora-adapters/
     |-- adapter_config.json    # PEFT configuration
     |-- adapter_model.bin      # Adapter weights (~8 MB)
@@ -5074,7 +5146,7 @@ Note: Base model NOT included - only adapters saved
 \end{lstlisting}
 
 \subsubsection{Inference Output Example}
-\begin{lstlisting}
+\begin{lstlisting}[style=plaintext]
 Input: "Explain machine learning:"
 
 Generated Output:
@@ -5515,7 +5587,7 @@ A prompt template is a reusable structure that allows you to create dynamic prom
 
 \textbf{How Prompt Templates Work:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from langchain.prompts import PromptTemplate
 
 template = PromptTemplate(
@@ -5537,7 +5609,7 @@ Few-shot prompting is a technique where you provide the LLM with a few examples 
 
 \textbf{How Few-Shot Templates Work:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from langchain.prompts import FewShotPromptTemplate
 
 examples = [
@@ -5585,7 +5657,7 @@ The mathematical notation above shows function composition - each function $f_i$
 
 \textbf{How Sequential Chains Work:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from langchain.chains import LLMChain, SimpleSequentialChain
 
 # Chain 1: Generate story
@@ -5611,7 +5683,7 @@ While \texttt{SimpleSequentialChain} passes only one output to the next chain, r
 
 \textbf{How Multi-Variable Chains Work:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from langchain.chains import SequentialChain
 
 # Chain preserves all intermediate outputs
@@ -5652,7 +5724,7 @@ This is the simplest form of memory - it stores every single message in the conv
 
 \textbf{How Buffer Memory Works:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationChain
 
@@ -5695,7 +5767,7 @@ Keeps only last $k$ interactions:
 
 \textbf{How Window Memory Works:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from langchain.memory import ConversationBufferWindowMemory
 
 memory = ConversationBufferWindowMemory(k=3)
@@ -5714,7 +5786,7 @@ Instead of discarding old conversations or keeping everything, summary memory us
 
 \textbf{How Summary Memory Works:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from langchain.memory import ConversationSummaryMemory
 
 memory = ConversationSummaryMemory(llm=llm)
@@ -5758,7 +5830,7 @@ The ReAct framework combines reasoning (thinking about what to do) with acting (
 
 \textbf{How Agents with Tools Work:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from langchain.agents import initialize_agent, Tool
 from langchain.agents import AgentType
 
@@ -5851,7 +5923,7 @@ This means: "The answer depends on both the question and the documents we retrie
 
 \textbf{How RAG Works - Step by Step:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from langchain.document_loaders import TextLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
@@ -5979,7 +6051,7 @@ LCEL is LangChain's modern way of building chains using a clean, declarative syn
 
 \textbf{How LCEL Works - Declarative Composition:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from langchain.schema.runnable import RunnablePassthrough
 
 # Build chain using | operator
@@ -6039,7 +6111,7 @@ The pipe operator (\texttt{|}) means "pass the output of the left side as input 
 
 \textbf{How Parallel Execution Works:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from langchain.schema.runnable import RunnableParallel
 
 # Execute multiple chains in parallel
@@ -6093,7 +6165,7 @@ In production, API calls to LLMs can fail due to rate limits, network issues, or
 
 \textbf{How Retry Logic Works:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from langchain.schema.runnable import RunnableRetry
 
 chain_with_retry = chain.with_retry(
@@ -6127,7 +6199,7 @@ Caching stores LLM responses so that if you ask the same question again, you get
 
 \textbf{How LLM Caching Works:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from langchain.cache import InMemoryCache
 import langchain
 
@@ -6173,7 +6245,7 @@ In production, you need visibility into what your LLM application is doing: whic
 
 \textbf{How Logging Works:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from langchain.callbacks import StdOutCallbackHandler
 
 chain = chain.with_config(
@@ -7572,7 +7644,7 @@ LangGraph's state management is like maintaining a shared whiteboard that all co
 
 \textbf{How State Works - Definition and Management:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from typing import TypedDict, Annotated
 from langgraph.graph import add_messages
 
@@ -7607,7 +7679,7 @@ This equation shows that the new state ($S_{t+1}$) is computed from the old stat
 
 \textbf{Reducers for State Aggregation - How Updates Work:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from operator import add
 
 class State(TypedDict):
@@ -7646,7 +7718,7 @@ Building a LangGraph is like designing a flowchart for your AI agent. Unlike Lan
 
 \textbf{How to Build a StateGraph - Step by Step:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from langgraph.graph import StateGraph, END
 
 # Define graph
@@ -7750,7 +7822,7 @@ Conditional edges are the "decision points" in your graph - they let you impleme
 
 \textbf{How Routing Functions Work:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 def should_continue(state: AgentState) -> str:
     """Determines next node based on state"""
     messages = state["messages"]
@@ -7822,7 +7894,7 @@ Multi-agent systems in LangGraph are like organizing a team of specialists, each
 
 \textbf{How Multi-Agent Networks Work:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from langgraph.graph import StateGraph
 
 class MultiAgentState(TypedDict):
@@ -7926,7 +7998,7 @@ Human-in-the-loop is crucial for high-stakes applications where you want a human
 
 \textbf{How Checkpoints Enable Human Review:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from langgraph.checkpoint import MemorySaver
 
 # Add checkpointing
@@ -7962,7 +8034,7 @@ final_result = app.invoke(updated_state, config)
 
 \textbf{Interrupt Mechanism - Explicit Pauses:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from langgraph.prebuilt import create_react_agent
 
 # Create agent that can be interrupted
@@ -8010,7 +8082,7 @@ The key insight: instead of fully autonomous agents, you have semi-autonomous ag
 
 \textbf{Nested Graph Structure:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Define subgraph for detailed analysis
 analysis_graph = StateGraph(AnalysisState)
 analysis_graph.add_node("extract", extract_data)
@@ -8042,7 +8114,7 @@ Checkpointing in LangGraph is like having a "save game" feature for your agent. 
 
 \textbf{How Persistent Checkpointing Works:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from langgraph.checkpoint.sqlite import SqliteSaver
 
 # Persistent checkpointing
@@ -8085,7 +8157,7 @@ for state in history:
 
 \textbf{Time-Travel Debugging - Replay from Any Point:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Get specific checkpoint
 checkpoint = app.get_state(config, checkpoint_id="step_5")
 
@@ -8150,7 +8222,7 @@ ReAct (Reasoning + Acting) is one of the most popular agent patterns. The agent 
 
 \textbf{How ReAct Agents Work:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from langgraph.prebuilt import create_react_agent
 
 tools = [search_tool, calculator_tool, database_tool]
@@ -8233,7 +8305,7 @@ Plan-and-Execute is a two-phase agent architecture: first, create a complete pla
 
 \textbf{How Plan-and-Execute Works:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from langgraph.graph import StateGraph
 
 class PlanExecuteState(TypedDict):
@@ -8333,7 +8405,7 @@ User asks: "Research the top 3 AI companies and compare their revenue."
     \item \textbf{Hybrid Solution:} Some systems use Plan-and-Execute but allow the planner to revise the plan if needed (replanning)
 \end{itemize}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 def should_continue(state: PlanExecuteState):
     if len(state["plan"]) > 0:
         return "execute"
@@ -8369,7 +8441,7 @@ app = workflow.compile()
 
 \textbf{Token-by-Token Streaming:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 async for event in app.astream_events(input, version="v1"):
     if event["event"] == "on_chat_model_stream":
         content = event["data"]["chunk"].content
@@ -8379,7 +8451,7 @@ async for event in app.astream_events(input, version="v1"):
 
 \textbf{Parallel Node Execution:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from langgraph.graph import StateGraph
 
 # Nodes execute in parallel if no dependencies
@@ -8408,7 +8480,7 @@ T_{total} = \max_{i \in \text{parallel}} T_i + \sum_{j \in \text{sequential}} T_
 
 \textbf{State Pruning:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 def prune_state(state: AgentState) -> AgentState:
     """Keep only last N messages"""
     return {
@@ -8425,7 +8497,7 @@ workflow.add_node("prune", prune_state)
 
 \subsubsection{Customer Support Agent}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 class SupportState(TypedDict):
     messages: Annotated[list, add_messages]
     customer_info: dict
@@ -8468,7 +8540,7 @@ support_agent = workflow.compile()
 
 \subsubsection{Research Assistant}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 class ResearchState(TypedDict):
     query: str
     search_results: list
@@ -8530,7 +8602,7 @@ Debugging & No - Black box & Yes - Full observability \\
 
 \textbf{Using LoRA Models in LangGraph:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from langchain.llms import HuggingFacePipeline
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import PeftModel
@@ -9403,7 +9475,7 @@ Pairwise comparisons also provide more training signal per example: with $k$ res
 
 \textbf{Reward Model Architecture:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Pseudocode for Reward Model
 class RewardModel(nn.Module):
     def __init__(self, base_model):
@@ -9963,7 +10035,7 @@ The Transformer Reinforcement Learning (TRL) library from Hugging Face provides 
 
 \subsubsection{Installation and Setup}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Install required libraries
 !pip install transformers trl peft datasets accelerate
 
@@ -9977,7 +10049,7 @@ from datasets import load_dataset
 
 \subsubsection{Stage 1: Supervised Fine-Tuning Implementation}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Load pre-trained model and tokenizer
 model_name = "gpt2"  # or "meta-llama/Llama-2-7b-hf"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -10045,7 +10117,7 @@ tokenizer.save_pretrained("./sft_model")
 
 \subsubsection{Stage 2: Reward Model Implementation}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from transformers import AutoModelForSequenceClassification
 import torch.nn as nn
 
@@ -10141,7 +10213,7 @@ reward_model.save_pretrained("./reward_model")
 
 \subsubsection{Stage 3: PPO Training with TRL}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from trl import PPOTrainer, PPOConfig, AutoModelForCausalLMWithValueHead
 from trl.core import LengthSampler
 
@@ -10281,7 +10353,7 @@ tokenizer.save_pretrained("./rlhf_model")
 
 \textbf{Helper Function for Batching:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 def batch_iterator(data, batch_size):
     """Yield batches of data"""
     for i in range(0, len(data), batch_size):
@@ -10294,7 +10366,7 @@ The following example demonstrates a complete, modern RLHF pipeline using TRL (v
 
 \textbf{Step 1: Environment Setup and Dependencies}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Required packages (as of November 2025):
 # transformers>=4.35.0, trl>=0.7.0, peft>=0.6.0, accelerate>=0.24.0
 
@@ -10329,7 +10401,7 @@ torch.backends.cuda.matmul.allow_tf32 = True
 
 \textbf{Step 2: Load and Prepare Reward Model}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 def load_reward_model(model_path: str, device: str = "cuda"):
     """
     Load a trained reward model for scoring responses.
@@ -10409,7 +10481,7 @@ def compute_reward(prompt: str, response: str,
 
 \textbf{Step 3: Configure PPO Training}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # PPO configuration with detailed explanations
 ppo_config = PPOConfig(
     # Model and optimization
@@ -10482,7 +10554,7 @@ ppo_config = PPOConfig(
 
 \textbf{Step 4: Initialize Models for PPO}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Load SFT model with value head attached
 model = AutoModelForCausalLMWithValueHead.from_pretrained(
     "./sft_model",
@@ -10518,7 +10590,7 @@ print(f"Reference model: {ref_model.pretrained_model.num_parameters()/1e9:.2f}B 
 
 \textbf{Step 5: PPO Training Loop with Detailed Comments}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Initialize PPO trainer
 ppo_trainer = PPOTrainer(
     config=ppo_config,
@@ -10774,7 +10846,7 @@ This is identical to the reward model loss, but we're optimizing the policy $\pi
 
 \textbf{DPO Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 import torch
 import torch.nn.functional as F
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -11056,7 +11128,7 @@ tokenizer.save_pretrained("./dpo_model")
         \item Ensure attention masks are correct (padding tokens masked out)
     \end{itemize}
     \item \textit{Debug code}:
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Print actual log probs to verify computation
 print(f"Policy chosen: {policy_chosen_logps[:5]}")
 print(f"Ref chosen: {ref_chosen_logps[:5]}")
@@ -11183,7 +11255,7 @@ where $\lambda_g$ and $\lambda_l$ control the sensitivity to gains and losses. T
 
 \textbf{KTO Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 import torch
 import torch.nn.functional as F
 
@@ -11545,6 +11617,13 @@ The terms are often used interchangeably, but there's a subtle distinction:
 
 In the context of RLHF, "SFT" typically refers to instruction fine-tuning as the first stage.
 
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{../visualization/images/instruction_finetuning/traditional_vs_instruction.png}
+\caption{\textbf{Traditional Fine-Tuning vs Instruction Fine-Tuning Architecture Comparison.} \textit{Left:} Traditional fine-tuning optimizes for a single task with direct input→output mapping, requiring separate models for each task. \textit{Right:} Instruction fine-tuning conditions on explicit task instructions, enabling a single model to handle multiple diverse tasks (translation, summarization, QA, code generation, mathematics, and writing) through natural language task specifications. The key innovation is the addition of the instruction layer that allows zero-shot generalization to unseen tasks.}
+\label{fig:traditional_vs_instruction}
+\end{figure}
+
 \subsection{Dataset Formats and Structures}
 
 \subsubsection{Core Dataset Components}
@@ -11559,7 +11638,7 @@ An instruction dataset consists of examples, where each example contains:
 
 \textbf{Standard JSON Format:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 {
     "instruction": "Classify the sentiment of the following review.",
     "input": "This movie was absolutely fantastic! Great acting.",
@@ -11571,7 +11650,7 @@ An instruction dataset consists of examples, where each example contains:
 
 For some tasks, the instruction contains all necessary information:
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 {
     "instruction": "Write a haiku about autumn.",
     "input": "",
@@ -11583,7 +11662,7 @@ For some tasks, the instruction contains all necessary information:
 
 \textbf{1. Alpaca Format (Stanford):}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 [
     {
         "instruction": "Give three tips for staying healthy.",
@@ -11600,7 +11679,7 @@ For some tasks, the instruction contains all necessary information:
 
 \textbf{2. ShareGPT Format (Conversational):}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 {
     "conversations": [
         {
@@ -11625,7 +11704,7 @@ For some tasks, the instruction contains all necessary information:
 
 \textbf{3. OpenAI Messages Format:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 {
     "messages": [
         {"role": "system", "content": "You are a helpful assistant."},
@@ -11634,6 +11713,13 @@ For some tasks, the instruction contains all necessary information:
     ]
 }
 \end{lstlisting}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{../visualization/images/instruction_finetuning/dataset_formats.png}
+\caption{\textbf{Popular Instruction Dataset Formats Comparison.} Overview of six widely-used instruction dataset formats: \textit{(1) Alpaca Format} (52K examples) - Stanford's simple 3-field structure, \textit{(2) ShareGPT Format} (90K examples) - Conversational turns with human/GPT roles, \textit{(3) FLAN Format} (1.8M examples) - Google's task-inputs-targets schema, \textit{(4) Dolly Format} (15K examples) - Databricks' format with category classification, \textit{(5) OpenOrca Format} (4.2M examples) - System prompt-based interactions, and \textit{(6) WizardLM Format} (250K examples) - OpenAI-style role-based conversations. Each format has unique structural characteristics suited for different fine-tuning scenarios.}
+\label{fig:dataset_formats}
+\end{figure}
 
 \subsubsection{Mathematical Structure of Instruction Datasets}
 
@@ -11740,7 +11826,7 @@ You are a helpful AI assistant.<|im_end|>
 
 \subsubsection{Implementation of Prompt Formatting}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 def format_alpaca_prompt(instruction, input_text="", output=""):
     """
     Format an example in Alpaca style
@@ -11787,7 +11873,7 @@ print(example)
 
 \textbf{Chat Template with Special Tokens:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 def format_chat_prompt(messages):
     """
     Format a conversation in chat template style
@@ -11846,7 +11932,7 @@ The masked loss is:
 
 \textbf{Implementation with Transformers:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
@@ -11991,7 +12077,7 @@ The Alpaca project (Stanford, 2023) demonstrated that Self-Instruct can be scale
 
 \textbf{Alpaca Prompt Template for Generation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 alpaca_generation_prompt = """You are asked to come up with a set of 20 diverse task instructions. These task instructions will be given to a GPT model and we will evaluate the GPT model for completing the instructions.
 
 Here are the requirements:
@@ -12026,7 +12112,7 @@ seed_examples = [
 
 \textbf{Self-Instruct Implementation with OpenAI API:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 import openai
 import json
 import random
@@ -12199,6 +12285,13 @@ with open('self_instruct_dataset.json', 'w') as f:
     json.dump(dataset, f, indent=2)
 \end{lstlisting}
 
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{../visualization/images/instruction_finetuning/instruction_quality_metrics.png}
+\caption{\textbf{Instruction Dataset Quality Analysis and Metrics.} \textit{Top-left:} Radar chart comparing high-quality vs low-quality instruction datasets across six dimensions (Clarity, Specificity, Complexity, Diversity, Coherence, Relevance). \textit{Top-right:} Logarithmic relationship between dataset size and model performance, showing diminishing returns beyond 100K examples. \textit{Bottom-left:} Task category distribution in FLAN dataset, demonstrating multi-task diversity with 25\% QA, 18\% Translation, 15\% Summarization, and other categories. \textit{Bottom-right:} Instruction length distribution showing mean of ~70 tokens and median of ~60 tokens, with typical range of 20-150 tokens per instruction.}
+\label{fig:instruction_quality_metrics}
+\end{figure}
+
 \subsection{Dataset Curation and Quality Control}
 
 \subsubsection{Quality Metrics for Instruction Datasets}
@@ -12291,7 +12384,7 @@ where short $< 50$ tokens, medium $50$-$150$ tokens, long $> 150$ tokens.
 
 \subsubsection{Practical Dataset Curation Pipeline}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 import numpy as np
 from collections import Counter
 from typing import List, Dict
@@ -12524,6 +12617,13 @@ with open('curated_dataset.json', 'w') as f:
     json.dump(balanced, f, indent=2)
 \end{lstlisting}
 
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{../visualization/images/instruction_finetuning/data_augmentation_pipeline.png}
+\caption{\textbf{Instruction Data Augmentation Pipeline.} Comprehensive workflow showing three primary augmentation techniques: \textit{(1) Paraphrasing} - rewording instructions using synonyms while preserving meaning, \textit{(2) Complexity Variation} - simplifying or elaborating instructions to create difficulty levels, and \textit{(3) Format Conversion} - changing presentation style or structure. Additional techniques include \textit{Self-Instruct} (LLM-generated new instructions), \textit{Back-Translation} (translate to another language and back for paraphrasing), and \textit{Quality Filtering} (removing low-quality augmented examples). This pipeline can multiply dataset size by 3-5x while maintaining quality.}
+\label{fig:data_augmentation_pipeline}
+\end{figure}
+
 \subsection{Training on Instruction Datasets}
 
 \subsubsection{Complete Training Pipeline}
@@ -12572,7 +12672,7 @@ Gradient Clipping & 1.0 & Prevents exploding gradients \\
 
 \subsubsection{Full Training Implementation}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 import torch
 from torch.utils.data import Dataset, DataLoader
 from transformers import (
@@ -12745,7 +12845,7 @@ print("Training complete!")
 
 \subsubsection{Inference with Instruction-Tuned Models}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 def generate_instruction_response(
     model,
     tokenizer,
@@ -12979,6 +13079,13 @@ Select most informative examples for human annotation:
 
 Prioritize high-uncertainty and diverse examples.
 
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{../visualization/images/instruction_finetuning/training_dynamics.png}
+\caption{\textbf{Instruction Fine-Tuning Training Dynamics Analysis.} \textit{Top-left:} Training loss convergence for different dataset sizes (1K, 5K, 25K, 100K examples), showing faster convergence with more data. \textit{Top-right:} Multi-task performance evolution across 10 epochs for five tasks (Translation, QA, Summarization, Code Generation, Mathematics), demonstrating simultaneous improvement across diverse capabilities. \textit{Bottom-left:} Learning rate schedule with warmup phase (500 steps linear warmup to 2×10⁻⁵) followed by cosine decay to 1×10⁻⁶, preventing early training instability. \textit{Bottom-right:} Batch size impact showing optimal convergence at batch size 64 (6 epochs, 90\% accuracy) vs suboptimal extremes (batch size 4: 18 epochs, batch size 128: slight accuracy drop).}
+\label{fig:training_dynamics}
+\end{figure}
+
 \subsection{Evaluation of Instruction-Tuned Models}
 
 \subsubsection{Automatic Evaluation Metrics}
@@ -13058,7 +13165,7 @@ Common benchmarks for instruction-tuned models:
 
 \textbf{Example Evaluation Code:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from rouge_score import rouge_scorer
 from sklearn.metrics import f1_score, accuracy_score
 import numpy as np
@@ -13140,6 +13247,13 @@ for task, metrics in test_results['by_task_type'].items():
     print(f"  {task}: ROUGE-L = {metrics['rougeL']:.4f} ({metrics['count']} examples)")
 \end{lstlisting}
 
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{../visualization/images/instruction_finetuning/evaluation_metrics_dashboard.png}
+\caption{\textbf{Comprehensive Evaluation Metrics Dashboard for Instruction-Tuned Models.} \textit{Top-left:} Task-specific performance comparison showing base model vs instruction-tuned model across six benchmarks (MMLU, HellaSwag, TruthfulQA, GSM8K, HumanEval, BBH), with average improvement of +20 percentage points. \textit{Top-right:} Human preference win rate (65\% vs 35\%) favoring instruction-tuned models in pairwise comparisons. \textit{Middle row:} Three radar charts comparing capabilities - Knowledge (factual accuracy, reasoning, common sense, world knowledge), Interaction (instruction following, context awareness, coherence, relevance), and Safety & Alignment (truthfulness, harmlessness, helpfulness, bias mitigation). \textit{Bottom row:} Distribution analysis of response length (mean: 120 tokens vs 50 for base), latency (slight increase due to longer outputs), and quality scores (shifted toward higher ratings for instruction-tuned models).}
+\label{fig:evaluation_metrics_dashboard}
+\end{figure}
+
 \subsection{Production-Ready Instruction Fine-Tuning Implementation}
 
 This section provides a complete, production-grade implementation of instruction fine-tuning, demonstrating best practices from data preparation through evaluation.
@@ -13150,7 +13264,7 @@ This section provides a complete, production-grade implementation of instruction
 
 This implementation uses the Hugging Face ecosystem for instruction fine-tuning. The code is structured in 7 steps: (1) Setup, (2) Dataset Preparation, (3) Model Configuration, (4) Training Setup, (5) Training Loop, (6) Evaluation, (7) Inference. Each step includes extensive inline comments explaining design decisions.
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Step 1: Environment Setup
 # Purpose: Initialize libraries and verify hardware availability
 
@@ -13715,7 +13829,7 @@ This fits comfortably in 24GB GPU memory with overhead.
     \item \textbf{Root Cause:} Improper prompt formatting or missing loss masking on instruction tokens
     \item \textbf{Diagnosis:} Check that prompt template includes clear delimiters (e.g., "\#\#\# Response:"). Verify tokenizer processes special tokens correctly.
     \item \textbf{Solution:}
-    \begin{lstlisting}[language=Python]
+    \begin{lstlisting}[style=pythoncode, language=Python]
 # Ensure proper prompt structure
 prompt = f"""### Instruction:
 {instruction}
@@ -13738,7 +13852,7 @@ labels[:prompt_length] = -100  # Don't compute loss on instruction
     \item \textbf{Root Cause:} Insufficient diversity in training data; model memorizes patterns instead of learning instruction-following
     \item \textbf{Diagnosis:} Evaluate on held-out task types. If train accuracy ≫ test accuracy for new tasks, diversity is the issue.
     \item \textbf{Solution:} Increase task diversity in training set:
-    \begin{lstlisting}[language=Python]
+    \begin{lstlisting}[style=pythoncode, language=Python]
 # Check task diversity
 task_types = [ex['task_type'] for ex in dataset]
 unique_tasks = len(set(task_types))
@@ -13758,7 +13872,7 @@ augmented_data = generate_diverse_instructions(seed_set, target_count=10000)
     \item \textbf{Root Cause:} Learning rate too high or too many epochs, destroying pre-trained weights
     \item \textbf{Diagnosis:} Test on general knowledge benchmarks (MMLU, TriviaQA). Significant drop from base model indicates forgetting.
     \item \textbf{Solution:}
-    \begin{lstlisting}[language=Python]
+    \begin{lstlisting}[style=pythoncode, language=Python]
 # Option 1: Mix instruction data with general pre-training data
 mixed_dataset = concatenate_datasets([
     instruction_dataset,
@@ -13780,7 +13894,7 @@ training_args.num_train_epochs = 1  # Single pass often sufficient for large dat
     \item \textbf{Root Cause:} Batch size or sequence length too large for available GPU memory
     \item \textbf{Diagnosis:} Monitor GPU memory: \texttt{nvidia-smi}. Check peak memory usage.
     \item \textbf{Solution:} Progressive reduction:
-    \begin{lstlisting}[language=Python]
+    \begin{lstlisting}[style=pythoncode, language=Python]
 # Step 1: Enable gradient checkpointing (40% memory reduction)
 training_args.gradient_checkpointing = True
 
@@ -13814,7 +13928,7 @@ model = AutoModelForCausalLM.from_pretrained(
     \item \textbf{Root Cause:} Inefficient configuration, CPU bottlenecks, or disabled optimizations
     \item \textbf{Diagnosis:} Check GPU utilization: \texttt{nvidia-smi}. If <80\%, optimization needed.
     \item \textbf{Solution:}
-    \begin{lstlisting}[language=Python]
+    \begin{lstlisting}[style=pythoncode, language=Python]
 # Enable all optimizations
 training_args.bf16 = True  # or fp16 on older GPUs
 training_args.tf32 = True  # Tensor Float 32 on Ampere+ GPUs
@@ -13844,7 +13958,7 @@ print(prof.key_averages().table(sort_by="cuda_time_total"))
     \item \textbf{Root Cause:} Length bias in training data or improper generation parameters
     \item \textbf{Diagnosis:} Analyze output length distribution. If 90\%+ outputs are same length, bias exists.
     \item \textbf{Solution:}
-    \begin{lstlisting}[language=Python]
+    \begin{lstlisting}[style=pythoncode, language=Python]
 # Balance training data output lengths
 from collections import Counter
 output_lengths = [len(ex['output'].split()) for ex in dataset]
@@ -14134,7 +14248,7 @@ H(P) = -\frac{1}{N} \sum_{i=1}^N \log P(w_i | w_{<i})
 
 \textbf{Perplexity Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 import torch
 import numpy as np
 from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -14249,7 +14363,7 @@ For instruction-following models, we want to measure perplexity only on the outp
 
 This measures how well the model predicts outputs given instructions, which is more relevant than unconditional perplexity.
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 def compute_conditional_perplexity(model, tokenizer, instruction_data):
     """
     Compute perplexity on outputs conditioned on instructions
@@ -14349,7 +14463,7 @@ print(f"Conditional Perplexity: {cond_ppl:.2f}")
     \item \textbf{Root Cause:} Model learns to game the metric (e.g., copying n-grams from input)
     \item \textbf{Diagnosis:} Compare automatic metrics with human ratings on held-out set
     \item \textbf{Solution:}
-          \begin{lstlisting}[language=Python]
+          \begin{lstlisting}[style=pythoncode, language=Python]
 # Always include multiple metrics - don't optimize for just one
 evaluation_suite = {
     'perplexity': compute_perplexity(model, test_data),
@@ -14369,7 +14483,7 @@ evaluation_suite = {
     \item \textbf{Solution:} \textbf{Never compare perplexity across different datasets}
           \\ Only compare models evaluated on the \textit{same} test set
     \item \textbf{Correct Approach:}
-          \begin{lstlisting}[language=Python]
+          \begin{lstlisting}[style=pythoncode, language=Python]
 # Evaluate both models on SAME test set
 test_set = load_dataset('common_test_set')
 ppl_a = compute_perplexity(model_a, test_set)  # e.g., 15.2
@@ -14384,7 +14498,7 @@ ppl_b = compute_perplexity(model_b, test_set)  # e.g., 18.7
     \item \textbf{Root Cause:} Random variance makes small differences meaningless
     \item \textbf{Diagnosis:} Run paired t-test (p < 0.05 required for significance)
     \item \textbf{Solution:}
-          \begin{lstlisting}[language=Python]
+          \begin{lstlisting}[style=pythoncode, language=Python]
 from scipy.stats import ttest_rel
 
 # Per-example scores (not averages!)
@@ -14407,7 +14521,7 @@ else:
     \item \textbf{Symptoms:} Perplexity seems too good (unrealistically low)
     \item \textbf{Root Cause:} Including prompt tokens in loss calculation inflates scores
     \item \textbf{Solution:} Mask prompt with label=-100 (only evaluate on generated output)
-          \begin{lstlisting}[language=Python]
+          \begin{lstlisting}[style=pythoncode, language=Python]
 # Correct: Mask prompt tokens
 labels = input_ids.clone()
 labels[:, :prompt_length] = -100  # Don't compute loss on prompt
@@ -14530,7 +14644,7 @@ Note: BLEU becomes 0 if any $p_n = 0$, which is a known limitation.
 
 \textbf{BLEU Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from collections import Counter
 import numpy as np
 from typing import List
@@ -14649,7 +14763,7 @@ where $f(k) = k^\alpha$ and WLCS weights consecutive matches.
 
 \textbf{ROUGE Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 def compute_lcs_length(x: List[str], y: List[str]) -> int:
     """
     Compute length of longest common subsequence
@@ -14802,7 +14916,7 @@ where:
 
 \textbf{METEOR Implementation (Simplified):}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from nltk.stem import PorterStemmer
 from nltk.corpus import wordnet
 
@@ -15001,7 +15115,7 @@ For multi-class classification:
 
 \textbf{Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from sklearn.metrics import (
     accuracy_score, precision_recall_fscore_support,
     classification_report, confusion_matrix
@@ -15094,7 +15208,7 @@ For extractive QA, compute token overlap:
 
 \textbf{Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 import re
 import string
 
@@ -15349,7 +15463,7 @@ where:
 
 \textbf{Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from scipy.stats import binom_test
 import numpy as np
 
@@ -15603,7 +15717,7 @@ A comprehensive framework for LLM evaluation.
 
 \textbf{Usage Example:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Install: pip install lm-eval
 
 from lm_eval import evaluator
@@ -15709,7 +15823,7 @@ Reject null hypothesis if $|t| > t_{\alpha/2, df}$ (typically $\alpha = 0.05$).
 
 \textbf{Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from scipy import stats
 import numpy as np
 
@@ -15808,7 +15922,7 @@ where $F$ is the empirical distribution from bootstrap samples.
 \end{algorithmic}
 \end{algorithm}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 def bootstrap_confidence_interval(scores, metric_fn, n_bootstrap=10000, alpha=0.05):
     """
     Compute bootstrap confidence interval
@@ -15939,7 +16053,7 @@ d = \frac{\text{mean}_{x \in X} s(x, A, B) - \text{mean}_{y \in Y} s(y, A, B)}{\
 
 \textbf{Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -16072,7 +16186,7 @@ Compare model predictions (e.g., sentiment, continuation) for both.
 
 \textbf{Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 def counterfactual_bias_test(model, tokenizer, sentences, swaps):
     """
     Test bias using counterfactual examples
@@ -16639,7 +16753,7 @@ where $B_m^{(g)}$ are predictions for group $g$ in bin $m$.
 
 \textbf{Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 def compute_fairness_metrics(y_true, y_pred, sensitive_attribute):
     """
     Compute group fairness metrics
@@ -16803,7 +16917,7 @@ Track all three simultaneously and investigate when ANY threshold is exceeded:
     \item \textbf{Symptoms:} Demographic parity and equalized odds give contradictory signals
     \item \textbf{Root Cause:} Groups have different prevalence rates: $P(Y=1 | G=A) \neq P(Y=1 | G=B)$
     \item \textbf{Diagnosis:} Compute base rates first:
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 for g in groups:
     base_rate = df[df['group'] == g]['y_true'].mean()
     print(f"Group {g} base rate: {base_rate:.3f}")
@@ -16818,7 +16932,7 @@ for g in groups:
     \item \textbf{Symptoms:} Fairness metrics show large disparities with high variance
     \item \textbf{Root Cause:} Insufficient data for minority group (e.g., 50 samples vs 5000 for majority)
     \item \textbf{Diagnosis:} Check group sizes and compute confidence intervals:
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from scipy import stats
 
 def bootstrap_tpr(y_true, y_pred, n_bootstrap=1000):
@@ -16845,7 +16959,7 @@ def bootstrap_tpr(y_true, y_pred, n_bootstrap=1000):
     \item \textbf{Example:} Two loan applicants with identical credit scores but different races receive different decisions
     \item \textbf{Root Cause:} Group fairness (e.g., demographic parity) does not guarantee similar individuals are treated similarly
     \item \textbf{Solution:} Complement group metrics with individual fairness checks:
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 def check_individual_fairness(X, y_pred, sensitive_idx, epsilon=0.1):
     """
     Find similar individuals with different predictions
@@ -16878,7 +16992,7 @@ def check_individual_fairness(X, y_pred, sensitive_idx, epsilon=0.1):
     \item \textbf{Root Cause:} Treating symptoms (unfair outputs) rather than cause (biased features/data)
     \item \textbf{Example:} Lowering decision threshold for Group B to achieve demographic parity masks underlying data bias
     \item \textbf{Solution:} Root cause analysis before post-processing:
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # 1. Feature importance by group
 for g in groups:
     group_X = X[df['group'] == g]
@@ -17025,7 +17139,7 @@ where $\hat{y} \in [0, 1]^K$ for $K$ toxicity categories.
 
 \textbf{Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 import torch
 import torch.nn as nn
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
@@ -17163,7 +17277,7 @@ where $s_i$ are individual safety scores (toxicity, bias, etc.) and $w_i$ are we
 
 \textbf{Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 class ContentModerationPipeline:
     """
     Multi-stage content moderation system
@@ -17275,7 +17389,7 @@ D_{\text{aug}} = D \cup \{(x', y) : (x, y) \in D, x' = \text{swap}(x, g \rightar
 
 \textbf{Algorithm:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 def counterfactual_augmentation(dataset, swap_pairs):
     """
     Augment dataset with counterfactual examples
@@ -17372,7 +17486,7 @@ where:
 
 \textbf{Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 class AdversarialDebiasing(nn.Module):
     """
     Adversarial debiasing for fair representations
@@ -17551,7 +17665,7 @@ Evolve prompts through mutation and selection:
 
 \textbf{Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 class RedTeamingFramework:
     """
     Framework for adversarial testing of language models
@@ -17759,7 +17873,7 @@ Train using RLHF with AI preferences instead of human preferences.
 
 \textbf{Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 class ConstitutionalAI:
     """
     Constitutional AI fine-tuning framework
@@ -17933,7 +18047,7 @@ R_{\text{honest}} &= -\text{Hallucination}(y) + \text{Uncertainty}(y)
 
 \textbf{Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 class SafetyRewardModel(nn.Module):
     """
     Multi-dimensional safety reward model
@@ -18564,7 +18678,7 @@ d^2 &= (\mathbf{u} - \mathbf{v})^T (\Sigma^{-1/2})^T \Sigma^{-1/2} (\mathbf{u} -
 
 \textbf{Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
@@ -18768,7 +18882,7 @@ print(sim_matrix)
     \item \textbf{Root Cause:} Using dot product on un-normalized embeddings → magnitude (document length) dominates similarity
     \item \textbf{Example:} Query: "What is Python?" Document A (short): "Python is a programming language." (score=0.45) Document B (long, less relevant): "Python, Java, C++, JavaScript are programming languages used in software development across many domains..." (score=0.82 due to length)
     \item \textbf{Diagnosis:}
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Check if embeddings are normalized
 norms = np.linalg.norm(embeddings, axis=1)
 print(f"Norm range: [{norms.min():.3f}, {norms.max():.3f}]")
@@ -18791,7 +18905,7 @@ print(f"Length-score correlation: {correlation:.3f}")
     \item \textbf{Root Cause:} Embedding model trained on document-document similarity, not query-document
     \item \textbf{Example:} Query: "How to fix Python error?" retrieves Python documentation (doc-doc similar) instead of Stack Overflow answers (query-answer similar)
     \item \textbf{Solution:} Use asymmetric embedding models (different encoders for queries vs documents):
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from sentence_transformers import SentenceTransformer
 
 # Asymmetric models (e.g., DPR, Contriever, E5 with prefixes)
@@ -18814,7 +18928,7 @@ doc_embs = model.encode(["passage: " + doc for doc in documents])
     \frac{\text{max\_dist} - \text{min\_dist}}{\text{min\_dist}} \rightarrow 0 \text{ as } d \rightarrow \infty
     \end{equation}
     \item \textbf{Diagnosis:}
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 # Compute similarity distribution
 all_similarities = []
 for q in queries:
@@ -18836,7 +18950,7 @@ print(f"Similarity std dev: {std_dev:.4f}")
     \item \textbf{Example:} Medical Q\&A system trained on clinical notes, user asks "What's the weather?" → retrieves unrelated medical docs with "temperature" keyword
     \item \textbf{Root Cause:} No OOD detection, system forced to retrieve something even for nonsensical queries
     \item \textbf{Solution:} Add confidence threshold based on max similarity:
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 def retrieve_with_confidence(query, threshold=0.5):
     results = vector_db.search(query_emb, k=5)
 
@@ -18866,7 +18980,7 @@ def retrieve_with_confidence(query, threshold=0.5):
     \item \textbf{Root Cause:} Query embeddings from new model, document embeddings from old model → incompatible vector spaces
     \item \textbf{Example:} Upgrade from SBERT (768-dim) to BGE (1024-dim), query embeddings are 1024-dim but indexed docs are 768-dim → error or zero-padding (meaningless)
     \item \textbf{Solution:} Versioned embedding indices:
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 class VersionedVectorDB:
     def __init__(self):
         self.indices = {}  # model_version -> FAISS index
@@ -19029,7 +19143,7 @@ ANN algorithms sacrifice some accuracy for massive speedup.
 
 \textbf{Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 import faiss
 import numpy as np
 
@@ -19227,7 +19341,7 @@ Combine vector similarity with metadata filters:
 
 \textbf{Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
 
@@ -19436,7 +19550,7 @@ where:
 
 \textbf{Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from rank_bm25 import BM25Okapi
 import numpy as np
 
@@ -19527,7 +19641,7 @@ where $k$ is a constant (typically 60), and $\text{rank}_r(d)$ is the rank of do
 
 \textbf{Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 class HybridRetriever:
     """
     Combine dense (vector) and sparse (BM25) retrieval
@@ -19696,7 +19810,7 @@ Unlike bi-encoders, cross-encoders process query and document together:
 
 \textbf{Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from sentence_transformers import CrossEncoder
 import numpy as np
 
@@ -19834,7 +19948,7 @@ Score:
 
 \textbf{Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 class HyDERetriever:
     """
     Hypothetical Document Embeddings (HyDE)
@@ -19992,7 +20106,7 @@ Fine-tune LLM to predict these tokens using critic data:
 
 \textbf{Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from sklearn.mixture import GaussianMixture
 import numpy as np
 
@@ -20154,7 +20268,7 @@ Summary:"""
 
 \textbf{End-to-End RAG System:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
@@ -20462,7 +20576,7 @@ print(f"\nSources: {len(result['sources'])} documents")
 
 \textbf{Implementation:}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=pythoncode, language=Python]
 class RAGEvaluator:
     """
     Evaluate RAG system performance
