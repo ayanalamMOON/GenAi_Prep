@@ -14407,6 +14407,13 @@ Evaluating fine-tuned language models is a multifaceted challenge that requires 
 
 No single metric captures all aspects of model quality. A comprehensive evaluation requires multiple complementary approaches.
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../visualization/images/evaluation/evaluation_metrics_comparison.png}
+\caption{Comprehensive evaluation metrics comparison across six key dimensions: perplexity trends showing model convergence, BLEU and ROUGE scores for overlap-based metrics, standardized benchmark performance (MMLU, HumanEval, TruthfulQA), human evaluation cost-quality trade-offs, correlation analysis between automatic metrics and human judgment, and cost-reliability trade-offs for different evaluation approaches.}
+\label{fig:evaluation_metrics_overview}
+\end{figure}
+
 \subsection{Perplexity and Likelihood-Based Metrics}
 
 \subsubsection{Perplexity: The Foundation Metric}
@@ -14478,6 +14485,13 @@ GPT-3 (175B parameters) achieves:
 \end{itemize}
 
 The drop from 40 → 15 shows fine-tuning worked - the model is less surprised by domain-specific vocabulary.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../visualization/images/evaluation/perplexity_analysis.png}
+\caption{Perplexity analysis across four perspectives: (1) Learning curves showing training and validation perplexity convergence over epochs with early stopping indicators, (2) Domain-specific perplexity comparison across general, medical, legal, and code domains before and after fine-tuning, (3) Perplexity distribution analysis revealing typical ranges and outlier detection, (4) Token-level surprise patterns showing which tokens contribute most to perplexity.}
+\label{fig:perplexity_analysis}
+\end{figure}
 
 \textbf{Mathematical Definition - Building Up Gradually:}
 
@@ -14729,6 +14743,13 @@ def compute_conditional_perplexity(model, tokenizer, instruction_data):
 cond_ppl = compute_conditional_perplexity(model, tokenizer, test_instruction_data)
 print(f"Conditional Perplexity: {cond_ppl:.2f}")
 \end{lstlisting}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../visualization/images/evaluation/error_analysis.png}
+\caption{Error analysis dashboard for diagnostic evaluation: (1) Error type distribution showing factual errors, fluency issues, coherence problems, and relevance failures, (2) Error severity breakdown categorizing critical, major, minor, and negligible issues, (3) Error rate vs input length analysis revealing performance degradation on longer sequences, (4) Common failure modes with frequency counts including hallucination, incomplete responses, and incorrect reasoning.}
+\label{fig:error_analysis}
+\end{figure}
 
 \begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,title={Hyperparameter Guidance: Model Evaluation}]
 \textbf{Perplexity Computation:}
@@ -15166,6 +15187,13 @@ print(f"ROUGE-1 F1: {rouge_1['rouge_1_f1']:.4f}")
 print(f"ROUGE-2 F1: {rouge_2['rouge_2_f1']:.4f}")
 print(f"ROUGE-L F1: {rouge_l['rouge_l_f1']:.4f}")
 \end{lstlisting}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../visualization/images/evaluation/bleu_rouge_analysis.png}
+\caption{BLEU and ROUGE metric analysis: (1) N-gram precision breakdown showing BLEU-1 through BLEU-4 scores with diminishing returns at higher n-gram orders, (2) ROUGE variant comparison between ROUGE-1, ROUGE-2, ROUGE-L, and ROUGE-W highlighting recall-oriented nature, (3) Precision-recall trade-off curves demonstrating metric behavior at different generation temperatures, (4) N-gram overlap heatmap visualizing shared vocabulary between generated and reference texts.}
+\label{fig:bleu_rouge_analysis}
+\end{figure}
 
 \subsubsection{METEOR: Metric for Evaluation of Translation with Explicit ORdering}
 
@@ -15948,6 +15976,13 @@ print(f"Statistical Significance: p = {win_rates['p_value']:.4f}")
 print(f"Significant: {win_rates['significant']}")
 \end{lstlisting}
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../visualization/images/evaluation/human_evaluation_methods.png}
+\caption{Human evaluation methodologies: (1) Pairwise preference comparison results showing win rates between models with statistical significance indicators, (2) Likert scale rating distributions across fluency, coherence, relevance, and factuality dimensions, (3) Inter-annotator agreement analysis using Krippendorff's alpha showing consistency across evaluators, (4) Cost-confidence trade-off analysis comparing number of annotators needed vs rating confidence intervals.}
+\label{fig:human_evaluation_methods}
+\end{figure}
+
 \subsection{Automatic Evaluation Pipelines}
 
 \subsubsection{OpenLLM Leaderboard}
@@ -16007,6 +16042,20 @@ The Hugging Face OpenLLM Leaderboard provides standardized benchmarking across m
 \end{equation}
 
 Simple average across all benchmarks.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../visualization/images/evaluation/benchmark_performance.png}
+\caption{Standardized benchmark performance across multiple evaluation suites: (1) MMLU (Massive Multitask Language Understanding) accuracy breakdown across 57 subject categories including STEM, humanities, social sciences, and other domains, (2) HumanEval code generation Pass@k metrics showing Pass@1, Pass@5, and Pass@10 rates for functional correctness, (3) TruthfulQA performance measuring factual accuracy and resistance to common misconceptions with truthful vs informative response analysis.}
+\label{fig:benchmark_performance}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../visualization/images/evaluation/multitask_evaluation.png}
+\caption{Multi-task evaluation analysis: (1) Performance heatmap showing model scores across diverse task categories (QA, summarization, translation, code generation, reasoning, classification) revealing strengths and weaknesses, (2) Average performance comparison between baseline and fine-tuned models across all task types, (3) Task difficulty ranking based on average model performance identifying easiest and most challenging evaluation domains.}
+\label{fig:multitask_evaluation}
+\end{figure}
 
 \subsubsection{EleutherAI Evaluation Harness}
 
@@ -16267,6 +16316,13 @@ lower, upper, estimate = bootstrap_confidence_interval(scores, np.mean)
 print(f"Point estimate: {estimate:.4f}")
 print(f"95% Bootstrap CI: [{lower:.4f}, {upper:.4f}]")
 \end{lstlisting}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../visualization/images/evaluation/evaluation_best_practices.png}
+\caption{Evaluation best practices and workflow: (1) Comprehensive evaluation pipeline showing progression from data preparation through automatic metrics, benchmarks, human evaluation, and final deployment decision, (2) Metric selection guidelines mapping use cases (pre-training, instruction tuning, translation, summarization, QA) to appropriate evaluation metrics, (3) Common evaluation pitfalls to avoid including overfitting to metrics, improper data splits, ignoring statistical significance, and benchmark contamination with recommended solutions.}
+\label{fig:evaluation_best_practices}
+\end{figure}
 
 \newpage
 
