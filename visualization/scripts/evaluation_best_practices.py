@@ -75,7 +75,7 @@ for bar, s in zip(bars, severity):
     ax3.text(bar.get_x() + bar.get_width()/2., height + 0.3, f'{s:.1f}',
             ha='center', va='bottom', fontweight='bold', fontsize=10)
 
-plt.suptitle('Evaluation Best Practices: Pipeline, Metric Selection, Common Pitfalls', 
+plt.suptitle('Evaluation Best Practices: Pipeline, Metric Selection, Common Pitfalls',
              fontsize=15, fontweight='bold', y=0.995)
 plt.savefig(os.path.join(OUTPUT_DIR, "evaluation_best_practices.png"), dpi=300, bbox_inches='tight', facecolor='white')
 plt.close()

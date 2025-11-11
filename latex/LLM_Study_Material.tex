@@ -16622,6 +16622,13 @@ swaps = [
 #     print(f"  Bias score: {result['bias_score']:.4f}")
 \end{lstlisting}
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{../visualization/images/safety/bias_detection_methods.png}
+\caption{\textbf{Bias Detection Methods:} (Left) Word Embedding Association Test (WEAT) effect sizes showing gender and race bias across different attribute domains. Effect sizes above 0.4 (red threshold) indicate significant bias. Professional and technical domains show strongest gender bias (d=0.82, d=0.75), while leadership shows strongest race bias (d=0.52). (Right) Counterfactual bias analysis measuring perplexity differences when swapping gender terms. Higher perplexity gaps indicate the model assigns different likelihoods to semantically equivalent sentences differing only in gender. CEO and technical contexts show most severe bias (ΔPP>3.0, red zone), while professional contexts show moderate bias (ΔPP≈2.0, orange zone).}
+\label{fig:bias_detection}
+\end{figure}
+
 \subsection{Fairness Metrics}
 
 \subsubsection{Group Fairness Metrics}
@@ -16966,6 +16973,13 @@ PPV(g_1) = PPV(g_2)
 Expanding and simplifying (similar algebra) shows this conflicts with equalized odds unless the classifier is perfect.
 
 \textbf{Conclusion:} This impossibility result forces practitioners to make deliberate trade-offs based on application context. There is no universal "fair" classifier when base rates differ.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{../visualization/images/safety/fairness_metrics_analysis.png}
+\caption{\textbf{Fairness Metrics Analysis:} (Left) ROC curves demonstrating equalized odds violation between demographic groups. Group A (advantaged) achieves AUC=0.93 while Group B (disadvantaged) achieves only AUC=0.85. At the marked operating point (FPR=0.15), Group A has higher TPR, violating equalized odds fairness. This disparity means qualified Group B individuals are more likely to be incorrectly rejected. (Right) Fairness-accuracy trade-off frontier showing the Pareto relationship between model accuracy and demographic parity violation (ΔDP). The fair model (green, ΔDP=0.0) achieves 92\% accuracy, while the biased model (red, ΔDP=0.40) drops to 70\% accuracy. The acceptable fairness region (ΔDP < 0.10, shaded green) represents industry standards.}
+\label{fig:fairness_metrics}
+\end{figure}
 
 \textbf{TikZ Diagram 2: Fairness Trade-off Triangle}
 
@@ -17446,6 +17460,13 @@ for col in feature_names:
 \end{enumerate}
 \end{tcolorbox}
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{../visualization/images/safety/fairness_constraints_detailed.png}
+\caption{\textbf{Detailed Fairness Constraints Analysis:} (Left) Demographic parity analysis across eight demographic groups showing positive prediction rates. The biased model (red) exhibits wide disparity (ΔDP=22.8\%, range: 35.7\%-58.5\%), with White Male receiving highest rate and Black Female receiving lowest. The debiased model (green) reduces disparity to ΔDP=1.0\%, keeping all groups within the fairness band (±2\% of mean rate ~47\%). (Right) Equalized odds breakdown showing True Positive Rate (TPR) and False Positive Rate (FPR) across four demographic groups. The biased model shows large violations (ΔTPR=0.140, ΔFPR=0.120), while the debiased model achieves near-perfect equalized odds (ΔTPR=0.020, ΔFPR=0.020), with all groups clustering around target TPR=0.78 and FPR=0.15.}
+\label{fig:fairness_constraints}
+\end{figure}
+
 \subsubsection{Individual Fairness}
 
 \textbf{Lipschitz Fairness:}
@@ -17736,6 +17757,13 @@ for text in test_inputs:
         for reason in result['reasons']:
             print(f"  Reason: {reason['type']}")
 \end{lstlisting}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{../visualization/images/safety/toxicity_safety_analysis.png}
+\caption{\textbf{Toxicity Detection and Safety Filtering:} (Left) Toxicity score distributions across five content categories shown as violin plots. Safe content clusters near 0.06 (green zone), while borderline content centers at 0.50 (moderate threshold). Toxic content shows mean score 0.68, with hate speech (0.77) and threats (0.85) exhibiting highest toxicity. The distributions reveal clear separability, with the high toxicity threshold (0.8, red line) effectively catching severe violations. (Right) Multi-layer safety filter pipeline effectiveness. Starting from 100\% unsafe content in raw input, the six-layer filtering system progressively reduces threats: input filter (-22\%), content policy check (-33\%), model output validation (-17\%), output filter (-16\%), and final review (-9\%). The result is 97\% overall reduction, with only 3\% unsafe content reaching final output, demonstrating the effectiveness of defense-in-depth strategy.}
+\label{fig:toxicity_safety}
+\end{figure}
 
 \subsection{Debiasing Techniques}
 
@@ -18533,6 +18561,13 @@ safety_rm = SafetyRewardModel()
 # train_safety_reward_model(safety_rm, train_data)
 \end{lstlisting}
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{../visualization/images/safety/mitigation_strategies_comparison.png}
+\caption{\textbf{Bias Mitigation Strategies Comparison:} (Left) Bias-accuracy trade-off landscape showing the relationship between bias reduction and final model accuracy. Starting from no debiasing (0\% reduction, 87.5\% accuracy), various techniques offer different trade-offs. The recommended sweet spot (green star) is Adversarial Debiasing with 68\% bias reduction while retaining 92\% of original accuracy (80.5\% final). The shaded regions indicate acceptable zones: green for >50\% bias reduction, blue for >90\% accuracy retention. (Right) Comparison of six debiasing techniques showing bias reduction percentage (blue bars) versus accuracy retention (orange bars). Advanced methods like INLP Projection achieve highest bias reduction (78\%) but sacrifice more accuracy (88\% retention). Data Rebalancing offers minimal disruption (98\% retention) but limited bias reduction (35\%). The red threshold at 50\% indicates target bias reduction, while green threshold at 95\% shows ideal accuracy retention.}
+\label{fig:mitigation_strategies}
+\end{figure}
+
 \subsection{Practical Deployment Considerations}
 
 \subsubsection{Safety Filters and Guardrails}
@@ -18573,6 +18608,13 @@ y & \text{if } \text{InputSafe}(x) \land \text{OutputSafe}(y) \\
 \end{equation}
 
 Trigger when current metric exceeds threshold by $k$ standard deviations.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{../visualization/images/safety/safety_monitoring_dashboard.png}
+\caption{\textbf{Continuous Safety Monitoring Dashboard:} (Left) Time series of three critical safety metrics over 30-day deployment period. Toxicity rate (red, left y-axis) fluctuates between 1-6\%, with violations (shaded red regions) when exceeding 5\% threshold. Bias score measured via WEAT (blue, middle y-axis) ranges 0.2-0.7, with most values below threshold (0.5). Hallucination rate (green, right y-axis) varies 1-5\%, staying mostly below 4\% threshold. The multi-axis visualization enables simultaneous tracking of independent safety dimensions. (Right) Alert system performance showing 30-day cumulative statistics across five alert categories. User Reports generate most alerts (22 triggered, 18 resolved, 82\% resolution rate), while Policy Violations generate fewest (5 triggered, 4 resolved, 80\% resolution rate). Overall system metrics shown in summary box: 62 total alerts, 83.9\% resolution rate, and 2.4-hour average response time. The high resolution rates (80-86\% across categories) demonstrate effective incident management.}
+\label{fig:safety_monitoring}
+\end{figure}
 
 \subsection{Summary: Safety and Ethics Best Practices}
 

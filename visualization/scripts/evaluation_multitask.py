@@ -43,7 +43,7 @@ ax1.set_yticklabels(models, fontsize=11)
 ax1.set_title('Multi-Task Performance Heatmap (%)', fontweight='bold', fontsize=14)
 for i in range(len(models)):
     for j in range(len(tasks)):
-        ax1.text(j, i, f'{perf_data[i,j]}', ha='center', va='center', 
+        ax1.text(j, i, f'{perf_data[i,j]}', ha='center', va='center',
                 color='white' if perf_data[i,j] > 65 else 'black', fontsize=10, fontweight='bold')
 cbar = plt.colorbar(im, ax=ax1, fraction=0.03, pad=0.02)
 cbar.set_label('Accuracy (%)', fontweight='bold')
@@ -64,13 +64,13 @@ ax3 = fig.add_subplot(gs[1, 2])
 task_avg = perf_data.mean(axis=0)
 sorted_idx = np.argsort(task_avg)
 colors_diff = ['#e74c3c' if v < 60 else '#f39c12' if v < 70 else '#27ae60' for v in task_avg[sorted_idx]]
-ax3.barh([tasks[i] for i in sorted_idx], task_avg[sorted_idx], color=colors_diff, 
+ax3.barh([tasks[i] for i in sorted_idx], task_avg[sorted_idx], color=colors_diff,
          alpha=0.85, edgecolor='black', linewidth=1.2)
 ax3.set_xlabel('Avg Score (%)', fontweight='bold')
 ax3.set_title('Task Difficulty Ranking', fontweight='bold', fontsize=13)
 ax3.grid(axis='x', alpha=0.3, linestyle='--')
 
-plt.suptitle('Multi-Task Evaluation: Performance Heatmap, Averages, Task Difficulty', 
+plt.suptitle('Multi-Task Evaluation: Performance Heatmap, Averages, Task Difficulty',
              fontsize=15, fontweight='bold', y=0.995)
 plt.savefig(os.path.join(OUTPUT_DIR, "multitask_evaluation.png"), dpi=300, bbox_inches='tight', facecolor='white')
 plt.close()

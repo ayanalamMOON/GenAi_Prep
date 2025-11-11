@@ -44,7 +44,7 @@ ax2 = fig.add_subplot(gs[0, 2])
 severities = ['Critical', 'Major', 'Minor']
 counts = [42, 138, 285]
 colors_sev = ['#e74c3c', '#f39c12', '#3498db']
-wedges, texts, autotexts = ax2.pie(counts, labels=severities, autopct='%1.1f%%', colors=colors_sev, 
+wedges, texts, autotexts = ax2.pie(counts, labels=severities, autopct='%1.1f%%', colors=colors_sev,
                                      startangle=90, explode=(0.1, 0.05, 0), shadow=True)
 for autotext in autotexts:
     autotext.set_color('white')
@@ -56,7 +56,7 @@ ax2.set_title('Error Severity Distribution', fontweight='bold', fontsize=13)
 ax3 = fig.add_subplot(gs[1, :2])
 input_lengths = ['0-50\ntokens', '51-100\ntokens', '101-200\ntokens', '201-500\ntokens', '500+\ntokens']
 error_rates = [8.2, 12.5, 18.3, 24.7, 35.2]
-ax3.plot(range(len(input_lengths)), error_rates, 'o-', linewidth=3, markersize=12, 
+ax3.plot(range(len(input_lengths)), error_rates, 'o-', linewidth=3, markersize=12,
          color='#e74c3c', markeredgecolor='black', markeredgewidth=1.5)
 ax3.fill_between(range(len(input_lengths)), error_rates, alpha=0.3, color='#e74c3c')
 ax3.set_xlabel('Input Length', fontweight='bold', fontsize=12)
