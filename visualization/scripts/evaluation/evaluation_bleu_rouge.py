@@ -22,7 +22,7 @@ plt.rcParams['savefig.dpi'] = 300
 plt.rcParams['font.family'] = 'serif'
 plt.rcParams['font.size'] = 10
 
-OUTPUT_DIR = "../images/evaluation"
+OUTPUT_DIR = "../../images/evaluation"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 print("=" * 80)

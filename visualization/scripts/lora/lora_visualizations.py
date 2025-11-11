@@ -15,7 +15,7 @@ plt.style.use('seaborn-v0_8-darkgrid')
 sns.set_palette("husl")
 
 # Output directory
-OUTPUT_DIR = "../images/lora"
+OUTPUT_DIR = "../../images/lora"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 

@@ -14,7 +14,7 @@ sns.set_context("notebook", font_scale=1.1)
 plt.rcParams['figure.dpi'] = 300
 plt.rcParams['font.family'] = 'serif'
 
-OUTPUT_DIR = "../images/evaluation"
+OUTPUT_DIR = "../../images/evaluation"
 
 print("SECTION 10 - VISUALIZATION 8/8: Evaluation Best Practices")
 

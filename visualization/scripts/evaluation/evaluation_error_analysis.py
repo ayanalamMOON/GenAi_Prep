@@ -15,7 +15,7 @@ plt.rcParams['figure.dpi'] = 300
 plt.rcParams['savefig.dpi'] = 300
 plt.rcParams['font.family'] = 'serif'
 
-OUTPUT_DIR = "../images/evaluation"
+OUTPUT_DIR = "../../images/evaluation"
 
 print("SECTION 10 - VISUALIZATION 6/8: Error Analysis")
 

@@ -14,7 +14,7 @@ plt.style.use('seaborn-v0_8-darkgrid')
 sns.set_palette("husl")
 
 # Output directory
-OUTPUT_DIR = "../images/fine_tuning"
+OUTPUT_DIR = "../../images/fine_tuning"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 def create_transfer_learning_diagram():

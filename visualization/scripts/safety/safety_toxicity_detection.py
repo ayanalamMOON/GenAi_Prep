@@ -13,7 +13,7 @@ plt.style.use('seaborn-v0_8-darkgrid')
 sns.set_palette("husl")
 
 # Create output directory
-OUTPUT_DIR = "../images/safety"
+OUTPUT_DIR = "../../images/safety"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # High-resolution publication quality

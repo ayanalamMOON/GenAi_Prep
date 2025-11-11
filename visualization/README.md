@@ -6,30 +6,51 @@ This directory contains Python scripts to generate visualizations for the LLM St
 
 ```
 visualization/
-├── scripts/                                      # Python visualization scripts
-│   ├── fine_tuning_visualizations.py            # Fine-tuning section visualizations
-│   ├── lora_visualizations.py                    # LoRA section visualizations
-│   ├── qlora_visualizations.py                   # QLoRA section visualizations
-│   ├── pretraining_visualizations.py             # Pre-training section visualizations
-│   ├── langchain_visualizations.py               # LangChain section visualizations
-│   ├── langgraph_visualizations.py               # LangGraph section visualizations
-│   └── instruction_finetuning_visualizations.py  # Instruction fine-tuning visualizations (NEW)
-├── images/                                       # Generated visualization images
-│   ├── fine_tuning/                              # 10 PNG files (2.9 MB)
-│   ├── lora/                                      # 9 PNG files
-│   ├── qlora/                                     # 6 PNG files
-│   ├── pretraining/                               # 8 PNG files
-│   ├── langchain/                                 # 6 PNG files
-│   ├── langgraph/                                 # 8 PNG files
-│   └── instruction_finetuning/                    # 6 PNG files (2.9 MB) - NEW!
-│       ├── traditional_vs_instruction.png         # Architecture comparison diagram
-│       ├── dataset_formats.png                    # Popular format comparison (6 formats)
-│       ├── instruction_quality_metrics.png        # Quality analysis dashboard
-│       ├── data_augmentation_pipeline.png         # Augmentation workflow
-│       ├── training_dynamics.png                  # Multi-panel training analysis
-│       └── evaluation_metrics_dashboard.png       # Comprehensive evaluation dashboard
+├── scripts/                                      # Python visualization scripts (organized by topic)
+│   ├── evaluation/                               # Section 10: Evaluation & Benchmarking (8 scripts)
+│   │   ├── evaluation_benchmarks.py
+│   │   ├── evaluation_best_practices.py
+│   │   ├── evaluation_bleu_rouge.py
+│   │   ├── evaluation_error_analysis.py
+│   │   ├── evaluation_human_eval.py
+│   │   ├── evaluation_multitask.py
+│   │   ├── evaluation_perplexity.py
+│   │   └── evaluation_visualizations.py
+│   ├── fine_tuning/                              # Section 1: Fine-Tuning (1 script, 10 visualizations)
+│   │   └── fine_tuning_visualizations.py
+│   ├── instruction_finetuning/                   # Section 9: Instruction Fine-Tuning (1 script, 6 visualizations)
+│   │   └── instruction_finetuning_visualizations.py
+│   ├── langchain/                                # LangChain Section (1 script, 6 visualizations)
+│   │   └── langchain_visualizations.py
+│   ├── langgraph/                                # LangGraph Section (1 script, 8 visualizations)
+│   │   └── langgraph_visualizations.py
+│   ├── lora/                                     # LoRA Section (1 script, 9 visualizations)
+│   │   └── lora_visualizations.py
+│   ├── pretraining/                              # Pre-training Section (1 script, 8 visualizations)
+│   │   └── pretraining_visualizations.py
+│   ├── qlora/                                    # QLoRA Section (1 script, 6 visualizations)
+│   │   └── qlora_visualizations.py
+│   └── safety/                                   # Section 11: Safety, Ethics & Bias Mitigation (6 scripts)
+│       ├── safety_bias_detection.py
+│       ├── safety_fairness_constraints.py
+│       ├── safety_fairness_metrics.py
+│       ├── safety_mitigation_strategies.py
+│       ├── safety_monitoring_dashboard.py
+│       └── safety_toxicity_detection.py
+├── images/                                       # Generated visualization images (matches script structure)
+│   ├── evaluation/                               # Section 10 visualizations (8 PNG files, 4.6 MB)
+│   ├── fine_tuning/                              # Section 1 visualizations (10 PNG files, 2.9 MB)
+│   ├── instruction_finetuning/                   # Section 9 visualizations (6 PNG files, 2.9 MB)
+│   ├── langchain/                                # LangChain visualizations (6 PNG files)
+│   ├── langgraph/                                # LangGraph visualizations (8 PNG files)
+│   ├── lora/                                     # LoRA visualizations (9 PNG files)
+│   ├── pretraining/                              # Pre-training visualizations (8 PNG files)
+│   ├── qlora/                                    # QLoRA visualizations (6 PNG files)
+│   └── safety/                                   # Section 11 visualizations (6 PNG files, 2.8 MB)
 └── README.md                                      # This file
 ```
+
+**Note:** Scripts are now organized into topic-wise folders for better maintainability. Each script folder corresponds to a section in the LaTeX document.
 
 ## Setup
 
@@ -51,10 +72,19 @@ pip install matplotlib seaborn numpy
 
 ## Generating Visualizations
 
-### Fine-Tuning Visualizations
+### General Pattern
+
+All visualization scripts follow the same execution pattern:
 
 ```bash
-cd visualization/scripts
+cd visualization/scripts/<topic_folder>
+python <script_name>.py
+```
+
+### Fine-Tuning Visualizations (Section 1)
+
+```bash
+cd visualization/scripts/fine_tuning
 python fine_tuning_visualizations.py
 ```
 
@@ -74,7 +104,7 @@ This generates 10 high-quality visualizations:
 ### Instruction Fine-Tuning Visualizations (Section 9)
 
 ```bash
-cd visualization/scripts
+cd visualization/scripts/instruction_finetuning
 python instruction_finetuning_visualizations.py
 ```
 
@@ -98,6 +128,75 @@ This generates 6 comprehensive visualizations:
    - Human preference win rate (65% vs 35%)
    - 3 radar charts for Knowledge, Interaction, and Safety capabilities
    - 3 distribution plots for response length, latency, and quality scores
+
+### Evaluation & Benchmarking Visualizations (Section 10)
+
+```bash
+cd visualization/scripts/evaluation
+python evaluation_benchmarks.py
+python evaluation_best_practices.py
+python evaluation_bleu_rouge.py
+python evaluation_error_analysis.py
+python evaluation_human_eval.py
+python evaluation_multitask.py
+python evaluation_perplexity.py
+python evaluation_visualizations.py
+```
+
+This generates 8 comprehensive visualizations covering benchmarks, metrics, error analysis, and best practices.
+
+### Safety, Ethics & Bias Mitigation Visualizations (Section 11)
+
+```bash
+cd visualization/scripts/safety
+python safety_bias_detection.py
+python safety_fairness_metrics.py
+python safety_fairness_constraints.py
+python safety_toxicity_detection.py
+python safety_mitigation_strategies.py
+python safety_monitoring_dashboard.py
+```
+
+This generates 6 comprehensive visualizations:
+
+1. **bias_detection_methods.png** - WEAT effect sizes (gender/race bias) + Counterfactual perplexity analysis
+2. **fairness_metrics_analysis.png** - ROC curves (equalized odds violation) + Fairness-accuracy Pareto frontier
+3. **fairness_constraints_detailed.png** - Demographic parity across 8 groups + TPR/FPR breakdown
+4. **toxicity_safety_analysis.png** - Toxicity score distributions + Multi-layer safety filter pipeline
+5. **mitigation_strategies_comparison.png** - Debiasing methods comparison + Bias-accuracy trade-off landscape
+6. **safety_monitoring_dashboard.png** - 30-day safety metrics timeline + Alert system performance
+
+### Other Topic Visualizations
+
+**LoRA:**
+```bash
+cd visualization/scripts/lora
+python lora_visualizations.py
+```
+
+**QLoRA:**
+```bash
+cd visualization/scripts/qlora
+python qlora_visualizations.py
+```
+
+**Pre-training:**
+```bash
+cd visualization/scripts/pretraining
+python pretraining_visualizations.py
+```
+
+**LangChain:**
+```bash
+cd visualization/scripts/langchain
+python langchain_visualizations.py
+```
+
+**LangGraph:**
+```bash
+cd visualization/scripts/langgraph
+python langgraph_visualizations.py
+```
 
 ## Integration with LaTeX
 
@@ -131,16 +230,149 @@ All images are:
 
 ## Adding New Visualizations
 
-To add visualizations for other sections (LoRA, QLoRA, LangChain, etc.):
+To add visualizations for a new topic/section:
 
-1. Create a new script in `scripts/` (e.g., `lora_visualizations.py`)
-2. Create corresponding image directory (e.g., `images/lora/`)
-3. Follow the pattern from `fine_tuning_visualizations.py`:
-   - Import matplotlib, seaborn, numpy
-   - Define output directory
-   - Create functions for each visualization
-   - Save to appropriate directory with descriptive names
-4. Update LaTeX to include new images with `\includegraphics{}`
+### Step 1: Create Topic Folder Structure
+
+```bash
+cd visualization/scripts
+mkdir <topic_name>  # e.g., mkdir rag or mkdir prompt_engineering
+```
+
+### Step 2: Create Visualization Script
+
+Create a new script in the topic folder (e.g., `scripts/<topic_name>/<topic_name>_visualizations.py`):
+
+```python
+"""
+Section X: <Topic Name> - Visualizations
+Creates N visualizations for <topic description>
+"""
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+import os
+
+# Set style
+plt.style.use('seaborn-v0_8-darkgrid')
+sns.set_palette("husl")
+
+# IMPORTANT: Output directory is ../../images/<topic_name> (two levels up from scripts/<topic_name>/)
+OUTPUT_DIR = "../../images/<topic_name>"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+# High-resolution publication quality
+DPI = 300
+
+def create_visualization_1():
+    """
+    Create first visualization with clear description
+    Max 2 visualizations per PNG (use subplots(1, 2) for side-by-side)
+    """
+    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+    fig.suptitle('Main Title', fontsize=16, fontweight='bold', y=1.02)
+    
+    # Panel 1: Left visualization
+    ax1 = axes[0]
+    # ... your plotting code ...
+    ax1.set_title('(1) Panel 1 Title', fontsize=12, fontweight='bold', pad=10)
+    
+    # Panel 2: Right visualization
+    ax2 = axes[1]
+    # ... your plotting code ...
+    ax2.set_title('(2) Panel 2 Title', fontsize=12, fontweight='bold', pad=10)
+    
+    plt.tight_layout()
+    plt.savefig(f"{OUTPUT_DIR}/descriptive_name.png", dpi=DPI, bbox_inches='tight')
+    print(f"✓ Saved: {OUTPUT_DIR}/descriptive_name.png")
+    plt.close()
+
+if __name__ == "__main__":
+    print(f"Generating Section X visualizations: <Topic Name>...")
+    create_visualization_1()
+    # create_visualization_2()
+    # ...
+    print(f"\n✓ All <topic_name> visualizations generated successfully!")
+    print(f"✓ Output directory: {OUTPUT_DIR}")
+```
+
+### Step 3: Create Image Output Directory
+
+```bash
+cd visualization/images
+mkdir <topic_name>  # This will be auto-created by script, but good to create manually for clarity
+```
+
+### Step 4: Generate Visualizations
+
+```bash
+cd visualization/scripts/<topic_name>
+python <topic_name>_visualizations.py
+```
+
+### Step 5: Integrate into LaTeX Document
+
+In `latex/LLM_Study_Material.tex`, add figure blocks at appropriate locations:
+
+```latex
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{../visualization/images/<topic_name>/descriptive_name.png}
+\caption{\textbf{Caption Title:} Detailed description explaining what the visualization shows, key insights, and how to interpret it. Reference specific values and thresholds shown in the image.}
+\label{fig:<topic_name>_<visualization_name>}
+\end{figure}
+```
+
+### Key Requirements for New Visualizations
+
+1. **Folder Structure**: Always create `scripts/<topic_name>/` folder for scripts
+2. **Output Path**: Use `OUTPUT_DIR = "../../images/<topic_name>"` (two levels up)
+3. **Max 2 Panels**: Keep visualizations uncluttered - max 2 visualizations per PNG
+4. **Separate Scripts**: If topic needs >3 visualizations, create multiple scripts to avoid length limits
+5. **High Resolution**: Always use `DPI = 300` for publication quality
+6. **Descriptive Names**: Use snake_case descriptive names (e.g., `bias_detection_methods.png`)
+7. **Documentation**: Add docstrings explaining what each visualization shows
+8. **Consistent Style**: Use `seaborn-v0_8-darkgrid` style for consistency
+
+### Example: Adding RAG Visualizations
+
+```bash
+# 1. Create folders
+mkdir visualization/scripts/rag
+mkdir visualization/images/rag
+
+# 2. Create script
+cd visualization/scripts/rag
+cat > rag_retrieval_pipeline.py << 'EOF'
+"""
+Section 12: RAG 2.0 - Retrieval Pipeline Visualizations
+"""
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+import os
+
+plt.style.use('seaborn-v0_8-darkgrid')
+OUTPUT_DIR = "../../images/rag"  # Two levels up!
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+DPI = 300
+
+def create_retrieval_pipeline_viz():
+    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+    # ... visualization code ...
+    plt.savefig(f"{OUTPUT_DIR}/retrieval_pipeline.png", dpi=DPI, bbox_inches='tight')
+    plt.close()
+
+if __name__ == "__main__":
+    create_retrieval_pipeline_viz()
+EOF
+
+# 3. Generate
+python rag_retrieval_pipeline.py
+
+# 4. Add to LaTeX (in appropriate section)
+```
 
 ## Best Practices
 
