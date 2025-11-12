@@ -2112,6 +2112,70 @@ Typical values:
     \item Crossover point: $N^* \approx 1000$ examples
 \end{itemize}
 
+\begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,title={Hyperparameter Guidance: Fine-Tuning LLMs}]
+\textbf{Recommended Values by Use Case:}
+\begin{itemize}
+    \item \textbf{Learning Rate:} $3 \times 10^{-5}$ to $5 \times 10^{-5}$ for GPT-2 size models ($<$1B params)
+    \begin{itemize}
+        \item \textit{Why:} 10-100x smaller than pre-training LR to preserve pre-trained knowledge
+        \item \textit{Rule:} Use LR finder (Smith, 2015) and pick 1/10 of steepest descent point
+        \item \textit{Compute Impact:} No direct impact on memory/speed, but wrong LR wastes epochs
+    \end{itemize}
+    
+    \item \textbf{Batch Size:} 16-32 for 24GB GPU, 4-8 with gradient accumulation for 12GB
+    \begin{itemize}
+        \item \textit{Why:} Larger batches = more stable gradients but higher memory
+        \item \textit{Memory Formula:} GPU memory $\approx$ (params $\times$ 4 bytes $\times$ batch size $\times$ 1.3 overhead)
+        \item \textit{Gradient Accumulation:} Effective batch = per\_device\_batch $\times$ accumulation\_steps
+        \item \textit{Trade-off:} Batch 32 converges in 50\% fewer steps than batch 8, but uses 4x memory
+    \end{itemize}
+    
+    \item \textbf{Epochs:} 3-5 for large datasets ($>$10K), 10-20 for small ($<$1K)
+    \begin{itemize}
+        \item \textit{Why:} Small datasets need more exposure; large datasets risk overfitting
+        \item \textit{Early Stopping:} Stop if validation loss increases for 3 consecutive evaluations
+        \item \textit{Overfitting Indicator:} Train-val loss gap $>$ 0.5 indicates severe overfitting
+    \end{itemize}
+    
+    \item \textbf{Weight Decay:} 0.01 (standard), 0.1 for small datasets, 0.001 for domain adaptation
+    \begin{itemize}
+        \item \textit{Why:} L2 regularization prevents large weight updates
+        \item \textit{Formula:} Effective update = $-\eta (\nabla L + \lambda_{WD} \theta)$
+        \item \textit{When to Increase:} High overfitting (train-val gap $>$ 0.5)
+    \end{itemize}
+    
+    \item \textbf{Warmup Steps:} 100-500 steps (or 10\% of total steps)
+    \begin{itemize}
+        \item \textit{Why:} Prevents initial training instability from cold start with high LR
+        \item \textit{Schedule:} Linear warmup from 0 to max LR, then cosine decay to 0
+    \end{itemize}
+\end{itemize}
+
+\textbf{Quick Start Configurations:}
+\begin{itemize}
+    \item \textbf{Small Dataset ($<$10K):} LR=5e-5, Batch=8, Epochs=10, WD=0.1, Warmup=10\%
+    \item \textbf{Large Dataset ($>$100K):} LR=1e-5, Batch=32, Epochs=2, WD=0.001, Warmup=5\%
+    \item \textbf{Domain Adaptation:} LR=3e-6, Batch=16, Epochs=3, WD=0.01, Warmup=15\%
+    \item \textbf{Task-Specific:} LR=1e-4, Batch=16, Epochs=5, WD=0.01, Warmup=10\%
+\end{itemize}
+
+\textbf{Memory Requirements (GPT-2 124M on 24GB GPU):}
+\begin{itemize}
+    \item Batch 4: ~4GB GPU memory (safe for any 8GB+ card)
+    \item Batch 16: ~12GB GPU memory (needs 16GB+ card)
+    \item Batch 32: ~20GB GPU memory (needs 24GB+ A100/RTX 4090)
+    \item \textit{Pro Tip:} Use gradient accumulation to simulate larger batches: batch=4 $\times$ accum=8 = effective 32
+\end{itemize}
+
+\textbf{Success Indicators:}
+\begin{itemize}
+    \item Training loss should decrease within first 500 steps; if not, LR is wrong
+    \item Validation loss should track training loss closely (gap $<$ 0.3) for healthy training
+    \item Gradient norms should be 0.1-10.0; if $>$100, gradients exploding (reduce LR or add clipping)
+    \item Perplexity should drop from ~50 (untrained) to 5-15 (well-tuned) on target domain
+\end{itemize}
+\end{tcolorbox}
+
 \subsubsection{Advanced Fine-Tuning Techniques}
 
 \textbf{1. Mixout Regularization:}
@@ -2180,6 +2244,378 @@ Math Bound & $O(\frac{1}{\epsilon})$ & $O(\frac{1}{\epsilon^2})$ \\
     \item \textbf{Fine-Tuning:} Many examples ($>1000$), need production efficiency, task-specific optimization
     \item \textbf{In-Context:} Few examples ($<100$), rapid iteration, multi-task inference
 \end{itemize}
+
+\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title={Common Pitfalls and Debugging Tips: Fine-Tuning}]
+
+\textbf{Pitfall 1: Loss Not Decreasing or Diverging}
+\begin{itemize}
+    \item \textbf{Symptoms:} Training loss stays constant ($>$3.0 for GPT-2) or increases after first few steps
+    \item \textbf{Root Cause:} Learning rate too high, causing gradient explosion
+    \item \textbf{Diagnosis:}
+\begin{lstlisting}[style=pythoncode, language=Python]
+# Check gradient norms during training
+for name, param in model.named_parameters():
+    if param.grad is not None:
+        grad_norm = param.grad.norm().item()
+        if grad_norm > 10.0:
+            print(f"WARNING: Large gradient in {name}: {grad_norm:.2f}")
+            # Gradient explosion likely
+\end{lstlisting}
+    \item \textbf{Solution:}
+    \begin{itemize}
+        \item Reduce learning rate by 10x: if using 5e-5, try 5e-6
+        \item Add gradient clipping: \texttt{max\_grad\_norm=1.0}
+        \item Verify data preprocessing: check for NaN values in inputs
+    \end{itemize}
+    \item \textbf{Prevention:} Always use LR finder first; start with conservative LR (1e-6) and gradually increase
+\end{itemize}
+
+\textbf{Pitfall 2: Catastrophic Forgetting of Pre-trained Knowledge}
+\begin{itemize}
+    \item \textbf{Symptoms:} Model performs well on new task but loses general language ability (e.g., can't complete simple sentences unrelated to training data)
+    \item \textbf{Root Cause:} Learning rate too high OR training too long on small, narrow dataset
+    \item \textbf{Example:} After fine-tuning on medical Q\&A, model forgets basic grammar and produces gibberish on non-medical prompts
+    \item \textbf{Diagnosis:}
+\begin{lstlisting}[style=pythoncode, language=Python]
+# Test on out-of-domain prompts before and after fine-tuning
+test_prompts = [
+    "The capital of France is",
+    "Once upon a time, there was a",
+    "The result of 2+2 is"
+]
+
+# After fine-tuning, if outputs are nonsensical, catastrophic forgetting occurred
+\end{lstlisting}
+    \item \textbf{Solution:}
+    \begin{itemize}
+        \item Reduce learning rate to 1e-6 or 3e-6 (100x lower than pre-training)
+        \item Use EWC (Elastic Weight Consolidation) or mixout regularization
+        \item Train for fewer epochs (1-3 instead of 10+)
+        \item Mix general data with task-specific data (90\% task, 10\% general)
+    \end{itemize}
+    \item \textbf{Prevention:} Always validate on both in-domain AND out-of-domain examples
+\end{itemize}
+
+\textbf{Pitfall 3: Out of Memory (OOM) Errors}
+\begin{itemize}
+    \item \textbf{Symptoms:} \texttt{RuntimeError: CUDA out of memory} during training
+    \item \textbf{Root Cause:} Batch size too large for available GPU memory
+    \item \textbf{Memory Calculation:}
+\begin{lstlisting}[style=pythoncode, language=Python]
+# Estimate GPU memory requirement
+num_params = 124e6  # GPT-2 small
+bytes_per_param = 4  # FP32
+batch_size = 16
+seq_length = 512
+hidden_dim = 768
+
+# Model weights
+model_memory = num_params * bytes_per_param / 1e9  # GB
+
+# Activations (rough estimate)
+activation_memory = batch_size * seq_length * hidden_dim * 4 / 1e9
+
+# Optimizer states (AdamW stores 2 copies)
+optimizer_memory = 2 * model_memory
+
+total_memory = model_memory + activation_memory + optimizer_memory
+print(f"Estimated GPU memory: {total_memory:.2f} GB")
+# For GPT-2 small, batch 16: ~8GB
+\end{lstlisting}
+    \item \textbf{Solution:}
+    \begin{itemize}
+        \item Reduce batch size: try 8, 4, or even 2
+        \item Use gradient accumulation to maintain effective large batch:
+        \begin{itemize}
+            \item \texttt{per\_device\_train\_batch\_size=4}
+            \item \texttt{gradient\_accumulation\_steps=8}
+            \item Effective batch = 4 $\times$ 8 = 32
+        \end{itemize}
+        \item Enable mixed precision training: \texttt{fp16=True} (saves 50\% memory)
+        \item Reduce sequence length if possible: 512 → 256 or 128
+    \end{itemize}
+    \item \textbf{Prevention:} Calculate memory before training; use smallest batch that fits
+\end{itemize}
+
+\textbf{Pitfall 4: Overfitting on Small Datasets}
+\begin{itemize}
+    \item \textbf{Symptoms:} Training loss decreases to near 0, but validation loss increases or plateaus
+    \item \textbf{Root Cause:} Model memorizes training data instead of learning patterns
+    \item \textbf{Diagnosis:}
+\begin{lstlisting}[style=pythoncode, language=Python]
+# Check train-validation loss gap
+train_loss = 0.15  # Very low
+val_loss = 2.5     # High
+gap = val_loss - train_loss
+print(f"Loss gap: {gap:.2f}")
+
+if gap > 0.5:
+    print("SEVERE OVERFITTING detected!")
+    print("Solutions:")
+    print("  1. Increase weight decay (0.01 -> 0.1)")
+    print("  2. Reduce epochs (10 -> 3)")
+    print("  3. Add dropout (p=0.1)")
+    print("  4. Collect more data")
+\end{lstlisting}
+    \item \textbf{Solution:}
+    \begin{itemize}
+        \item Increase weight decay from 0.01 to 0.1
+        \item Stop training earlier (use early stopping callback)
+        \item Add dropout layers (p=0.1 to 0.3)
+        \item Data augmentation: paraphrase examples, back-translation
+    \end{itemize}
+    \item \textbf{Prevention:} For datasets $<$1000 examples, use strong regularization from the start
+\end{itemize}
+
+\textbf{Pitfall 5: Inconsistent Tokenization Between Training and Inference}
+\begin{itemize}
+    \item \textbf{Symptoms:} Training works fine, but inference produces nonsensical output or errors
+    \item \textbf{Root Cause:} Different tokenizer settings or missing special tokens
+    \item \textbf{Common Mistake:}
+\begin{lstlisting}[style=pythoncode, language=Python]
+# WRONG: Tokenizer settings differ
+# Training:
+tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+tokenizer.pad_token = tokenizer.eos_token
+
+# Inference (forgot to set pad_token):
+tokenizer = GPT2Tokenizer.from_pretrained("./finetuned_model")
+# Crash: pad_token is None!
+\end{lstlisting}
+    \item \textbf{Solution:}
+    \begin{itemize}
+        \item Save tokenizer with model: \texttt{tokenizer.save\_pretrained("./model")}
+        \item Load together: \texttt{tokenizer = GPT2Tokenizer.from\_pretrained("./model")}
+        \item Set pad token before training AND inference
+    \end{itemize}
+    \item \textbf{Prevention:} Always save and load tokenizer alongside model
+\end{itemize}
+
+\textbf{Pitfall 6: No Validation Set - Training Blind}
+\begin{itemize}
+    \item \textbf{Symptoms:} Training loss decreases smoothly, but deployed model performs poorly
+    \item \textbf{Root Cause:} No validation set to detect overfitting or hyperparameter issues
+    \item \textbf{Solution:}
+    \begin{itemize}
+        \item Always split data: 80\% train, 10\% validation, 10\% test
+        \item For small datasets ($<$1000): Use k-fold cross-validation (k=5)
+        \item Monitor validation loss every epoch: stop if it increases for 3 epochs
+    \end{itemize}
+    \item \textbf{Prevention:} Validation set is non-negotiable; even 50-100 examples help
+\end{itemize}
+
+\textbf{Pitfall 7: Ignoring Data Quality Issues}
+\begin{itemize}
+    \item \textbf{Symptoms:} Model outputs are repetitive, contain artifacts, or miss key patterns
+    \item \textbf{Root Cause:} Training data has duplicates, formatting errors, or label noise
+    \item \textbf{Data Debugging Checklist:}
+\begin{lstlisting}[style=pythoncode, language=Python]
+# Check for common data issues
+import pandas as pd
+
+# 1. Check for duplicates
+unique_ratio = len(set(dataset['text'])) / len(dataset['text'])
+print(f"Unique examples: {unique_ratio*100:.1f}%")
+if unique_ratio < 0.9:
+    print("WARNING: High duplicate rate!")
+
+# 2. Check average length
+avg_len = sum(len(t.split()) for t in dataset['text']) / len(dataset)
+print(f"Average length: {avg_len:.1f} tokens")
+if avg_len < 10:
+    print("WARNING: Examples too short!")
+
+# 3. Check for empty or invalid examples
+empty_count = sum(1 for t in dataset['text'] if len(t.strip()) == 0)
+print(f"Empty examples: {empty_count}")
+
+# 4. Sample random examples
+print("\nRandom sample:")
+for i in np.random.choice(len(dataset), 5):
+    print(f"  {dataset['text'][i][:100]}...")
+\end{lstlisting}
+    \item \textbf{Solution:}
+    \begin{itemize}
+        \item Remove exact duplicates: \texttt{dataset.unique()}
+        \item Filter out too-short examples ($<$10 tokens)
+        \item Manual review of 50-100 random samples
+        \item Fix formatting: remove special characters, normalize whitespace
+    \end{itemize}
+    \item \textbf{Prevention:} Always inspect data before training; garbage in = garbage out
+\end{itemize}
+
+\textbf{Quick Debugging Flowchart:}
+\begin{enumerate}
+    \item Loss not decreasing? → Reduce LR by 10x, add gradient clipping
+    \item Loss exploding (NaN)? → Reduce LR by 100x, check for data NaNs
+    \item Train-val gap $>$ 0.5? → Increase weight decay, reduce epochs
+    \item OOM error? → Reduce batch size, enable fp16, use gradient accumulation
+    \item Good training loss but poor inference? → Check tokenizer consistency, validate on out-of-domain data
+    \item Model outputs nonsense? → Review data quality, check for catastrophic forgetting
+\end{enumerate}
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title={Key Takeaways: Fine-Tuning LLMs}]
+
+\textbf{Essential Mathematical Formulas:}
+\begin{enumerate}
+    \item \textbf{Fine-Tuning Objective:} $\theta_{ft} = \theta_{pt} + \Delta\theta$ where $\theta_{pt}$ are pre-trained weights and $\Delta\theta$ are task-specific updates. Typically only 0.1-1\% of weights change significantly.
+    
+    \item \textbf{Loss Function (Causal Language Modeling):}
+    \[
+    \mathcal{L}_{CLM}(\theta) = -\frac{1}{N} \sum_{i=1}^{N} \log P_\theta(x_i | x_{<i})
+    \]
+    Goal: Minimize this to improve next-token prediction accuracy.
+    
+    \item \textbf{Elastic Weight Consolidation (Prevent Forgetting):}
+    \[
+    \mathcal{L}_{EWC}(\theta) = \mathcal{L}_{new}(\theta) + \frac{\lambda}{2} \sum_{i} F_i (\theta_i - \theta_i^*)^2
+    \]
+    Where $F_i$ is Fisher information (importance) of parameter $i$, $\theta_i^*$ is pre-trained value. Use $\lambda = 1000$ to $10000$.
+    
+    \item \textbf{Learning Rate Scaling Rule:}
+    \[
+    \eta_{ft} = \frac{\eta_{pt}}{10} \text{ to } \frac{\eta_{pt}}{100}
+    \]
+    Pre-training uses 3e-4, so fine-tuning should use 3e-5 to 3e-6.
+    
+    \item \textbf{Batch Size Memory Formula:}
+    \[
+    \text{GPU Memory (GB)} = \text{params} \times 4 \text{ bytes} \times \text{batch size} \times 1.3 \text{ (overhead)}
+    \]
+    Example: GPT-2 (124M params), batch 16 → 124e6 × 4 × 16 × 1.3 / 1e9 ≈ 10.3 GB
+\end{enumerate}
+
+\textbf{Critical Success Factors (Priority Order):}
+\begin{enumerate}
+    \item \textbf{Learning Rate is Everything:} Most important hyperparameter. Use LR Finder algorithm to find optimal value. Too high → divergence, too low → no learning. Target: 1e-5 to 5e-5 for most cases.
+    
+    \item \textbf{Monitor Train-Validation Gap:} If gap $>$ 0.5, overfitting is occurring. Increase weight decay, reduce epochs, or collect more data.
+    
+    \item \textbf{Weight Decay Prevents Catastrophic Forgetting:} Use 0.01 for large datasets ($>$100K), 0.1 for small ($<$10K). This L2 regularization keeps weights close to pre-trained values.
+    
+    \item \textbf{Gradient Accumulation Enables Large Batches:} If GPU memory limited, simulate large batch:
+    \begin{itemize}
+        \item \texttt{per\_device\_train\_batch\_size=4}
+        \item \texttt{gradient\_accumulation\_steps=8}
+        \item Effective batch = 4 × 8 = 32 (better gradient estimates)
+    \end{itemize}
+    
+    \item \textbf{Validation Set is Non-Negotiable:} Always hold out 10-20\% of data for validation. Monitor validation loss every epoch; use early stopping if it increases for 3 consecutive epochs.
+\end{enumerate}
+
+\textbf{When to Use Fine-Tuning (vs Alternatives):}
+\begin{itemize}
+    \item \textbf{Use Fine-Tuning When:}
+    \begin{itemize}
+        \item You have $\geq$1000 task-specific training examples
+        \item Need production inference efficiency (vs long prompts in ICL)
+        \item Task requires specialized vocabulary or writing style
+        \item Can afford training compute (hours to days on single GPU)
+        \item Want best possible performance on specific task
+    \end{itemize}
+    
+    \item \textbf{Use Parameter-Efficient Fine-Tuning (PEFT/LoRA) When:}
+    \begin{itemize}
+        \item Limited GPU memory ($<$24GB for billion-param models)
+        \item Need to maintain multiple task-specific versions
+        \item Want faster training (LoRA trains 2-3x faster)
+        \item Acceptable to trade 1-2\% performance for efficiency
+    \end{itemize}
+    
+    \item \textbf{Use In-Context Learning (ICL) When:}
+    \begin{itemize}
+        \item Have $<$100 examples (few-shot scenario)
+        \item Need rapid iteration without training
+        \item Task is simple pattern matching
+        \item Can tolerate higher inference cost
+    \end{itemize}
+    
+    \item \textbf{Use Pre-Training When:}
+    \begin{itemize}
+        \item Creating entirely new domain model (e.g., legal, medical)
+        \item Have $>$1B tokens of domain-specific text
+        \item Existing models completely fail on domain
+        \item Can afford massive compute (weeks on multi-GPU clusters)
+    \end{itemize}
+\end{itemize}
+
+\textbf{Performance Comparison (Medical Q\&A Example):}
+\begin{center}
+\begin{tabular}{lcccc}
+\hline
+\textbf{Method} & \textbf{Training Time} & \textbf{GPU Memory} & \textbf{Inference Speed} & \textbf{Accuracy} \\
+\hline
+Full Fine-Tuning & 8 hours & 20 GB & 50 ms/query & 92\% \\
+LoRA (r=8) & 3 hours & 8 GB & 50 ms/query & 90\% \\
+In-Context (5-shot) & 0 (no training) & 0 (inference only) & 200 ms/query & 75\% \\
+Pre-Training & 2 weeks & 80 GB (8xA100) & 50 ms/query & 95\% \\
+\hline
+\end{tabular}
+\end{center}
+
+\textbf{Production Deployment Checklist:}
+\begin{enumerate}
+    \item \textbf{Before Training:}
+    \begin{itemize}
+        \item[$\square$] Run LR Finder to determine optimal learning rate
+        \item[$\square$] Split data: 80\% train, 10\% validation, 10\% test
+        \item[$\square$] Inspect 50-100 random training examples for quality
+        \item[$\square$] Calculate GPU memory requirement (formula above)
+        \item[$\square$] Set up validation monitoring and checkpointing
+    \end{itemize}
+    
+    \item \textbf{During Training:}
+    \begin{itemize}
+        \item[$\square$] Monitor gradient norms (should be 0.1-10.0)
+        \item[$\square$] Track training and validation loss every epoch
+        \item[$\square$] Check perplexity on held-out set (expect drop from ~50 to 5-15)
+        \item[$\square$] Save checkpoint every 500-1000 steps
+        \item[$\square$] Verify loss decreases within first 500 steps
+    \end{itemize}
+    
+    \item \textbf{After Training:}
+    \begin{itemize}
+        \item[$\square$] Test on diverse examples (in-domain AND out-of-domain)
+        \item[$\square$] Verify no catastrophic forgetting (test general language ability)
+        \item[$\square$] Measure inference latency and throughput
+        \item[$\square$] Compare against baseline (few-shot ICL or pre-trained model)
+        \item[$\square$] Document hyperparameters and training config for reproducibility
+    \end{itemize}
+\end{enumerate}
+
+\textbf{Expected Training Dynamics (GPT-2 124M on 10K Medical Dialogues):}
+\begin{itemize}
+    \item \textbf{Epoch 1:} Loss decreases from ~3.5 to ~2.0 (rapid improvement as model learns task)
+    \item \textbf{Epoch 2:} Loss decreases from ~2.0 to ~1.3 (slower but steady progress)
+    \item \textbf{Epoch 3:} Loss decreases from ~1.3 to ~1.0 (convergence, diminishing returns)
+    \item \textbf{Final:} Training loss ~0.8, Validation loss ~1.2 (gap = 0.4, acceptable)
+    \item \textbf{Perplexity:} Drops from 33 (pre-trained) to 3.3 (fine-tuned) on medical data
+\end{itemize}
+
+\textbf{Common Misconceptions Clarified:}
+\begin{enumerate}
+    \item \textbf{Myth:} "More epochs = better performance"
+    \\ \textbf{Reality:} Beyond 3-5 epochs on large datasets, you risk overfitting. Always monitor validation loss.
+    
+    \item \textbf{Myth:} "Larger batch size is always better"
+    \\ \textbf{Reality:} Batch size primarily affects memory and training speed. Very large batches ($>$128) can reduce generalization. Use 16-32 for most cases.
+    
+    \item \textbf{Myth:} "Fine-tuning changes all model weights equally"
+    \\ \textbf{Reality:} Later layers change most (up to 10\%), early layers barely change ($<$0.1\%). This is why layer-wise learning rates help.
+    
+    \item \textbf{Myth:} "You need massive datasets to fine-tune"
+    \\ \textbf{Reality:} 1000-10000 examples sufficient for most tasks. Quality $>$ Quantity.
+    
+    \item \textbf{Myth:} "Fine-tuned models can't be further fine-tuned"
+    \\ \textbf{Reality:} Can sequentially fine-tune (task A → task B), but use very low LR (1e-6) to prevent forgetting task A.
+\end{enumerate}
+
+\textbf{One-Sentence Summary:}
+
+Fine-tuning adapts pre-trained LLMs to specific tasks by continuing training on task-specific data with a 10-100x lower learning rate (typically 1e-5 to 5e-5) for 1-5 epochs, updating all model parameters to achieve state-of-the-art performance while requiring orders of magnitude less data and compute than pre-training from scratch.
+
+\end{tcolorbox}
 
 \newpage
 
