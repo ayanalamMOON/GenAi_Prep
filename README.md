@@ -64,7 +64,7 @@ The main study document covering end-to-end LLM development, from fundamental co
 - Reinforcement Learning from Human Feedback (RLHF)
 - Direct Preference Optimization (DPO)
 
-**Advanced Mathematical Theory** ⭐ NEW
+**Advanced Mathematical Theory**
 - **Scaling Laws**: Kaplan & Chinchilla compute-optimal training (N_opt ∝ C^0.5, D_opt ∝ C^0.5)
 - **Eckart-Young Theorem**: Optimal low-rank approximation with SVD, error bounds for LoRA
 - **Quantization Noise**: Complete derivation of E[ε²] = Δ²/12, SQNR analysis for 4-bit quantization
