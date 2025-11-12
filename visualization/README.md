@@ -30,6 +30,10 @@ visualization/
 │   │   └── pretraining_visualizations.py
 │   ├── qlora/                                    # QLoRA Section (1 script, 6 visualizations)
 │   │   └── qlora_visualizations.py
+│   ├── rag/                                      # Section 12: RAG Systems (3 scripts, 6 visualizations)
+│   │   ├── rag_pipeline_architecture.py
+│   │   ├── rag_vector_databases.py
+│   │   └── rag_advanced_architectures.py
 │   └── safety/                                   # Section 11: Safety, Ethics & Bias Mitigation (6 scripts)
 │       ├── safety_bias_detection.py
 │       ├── safety_fairness_constraints.py
@@ -46,6 +50,7 @@ visualization/
 │   ├── lora/                                     # LoRA visualizations (9 PNG files)
 │   ├── pretraining/                              # Pre-training visualizations (8 PNG files)
 │   ├── qlora/                                    # QLoRA visualizations (6 PNG files)
+│   ├── rag/                                      # Section 12 visualizations (6 PNG files, 2.1 MB)
 │   └── safety/                                   # Section 11 visualizations (6 PNG files, 2.8 MB)
 └── README.md                                      # This file
 ```
@@ -166,6 +171,24 @@ This generates 6 comprehensive visualizations:
 5. **mitigation_strategies_comparison.png** - Debiasing methods comparison + Bias-accuracy trade-off landscape
 6. **safety_monitoring_dashboard.png** - 30-day safety metrics timeline + Alert system performance
 
+### RAG (Retrieval-Augmented Generation) Visualizations (Section 12)
+
+```bash
+cd visualization/scripts/rag
+python rag_pipeline_architecture.py
+python rag_vector_databases.py
+python rag_advanced_architectures.py
+```
+
+This generates 6 comprehensive visualizations:
+
+1. **rag_pipeline_architecture.png** - Three-stage RAG pipeline (Indexing → Retrieval → Generation) + RAG vs Standard LLM comparison
+2. **embedding_similarity_metrics.png** - Cosine/Euclidean/Dot product behavior with document length + Worked example in 3D space
+3. **vector_database_architecture.png** - Vector DB components (Storage, Index, Query) + ANN algorithm trade-offs (HNSW, IVF, LSH)
+4. **retrieval_strategies.png** - Dense vs Sparse vs Hybrid retrieval comparison + Top-k selection impact on quality/speed
+5. **advanced_rag_architectures.png** - Evolution of RAG methods (Naive → HyDE → Self-RAG → RAPTOR) + Quality vs Latency trade-off
+6. **reranking_impact.png** - Two-stage retrieval pipeline + Reranking performance gains across metrics
+
 ### Other Topic Visualizations
 
 **LoRA:**
@@ -272,17 +295,17 @@ def create_visualization_1():
     """
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
     fig.suptitle('Main Title', fontsize=16, fontweight='bold', y=1.02)
-    
+
     # Panel 1: Left visualization
     ax1 = axes[0]
     # ... your plotting code ...
     ax1.set_title('(1) Panel 1 Title', fontsize=12, fontweight='bold', pad=10)
-    
+
     # Panel 2: Right visualization
     ax2 = axes[1]
     # ... your plotting code ...
     ax2.set_title('(2) Panel 2 Title', fontsize=12, fontweight='bold', pad=10)
-    
+
     plt.tight_layout()
     plt.savefig(f"{OUTPUT_DIR}/descriptive_name.png", dpi=DPI, bbox_inches='tight')
     print(f"✓ Saved: {OUTPUT_DIR}/descriptive_name.png")
