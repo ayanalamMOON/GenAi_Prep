@@ -7,9 +7,9 @@
 [![Status](https://img.shields.io/badge/Status-Actively%20Maintained-brightgreen.svg)]()
 [![Updates](https://img.shields.io/badge/Updates-Regular-blue.svg)]()
 
-> **Comprehensive university-level study guide for Large Language Models (LLMs), transformers, RLHF, fine-tuning, and generative AI techniques. Includes 440+ pages of theory with rigorous mathematical derivations (actively expanding), 69+ visualizations, and 4 practical Jupyter notebooks. Regular updates with enhanced content and new implementations.**
+> **Comprehensive university-level study guide for Large Language Models (LLMs), transformers, RLHF, fine-tuning, and generative AI techniques. Includes 574 pages of theory with rigorous mathematical derivations (actively expanding), 77 professional visualizations, and 4 practical Jupyter notebooks. Regular updates with enhanced content and new implementations.**
 
-**Keywords:** Large Language Models, LLM, Transformers, RLHF, LoRA, QLoRA, Fine-Tuning, GPT, BERT, Attention Mechanism, Pre-training, Instruction Tuning, RAG, LangChain, LangGraph, Deep Learning, Natural Language Processing, NLP, Machine Learning, AI Safety
+**Keywords:** Large Language Models, LLM, Transformers, RLHF, LoRA, QLoRA, Fine-Tuning, GPT, BERT, Attention Mechanism, Pre-training, Instruction Tuning, RAG, LangChain, LangGraph, LLMOps, MLOps, Production Deployment, Monitoring, Drift Detection, Deep Learning, Natural Language Processing, NLP, Machine Learning, AI Safety
 
 This repository contains comprehensive study materials for understanding Large Language Models (LLMs) and generative AI techniques. The materials are designed for university-level learners and cover both theoretical foundations and practical implementations.
 
@@ -38,11 +38,23 @@ GenAi_Prep/
 
 ## Primary Study Material
 
-**`docs/LLM_Study_Material.pdf`** (440 pages, actively expanding)
+**`docs/LLM_Study_Material.pdf`** (574 pages, actively expanding)
 
 The main study document covering end-to-end LLM development, from fundamental concepts through advanced techniques. Each section includes mathematical derivations, practical code implementations, hyperparameter guidance, and debugging strategies.
 
-> **Latest Update (November 12, 2025):** Added comprehensive advanced mathematical theory including:
+> **Latest Update (November 13, 2025):** Completed Section 14 (LLMOps) with comprehensive production-focused content including:
+> - **Lifecycle Management**: 7-phase model lifecycle, experiment tracking, reproducibility frameworks
+> - **Training Infrastructure**: FLOPs calculations, training time estimation, GPU utilization (MFU=40%)
+> - **Reliability Engineering**: Hardware failure probability (exponential curves), optimal checkpointing strategies
+> - **Deployment Pipelines**: CI/CD gates, multi-criteria decision frameworks, rollback strategies
+> - **Production Monitoring**: Real-time dashboards (accuracy, latency, cost, composite health scores)
+> - **Drift Detection**: KL divergence, PSI (Population Stability Index), Wasserstein distance
+> - **Automated Retraining**: Decision frameworks, cost-benefit analysis, trigger conditions
+> - **Cost Optimization & Governance**: 5 optimization strategies, 5-layer governance pyramid
+> - **8 Professional Visualizations**: 300 DPI publication-quality diagrams covering all LLMOps workflows
+> - **Total Enhancement**: +134 pages comprehensive production operations content
+
+> **Previous Update (November 12, 2025):** Added comprehensive advanced mathematical theory including:
 > - **Scaling Laws** (Kaplan 2020, Chinchilla 2022): Complete derivations with Lagrange optimization, compute-optimal training formulas
 > - **Eckart-Young Theorem**: SVD-based optimality proof for low-rank approximation in LoRA
 > - **Quantization Noise Analysis**: E[ε²] = Δ²/12 derivation, SQNR formula (6 dB per bit rule)
@@ -78,6 +90,8 @@ The main study document covering end-to-end LLM development, from fundamental co
 - LangChain and LangGraph frameworks
 
 **Production Considerations**
+- **LLMOps & Lifecycle Management**: Full production workflows, CI/CD pipelines, monitoring dashboards
+- **Drift Detection & Retraining**: Automated decision frameworks, cost-benefit analysis
 - Safety, ethics, and bias mitigation
 - Hyperparameter tuning and optimization
 - Memory efficiency and quantization
@@ -99,7 +113,7 @@ Pre-training demonstration covering tokenization, data processing pipelines, and
 
 ## Visualizations
 
-The repository includes 47 educational visualizations covering key LLM concepts:
+The repository includes 77 professional educational visualizations covering key LLM concepts across 10 topic categories:
 
 ### Fine-Tuning Workflows
 
@@ -155,20 +169,36 @@ See `visualization/README.md` for the complete collection of visualizations and 
 
 ## Repository Statistics
 
-- **Study Material**: 440 pages of comprehensive content (actively expanding)
+- **Study Material**: 574 pages of comprehensive content (actively expanding)
 - **Jupyter Notebooks**: 4 practical implementations
-- **Visualizations**: 69+ educational diagrams across 9 categories
-  - 47 Python-generated visualizations (matplotlib/seaborn)
+- **Visualizations**: 77 professional educational diagrams across 10 categories
+  - 59 Python-generated visualizations (matplotlib/seaborn, 300 DPI)
   - 10 LaTeX TikZ mathematical diagrams
-  - 12 updated RAG architecture visualizations
+  - 8 LLMOps production workflow visualizations
 - **Code Examples**: Production-ready implementations with extensive documentation
-- **Topics Covered**: 12 major sections from fundamentals to advanced techniques
-- **Mathematical Content**: 60+ equations with complete derivations
+- **Topics Covered**: 14 major sections from fundamentals to production operations
+- **Mathematical Content**: 100+ equations with complete step-by-step derivations
 - **Status**: Actively maintained with regular updates
 
 ## Development Status & Roadmap
 
-### Recently Completed (v1.0.0)
+### Recently Completed (v1.2.0 - November 2025)
+
+**Section 14 - LLMOps: Lifecycle Management, Continuous Evaluation, and Governance:**
+- **Complete production operations framework** with mathematical rigor
+- **Model Lifecycle**: 7-phase continuous feedback loop (Development → Training → Evaluation → Deployment → Monitoring → Feedback → Retraining)
+- **Experiment Tracking**: 5-component reproducibility framework (Code, Data, Config, Metrics, Artifacts)
+- **Training Infrastructure**: Complete FLOPs derivation (6PT total: 2PT forward + 4PT backward), training time estimation with MFU
+- **Reliability Engineering**: Hardware failure probability analysis (exponential reliability curves), optimal checkpointing strategies
+- **Deployment Pipelines**: Multi-stage CI/CD gates, multi-criteria decision frameworks with polar radar charts
+- **Production Monitoring**: Real-time 4-panel dashboards (accuracy, latency P50/P90/P99, cost breakdown, composite health scoring)
+- **Drift Detection Methods**: KL divergence scenarios, PSI heatmaps with thresholds, Wasserstein distance, embedding space analysis
+- **Automated Retraining**: Dual-condition decision framework (accuracy + distribution drift), cost-benefit optimization
+- **Cost Optimization**: 5 strategies with complexity ratings, governance pyramid (Documentation → Monitoring → Access Control → Audit → Compliance)
+- **8 Professional Visualizations**: 300 DPI publication-quality diagrams covering all workflows
+- **Mathematical Rigor**: Complete derivations for training time, failure probability, system health, retraining decisions
+- **Production Code**: 400-700 line implementations with extensive inline documentation
+- **Total Content**: +134 pages comprehensive LLMOps content (440 → 574 pages)
 
 **Section 8 Enhancement - RLHF (Reinforcement Learning from Human Feedback):**
 - Complete RLHF pipeline implementation (SFT → Reward Model → PPO)
@@ -178,7 +208,14 @@ See `visualization/README.md` for the complete collection of visualizations and 
 - 4 common pitfalls & debugging sections with solutions
 - 5 key takeaways boxes summarizing core concepts
 - All code extensively documented with step-by-step explanations
-- Fixed LaTeX rendering issues in all tcolorbox environments
+
+**Advanced Mathematical Theory (v1.1.0):**
+- Scaling Laws (Kaplan 2020, Chinchilla 2022): Complete Lagrange optimization
+- Eckart-Young Theorem: SVD-based optimality proof for LoRA
+- Quantization Noise Analysis: E[ε²] = Δ²/12 derivation, SQNR formulas
+- Optimization Dynamics: AdamW convergence, Fisher Information Matrix
+- Information-Theoretic Perspective: Mutual information, layer redundancy analysis
+- 10 Professional TikZ diagrams
 
 ### Currently In Progress
 
@@ -187,25 +224,16 @@ See `visualization/README.md` for the complete collection of visualizations and 
 - Dataset quality assessment and curation strategies
 - Multi-task instruction tuning methodologies
 - LoRA/PEFT integration for efficient instruction tuning
-- Production code examples with dataset loading and training loops
-- Hyperparameter guidance for instruction fine-tuning
-- Common pitfalls in dataset preparation and model alignment
 
 **Section 10 - Evaluation & Benchmarking:**
 - Comprehensive metric coverage (Perplexity, BLEU, ROUGE, BERTScore)
-- Human evaluation methodologies and inter-rater reliability
 - Benchmark suite analysis (MMLU, HellaSwag, TruthfulQA, etc.)
 - Statistical significance testing for model comparisons
-- Production code for automated evaluation pipelines
-- Best practices for avoiding benchmark overfitting
 
 **Section 11 - Safety, Ethics & Bias Mitigation:**
 - Bias detection and measurement techniques
 - Safety filtering and content moderation strategies
 - Constitutional AI and value alignment approaches
-- Demographic bias analysis with statistical tests
-- Red-teaming and adversarial testing methodologies
-- Regulatory compliance and ethical guidelines
 
 ### Planned Updates
 
@@ -351,39 +379,48 @@ If you identify errors or areas for improvement, please document them clearly wi
 
 ## Changelog
 
+### Version 1.2.0 (November 13, 2025)
+**Major Enhancement: LLMOps Production Operations**
+- **Added Section 14: Complete LLMOps framework (+134 pages, 440 → 574 pages)**
+- **8 Topic-Specific Python Visualization Scripts** (1,570 lines total):
+  - `llmops_lifecycle_experiment.py` - 7-phase lifecycle + reproducibility tracking
+  - `llmops_training_infrastructure.py` - FLOPs breakdown and GPU scaling
+  - `llmops_failure_checkpointing.py` - Reliability curves + checkpoint optimization
+  - `llmops_deployment_pipeline.py` - CI/CD gates + radar decision charts
+  - `llmops_monitoring_dashboard.py` - 4-panel production metrics dashboard
+  - `llmops_drift_detection.py` - KL divergence + PSI heatmaps
+  - `llmops_retraining_decision.py` - Dual-condition framework + cost-benefit analysis
+  - `llmops_cost_governance.py` - Optimization strategies + 5-layer governance pyramid
+- **8 High-Resolution Visualizations**: 300 DPI publication-quality PNG diagrams
+- **Mathematical Derivations**: Training time (6PT FLOPs), failure probability (exponential reliability), system health (weighted composite), retraining decision logic
+- **Production Code Examples**: Complete implementations with 400-700 lines per major topic
+- **Hyperparameter Guidance**: Justified recommendations for infrastructure, monitoring, and retraining
+- **Common Pitfalls**: Debugging strategies for production deployments
+- **Document Impact**: File size 32.6 MB → 37.6 MB (5 MB from high-res visualizations)
+
 ### Version 1.1.0 (November 12, 2025)
 **Major Enhancement: Advanced Mathematical Theory**
 - **Added 1,102 lines (+33 pages) of rigorous mathematical content**
 - **Scaling Laws**: Complete Kaplan (2020) and Chinchilla (2022) derivations
   - Full Lagrange optimization with 15+ equations
   - Compute-optimal formulas: N_opt ∝ C^0.50, D_opt ∝ C^0.50
-  - Gopher vs Chinchilla comparison table
   - 8×6 TikZ diagram with iso-compute curves and optimal paths
 - **Eckart-Young Theorem**: SVD-based optimality proof for LoRA
   - Frobenius norm error bounds: ||ΔW - ΔW_r||²_F = Σσ²_i
-  - Connection to low-rank adaptation
-  - Empirical validation table with singular value decay
   - TikZ diagram showing SVD decomposition and rank truncation
 - **Quantization Noise Analysis**: Complete mathematical foundation for QLoRA
   - Step-by-step derivation: E[ε²] = Δ²/12
   - SQNR formula: 6.02b + 1.76 dB (6 dB per bit rule)
-  - NF4 vs Int4 comparison (58% noise reduction)
-  - Bit-width comparison table (2-bit to 32-bit)
   - 3-panel TikZ diagram: signal quantization, error distribution, SQNR plot
 - **Optimization Dynamics**: AdamW convergence under low-precision arithmetic
   - Complete 6-step convergence proof with quantization noise
   - Fisher Information Matrix: F_ij = E[∂_i log p · ∂_j log p]
-  - Adafactor factorization for memory efficiency (nm → n+m)
   - 4-panel TikZ diagram: FP32/BF16/FP16 convergence, adaptive LR, memory comparison
 - **Information-Theoretic Perspective**: Layer redundancy and compression analysis
   - Mutual information: I(X;H) = H(X) - H(X|H)
-  - Information Bottleneck Principle
   - Empirical GPT-2 layer analysis (40% → 100% information retention)
-  - Redundancy matrix showing 92% redundancy in final layers
-  - Connection to LoRA low-rank adaptation
   - 3-panel TikZ diagram: information flow, redundancy heatmap, compression trade-off
 - **10 Professional TikZ Diagrams**: High-quality mathematical visualizations
-- **Bug Fixes**: Resolved all (??) equation reference errors and duplicate fig:training_dynamics label
 - **Document Growth**: 407 pages → 440 pages (27.98 MB)
 
 ### Version 1.0.0 (November 2025)
