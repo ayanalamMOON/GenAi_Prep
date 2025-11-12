@@ -3049,7 +3049,7 @@ If $\text{Cov}$ has many small eigenvalues (low effective rank), then:
 
 This is the information-theoretic justification for LoRA!
 
-\textbf{TikZ Diagram: Information Flow in Transformers}
+\textbf{Information Flow in Transformers}
 
 \begin{figure}[H]
 \centering
@@ -3410,11 +3410,14 @@ Using $\mathcal{L}(N, D) = A \cdot N^{-0.095} + B \cdot D^{-0.095}$:
 
 The data term improvement (0.605B → 0.478B) outweighs the model capacity reduction (0.612A → 0.720A).
 
-\textbf{TikZ Diagram: Visualizing Scaling Law Trade-offs}
+\textbf{Visualizing Scaling Law Trade-offs}
 
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[scale=1.2]
+% Define clipping region
+\clip (0,0) rectangle (8,6);
+
 % Axes
 \draw[->] (0,0) -- (8,0) node[right] {Model Size $N$ (billions)};
 \draw[->] (0,0) -- (0,6) node[above] {Training Tokens $D$ (trillions)};
@@ -3423,30 +3426,37 @@ The data term improvement (0.605B → 0.478B) outweighs the model capacity reduc
 \foreach \x in {0,2,4,6,8} \draw[gray!30] (\x,0) -- (\x,6);
 \foreach \y in {0,1,2,3,4,5,6} \draw[gray!30] (0,\y) -- (8,\y);
 
-% Iso-compute curves (C = 6ND = const)
-\draw[thick, blue] plot[domain=0.5:7.5, samples=100] (\x, {1.5/\x}) node[right] {$C_1$};
-\draw[thick, blue] plot[domain=0.5:7.5, samples=100] (\x, {3.0/\x}) node[right] {$C_2$};
-\draw[thick, blue] plot[domain=0.5:7.5, samples=100] (\x, {6.0/\x}) node[right] {$C_3$};
-\draw[thick, blue] plot[domain=1.0:7.5, samples=100] (\x, {12.0/\x}) node[right] {$C_4$};
+% Iso-compute curves (C = 6ND = const) - with proper bounds
+\draw[thick, blue, domain=0.25:7.5, samples=100, smooth] plot (\x, {min(6, 1.5/\x)});
+\node[blue, right] at (7.5, 0.2) {$C_1$};
+
+\draw[thick, blue, domain=0.5:7.5, samples=100, smooth] plot (\x, {min(6, 3.0/\x)});
+\node[blue, right] at (7.5, 0.4) {$C_2$};
+
+\draw[thick, blue, domain=1.0:7.5, samples=100, smooth] plot (\x, {min(6, 6.0/\x)});
+\node[blue, right] at (7.5, 0.8) {$C_3$};
+
+\draw[thick, blue, domain=2.0:7.5, samples=100, smooth] plot (\x, {min(6, 12.0/\x)});
+\node[blue, right] at (7.5, 1.6) {$C_4$};
 
 % Kaplan optimal path
-\draw[thick, red, dashed] plot[domain=0.5:7, samples=50] (\x, {0.2*\x^0.8})
-    node[above right] {Kaplan: $D \propto N^{0.8}$};
+\draw[thick, red, dashed, domain=0.5:6.5, samples=50] plot (\x, {min(5.5, 0.2*\x^0.8)});
+\node[red, above right, font=\small] at (5.5, 2.8) {Kaplan: $D \propto N^{0.8}$};
 
 % Chinchilla optimal path
-\draw[thick, green!70!black, dashed] plot[domain=0.5:7, samples=50] (\x, {0.3*\x})
-    node[below right] {Chinchilla: $D \propto N$};
+\draw[thick, green!70!black, dashed, domain=0.5:5.5, samples=50] plot (\x, {0.3*\x});
+\node[green!70!black, below right, font=\small] at (5, 1.5) {Chinchilla: $D \propto N$};
 
 % Specific models
-\fill[red] (5.6, 0.6) circle (2.5pt) node[above left] {Gopher};
-\fill[green!70!black] (1.4, 2.8) circle (2.5pt) node[above] {Chinchilla};
-\fill[blue] (3.5, 1.71) circle (2.5pt) node[below] {GPT-3};
-\fill[orange] (1.3, 2.0) circle (2.5pt) node[left] {LLaMA};
+\fill[red] (5.6, 0.6) circle (2.5pt) node[above left, font=\small] {Gopher};
+\fill[green!70!black] (1.4, 2.8) circle (2.5pt) node[above, font=\small] {Chinchilla};
+\fill[blue] (3.5, 1.71) circle (2.5pt) node[below, font=\small] {GPT-3};
+\fill[orange] (1.3, 2.0) circle (2.5pt) node[left, font=\small] {LLaMA};
 
 % Legend
-\node[anchor=north west] at (0.2, 5.8) {\small Blue curves: Iso-compute};
-\node[anchor=north west] at (0.2, 5.4) {\small Red dashed: Kaplan optimal};
-\node[anchor=north west] at (0.2, 5.0) {\small Green dashed: Chinchilla optimal};
+\node[anchor=north west, font=\small] at (0.2, 5.8) {Blue curves: Iso-compute};
+\node[anchor=north west, font=\small] at (0.2, 5.4) {Red dashed: Kaplan optimal};
+\node[anchor=north west, font=\small] at (0.2, 5.0) {Green dashed: Chinchilla optimal};
 
 \end{tikzpicture}
 \caption{\textbf{Scaling Law Trade-offs: Model Size vs Training Data.} Blue hyperbolas represent iso-compute curves ($C = 6ND = \text{const}$). Moving along a curve keeps compute fixed while reallocating between N and D. Red dashed line shows Kaplan's optimal path ($D \propto N^{0.8}$), favoring larger models. Green dashed line shows Chinchilla's revised optimal path ($D \propto N$), emphasizing balanced scaling. Points show actual models: Gopher (280B params, 300B tokens) follows Kaplan but is suboptimal; Chinchilla (70B params, 1.4T tokens) achieves better performance on same compute by increasing data; GPT-3 (175B params, 300B tokens) predates both studies; LLaMA (65B params, 1.4T tokens) follows Chinchilla principles.}
@@ -3789,7 +3799,7 @@ For parameter $\theta_i$, set:
 
 This is exactly Adam's denominator: $\eta_i = \eta_0 / \sqrt{v_{t,i}}$
 
-\textbf{TikZ Diagram: Optimization Convergence Under Low-Precision}
+\textbf{Optimization Convergence Under Low-Precision}
 
 \begin{figure}[H]
 \centering
@@ -5458,7 +5468,7 @@ The theorem guarantees that if the "true" fine-tuning update $\Delta W_{true}$ h
 
 If singular values decay exponentially ($\sigma_i \propto e^{-\lambda i}$), then error decreases exponentially with $r$.
 
-\textbf{TikZ Diagram: SVD and Low-Rank Approximation}
+\textbf{SVD and Low-Rank Approximation}
 
 \begin{figure}[H]
 \centering
@@ -6721,7 +6731,7 @@ NF4 (Gaussian-optimal) & $0.65 \Delta_{uniform}$ & $(0.65 \Delta_{uniform})^2 / 
 \caption{NF4 reduces quantization noise by $\approx$58\% for normally distributed weights.}
 \end{table}
 
-\textbf{TikZ Diagram: Quantization Noise Analysis}
+\textbf{Quantization Noise Analysis}
 
 \begin{figure}[H]
 \centering
