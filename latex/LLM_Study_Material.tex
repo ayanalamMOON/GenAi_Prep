@@ -3051,140 +3051,161 @@ This is the information-theoretic justification for LoRA!
 
 \textbf{Information Flow in Transformers}
 
+\textit{Part 1: Layer-wise Information Accumulation}
+
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[scale=1.0]
-% Left panel: Information flow through layers
-\begin{scope}
-\draw[->] (0,0) -- (7,0) node[right] {Layer $\ell$};
-\draw[->] (0,0) -- (0,5) node[above] {$I(H^{(\ell)}; Y)$ (bits)};
+\begin{tikzpicture}[scale=1.5]
+\draw[->] (0,0) -- (8,0) node[right] {Layer $\ell$};
+\draw[->] (0,0) -- (0,6) node[above] {$I(H^{(\ell)}; Y)$ (bits)};
 
 % Grid
-\foreach \x in {1,2,3,4,5,6} {
-    \draw[dashed,gray!30] (\x,0) -- (\x,5);
+\foreach \x in {1,2,3,4,5,6,7} {
+    \draw[dashed,gray!30] (\x,0) -- (\x,6);
 }
-\foreach \y in {1,2,3,4} {
-    \draw[dashed,gray!30] (0,\y) -- (7,\y);
+\foreach \y in {1,2,3,4,5} {
+    \draw[dashed,gray!30] (0,\y) -- (8,\y);
 }
 
-% Information curve
-\draw[thick,blue,samples=50] plot coordinates {
-    (0, 0) (1, 2.2) (2, 3.5) (3, 4.2) (4, 4.6) (5, 4.8) (6, 4.9)
+% Information curve (scaled up)
+\draw[thick,blue,line width=1.5pt,samples=50] plot coordinates {
+    (0, 0) (1, 2.6) (2, 4.2) (3, 5.0) (4, 5.5) (5, 5.75) (6, 5.85) (7, 5.9)
 };
 
 % Saturation annotation
-\draw[dashed,red] (0,4.9) -- (7,4.9);
-\node[red,left] at (0,4.9) {\tiny $H(Y)$};
-\node[red] at (5, 5.3) {Information ceiling};
+\draw[dashed,red,thick] (0,5.9) -- (8,5.9);
+\node[red,left,font=\small] at (0,5.9) {$H(Y)$};
+\node[red,above,font=\small] at (6, 5.9) {Information ceiling (maximum possible)};
 
-% Diminishing returns
-\draw[<->,thick,orange] (5,4.6) -- (6,4.9);
-\node[orange,right] at (6,4.75) {\tiny $\Delta I = 0.3$ bits};
-\node[orange,right] at (6,4.45) {\tiny (4\% gain, 33\% compute)};
+% Diminishing returns annotation
+\draw[<->,thick,orange,line width=1.2pt] (5,5.5) -- (6,5.75);
+\node[orange,right,font=\small] at (6.2,5.6) {$\Delta I = 0.25$ bits};
+\node[orange,right,font=\small] at (6.2,5.3) {(4\% gain, 33\% compute)};
+
+% Early layers annotation
+\draw[<->,thick,green!70!black,line width=1.2pt] (1,2.6) -- (3,5.0);
+\node[green!70!black,left,font=\small] at (0.8,3.8) {Rapid learning};
+\node[green!70!black,left,font=\small] at (0.8,3.4) {(70\% info in};
+\node[green!70!black,left,font=\small] at (0.8,3.0) {first 3 layers)};
 
 % Data points
-\foreach \x/\y in {1/2.2, 2/3.5, 3/4.2, 4/4.6, 5/4.8, 6/4.9} {
-    \fill[blue] (\x,\y) circle (2pt);
+\foreach \x/\y in {1/2.6, 2/4.2, 3/5.0, 4/5.5, 5/5.75, 6/5.85, 7/5.9} {
+    \fill[blue] (\x,\y) circle (3pt);
 }
 
 % Axes labels
-\foreach \x in {1,2,3,4,5,6} {
-    \node[below] at (\x,-0.15) {\tiny \x};
+\foreach \x in {0,1,2,3,4,5,6,7,8,9,10,11,12} {
+    \node[below] at (\x*7/12,-0.15) {\small \x};
 }
-\node[below] at (0,-0.15) {\tiny 0};
-\foreach \y in {1,2,3,4} {
-    \node[left] at (-0.15,\y) {\tiny \y};
+\foreach \y in {1,2,3,4,5} {
+    \node[left] at (-0.15,\y) {\small \y};
 }
+\end{tikzpicture}
+\caption{\textbf{Layer-wise Information Accumulation.} Mutual information $I(H^{(\ell)}; Y)$ quantifies how much task-relevant information each layer captures. Early layers (1-3) rapidly accumulate 70\% of total information. Later layers (9-12) contribute only 4\% additional information while consuming 33\% of compute, revealing significant redundancy that LoRA exploits.}
+\label{fig:information_flow_layers}
+\end{figure}
 
-\end{scope}
+\textit{Part 2: Inter-Layer Redundancy Matrix}
 
-% Middle panel: Redundancy matrix
-\begin{scope}[shift={(9,0)}]
-\draw[->] (0,0) -- (0,5) node[above] {Layer $i$};
-\draw[->] (0,0) -- (5,0) node[right] {Layer $j$};
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=1.3]
+\draw[->] (0,0) -- (0,6) node[above] {Layer $i$};
+\draw[->] (0,0) -- (6,0) node[right] {Layer $j$};
 
 % Color gradient for redundancy
 \foreach \i in {0,...,5} {
     \foreach \j in {0,...,5} {
         \pgfmathsetmacro{\redundancy}{100 - 10*abs(\i-\j)}
-        \fill[blue!\redundancy!white] (\j*0.8, \i*0.8) rectangle (\j*0.8+0.75, \i*0.8+0.75);
+        \fill[blue!\redundancy!white] (\j*1.0, \i*1.0) rectangle (\j*1.0+0.95, \i*1.0+0.95);
     }
 }
 
 % Grid lines
-\foreach \x in {0,1,2,3,4,5} {
-    \draw[gray] (\x*0.8,0) -- (\x*0.8,4);
-    \draw[gray] (0,\x*0.8) -- (4,\x*0.8);
+\foreach \x in {0,1,2,3,4,5,6} {
+    \draw[gray,thick] (\x,0) -- (\x,6);
+    \draw[gray,thick] (0,\x) -- (6,\x);
 }
 
 % Labels
 \foreach \x/\label in {0/1, 1/3, 2/6, 3/9, 4/12} {
-    \node[below] at (\x*0.8+0.375,-0.1) {\tiny \label};
-    \node[left] at (-0.1,\x*0.8+0.375) {\tiny \label};
-}
-
-% Color legend
-\node at (2, -1) {\scriptsize Redundancy $R(i,j)$};
-\foreach \x/\label in {0/0\%, 1/25\%, 2/50\%, 3/75\%, 4/100\%} {
-    \fill[blue!\label!white] (0.5+\x*0.7, -1.5) rectangle (1.1+\x*0.7, -1.3);
-    \node[below] at (0.8+\x*0.7, -1.5) {\tiny \label};
+    \node[below,font=\small] at (\x*1.0+0.5,-0.2) {\label};
+    \node[left,font=\small] at (-0.2,\x*1.0+0.5) {\label};
 }
 
 % High redundancy annotation
-\draw[red,thick] (3.2,3.2) rectangle (4,4);
-\node[red,right] at (4.1, 3.6) {\tiny High redundancy};
-\node[red,right] at (4.1, 3.3) {\tiny (layers 9-12)};
+\draw[red,very thick,line width=2pt] (4,4) rectangle (6,6);
+\node[red,above right,font=\small] at (6.1, 5.5) {High redundancy zone};
+\node[red,above right,font=\small] at (6.1, 5.0) {(layers 9-12: 92\%)};
 
-\end{scope}
+% Diagonal annotation
+\draw[green!70!black,very thick,line width=2pt] (0.5,0.5) -- (1.5,1.5);
+\node[green!70!black,right,font=\small] at (1.6,1.0) {Adjacent layers: 65\% shared info};
 
-% Bottom panel: Compression-accuracy trade-off
-\begin{scope}[shift={(0,-3.5)}]
-\draw[->] (0,0) -- (7,0) node[right] {Compression Ratio};
-\draw[->] (0,0) -- (0,4) node[above] {Accuracy (\%)};
+% Color legend below
+\node[font=\small] at (3, -1.5) {Redundancy $R(i,j)$ = Shared Information \%};
+\foreach \x/\label in {0/0\%, 1/25\%, 2/50\%, 3/75\%, 4/100\%} {
+    \fill[blue!\label!white] (0.5+\x*1.1, -2.2) rectangle (1.4+\x*1.1, -1.9);
+    \node[below,font=\footnotesize] at (0.95+\x*1.1, -2.2) {\label};
+}
+\end{tikzpicture}
+\caption{\textbf{Inter-Layer Redundancy Matrix.} Redundancy $R(i,j)$ measures information overlap between layers. Diagonal elements (adjacent layers) show 65\% redundancy, indicating consecutive layers share most information. The red box highlights layers 9-12 with 92\% redundancy—prime targets for compression via LoRA or pruning.}
+\label{fig:layer_redundancy_matrix}
+\end{figure}
+
+\textit{Part 3: Compression-Accuracy Trade-off}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=1.5]
+\draw[->] (0,0) -- (8,0) node[right] {Compression Ratio};
+\draw[->] (0,0) -- (5) node[above] {Model Accuracy (\%)};
 
 % Grid
-\foreach \x in {1,2,3,4,5,6} {
-    \draw[dashed,gray!30] (\x,0) -- (\x,4);
+\foreach \x in {1,2,3,4,5,6,7} {
+    \draw[dashed,gray!30] (\x,0) -- (\x,5);
 }
-\foreach \y in {1,2,3} {
-    \draw[dashed,gray!30] (0,\y) -- (7,\y);
+\foreach \y in {1,2,3,4} {
+    \draw[dashed,gray!30] (0,\y) -- (8,\y);
 }
 
 % Curve: accuracy vs compression
-\draw[thick,green,domain=0.2:6.5,samples=50] plot (\x,{3.8 - 0.15*(\x-1)^2});
+\draw[thick,purple,line width=1.5pt,domain=0.5:7.5,samples=80] plot (\x,{4.5 - 0.18*(\x-1)^2});
 
-% Operating points
-\fill[red] (1,3.8) circle (2.5pt);
-\node[above] at (1,3.8) {\tiny Full model};
+% Operating points with better spacing
+\fill[red] (1,4.5) circle (4pt);
+\node[above,red,font=\small] at (1,4.7) {Full model (100\%)};
 
-\fill[orange] (2,3.75) circle (2.5pt);
-\node[above] at (2,3.75) {\tiny LoRA r=8};
+\fill[orange] (2,4.45) circle (4pt);
+\node[above,orange,font=\small] at (2,4.65) {LoRA r=8 (99\%)};
 
-\fill[blue] (3,3.65) circle (2.5pt);
-\node[above] at (3,3.65) {\tiny Prune 25\%};
+\fill[blue] (3,4.3) circle (4pt);
+\node[below,blue,font=\small] at (3,4.1) {25\% pruning (97\%)};
 
-\fill[purple] (4,3.4) circle (2.5pt);
-\node[above] at (4,3.4) {\tiny INT8 quant};
+\fill[green!70!black] (4,4.0) circle (4pt);
+\node[below,green!70!black,font=\small] at (4,3.8) {INT8 (93\%)};
 
-\fill[gray] (5.5,2.7) circle (2.5pt);
-\node[below] at (5.5,2.7) {\tiny INT4 + prune};
+\fill[purple] (6,3.0) circle (4pt);
+\node[below,purple,font=\small] at (6,2.8) {INT4+prune (85\%)};
 
 % Pareto frontier
-\draw[dashed,red] (1,3.8) -- (2,3.75) -- (3,3.65) -- (4,3.4);
+\draw[dashed,red,thick,line width=1.2pt] (1,4.5) -- (2,4.45) -- (3,4.3) -- (4,4.0);
+\node[red,above,font=\small] at (2.5,4.6) {Pareto frontier (optimal trade-offs)};
 
-% Axes
-\foreach \x/\label in {1/1×, 2/2×, 3/4×, 4/8×, 5/16×, 6/32×} {
-    \node[below] at (\x,-0.15) {\tiny \label};
+% Axes labels
+\foreach \x/\label in {1/1×, 2/2×, 3/4×, 4/8×, 5/16×, 6/32×, 7/64×} {
+    \node[below,font=\small] at (\x,-0.2) {\label};
 }
-\foreach \y/\label in {1/80, 2/85, 3/90} {
-    \node[left] at (-0.15,\y) {\tiny \label};
+\foreach \y/\label in {1/80, 2/85, 3/90, 4/95} {
+    \node[left,font=\small] at (-0.2,\y) {\label};
 }
 
-\end{scope}
-
+% Acceptable zone
+\draw[fill=green!10,opacity=0.3] (0,3.6) rectangle (4,5);
+\node[green!70!black,font=\small] at (2,4.8) {Practical zone};
 \end{tikzpicture}
-\caption{\textbf{Information-Theoretic Analysis of Transformer Compression.} \textit{Top-left:} Mutual information $I(H^{(\ell)}; Y)$ increases rapidly in early layers (layers 1-3 capture 70\% of task-relevant information) but saturates in later layers (layers 9-12 add only 4\% with 33\% compute cost), revealing high redundancy in deep layers. \textit{Top-right:} Redundancy matrix $R(i,j)$ shows consecutive layers share 65\% information (diagonal), while distant layers (1 vs 6) share 35\%. Final layers (9-12, red box) exhibit 92\% redundancy, indicating prime targets for pruning. \textit{Bottom:} Compression-accuracy trade-off curve shows LoRA (2× compression) maintains 99\% accuracy, 25\% pruning achieves 4× compression with 97\% accuracy, INT8 quantization reaches 8× with 93\% accuracy. Aggressive INT4+pruning (32× compression) drops to 85\% accuracy. Pareto frontier (red dashed) guides optimal compression strategy.}
-\label{fig:information_flow_transformers}
+\caption{\textbf{Compression-Accuracy Trade-off.} LoRA (2× compression) maintains 99\% accuracy by exploiting layer redundancy. The Pareto frontier (red dashed) shows optimal configurations: 4× compression via pruning (97\% accuracy), 8× via INT8 quantization (93\% accuracy). Aggressive 32× compression (INT4+pruning) drops to 85\% accuracy, illustrating the fundamental accuracy-efficiency trade-off.}
+\label{fig:compression_accuracy_tradeoff}
 \end{figure}
 
 \textbf{Practical Implications for Model Design:}
@@ -3453,11 +3474,19 @@ The data term improvement (0.605B → 0.478B) outweighs the model capacity reduc
 \fill[blue] (3.5, 1.71) circle (2.5pt) node[below, font=\small] {GPT-3};
 \fill[orange] (1.3, 2.0) circle (2.5pt) node[left, font=\small] {LLaMA};
 
-% Legend
-\node[anchor=north west, font=\small] at (0.2, 5.8) {Blue curves: Iso-compute};
-\node[anchor=north west, font=\small] at (0.2, 5.4) {Red dashed: Kaplan optimal};
-\node[anchor=north west, font=\small] at (0.2, 5.0) {Green dashed: Chinchilla optimal};
+\end{tikzpicture}
 
+% Legend outside the plot (moved below for clarity)
+\vspace{0.3cm}
+\begin{tikzpicture}
+\draw[thick, blue] (0,0) -- (0.6,0);
+\node[anchor=west, font=\small] at (0.7,0) {Iso-compute curves ($C = 6ND = \text{const}$)};
+
+\draw[thick, red, dashed] (5,0) -- (5.6,0);
+\node[anchor=west, font=\small] at (5.7,0) {Kaplan optimal ($D \propto N^{0.8}$)};
+
+\draw[thick, green!70!black, dashed] (10.5,0) -- (11.1,0);
+\node[anchor=west, font=\small] at (11.2,0) {Chinchilla optimal ($D \propto N$)};
 \end{tikzpicture}
 \caption{\textbf{Scaling Law Trade-offs: Model Size vs Training Data.} Blue hyperbolas represent iso-compute curves ($C = 6ND = \text{const}$). Moving along a curve keeps compute fixed while reallocating between N and D. Red dashed line shows Kaplan's optimal path ($D \propto N^{0.8}$), favoring larger models. Green dashed line shows Chinchilla's revised optimal path ($D \propto N$), emphasizing balanced scaling. Points show actual models: Gopher (280B params, 300B tokens) follows Kaplan but is suboptimal; Chinchilla (70B params, 1.4T tokens) achieves better performance on same compute by increasing data; GPT-3 (175B params, 300B tokens) predates both studies; LLaMA (65B params, 1.4T tokens) follows Chinchilla principles.}
 \label{fig:scaling_tradeoffs}
@@ -3801,13 +3830,137 @@ This is exactly Adam's denominator: $\eta_i = \eta_0 / \sqrt{v_{t,i}}$
 
 \textbf{Optimization Convergence Under Low-Precision}
 
+\textit{Part 1: Convergence Behavior and Adaptive Learning Rates}
+
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[scale=1.0]
-% Left panel: Convergence trajectories
+\begin{tikzpicture}[scale=1.4]
+% Left: Convergence trajectories
 \begin{scope}
-\draw[->] (0,0) -- (6,0) node[right] {Training Steps ($\times 10^3$)};
-\draw[->] (0,0) -- (0,5) node[above] {Gradient Norm};
+\draw[->] (0,0) -- (7,0) node[right] {Training Steps ($\times 10^3$)};
+\draw[->] (0,0) -- (0,6) node[above] {Gradient Norm};
+
+% Grid
+\foreach \x in {1,2,3,4,5,6} {
+    \draw[dashed,gray!30] (\x,0) -- (\x,6);
+}
+\foreach \y in {1,2,3,4,5} {
+    \draw[dashed,gray!30] (0,\y) -- (7,\y);
+}
+
+% FP32 convergence (ideal)
+\draw[thick,blue,line width=1.3pt,domain=0.1:6.8,samples=100] plot (\x,{5.2*exp(-0.6*\x) + 0.05});
+\node[blue,right,font=\small] at (5, 0.4) {FP32 (ideal)};
+
+% FP16 convergence (with noise floor)
+\draw[thick,red,line width=1.3pt,domain=0.1:6.8,samples=100] plot (\x,{5.2*exp(-0.6*\x) + 0.45});
+\node[red,right,font=\small] at (5, 0.85) {FP16 (noise floor)};
+
+% BF16 convergence (intermediate)
+\draw[thick,orange,line width=1.3pt,domain=0.1:6.8,samples=100] plot (\x,{5.2*exp(-0.6*\x) + 0.22});
+\node[orange,right,font=\small] at (5, 0.58) {BF16};
+
+% Noise floor annotation
+\draw[dashed,red,thick] (0,0.45) -- (7,0.45);
+\node[red,left,font=\small] at (0,0.45) {$d\sigma^2$};
+\node[red,above,font=\small] at (3.5,0.45) {Quantization noise floor};
+
+% Convergence rate annotation
+\draw[<->,thick,purple,line width=1.2pt] (6.2, 5.2) -- (6.2, 0.45);
+\node[right,purple,font=\small] at (6.3, 2.8) {$O(1/\sqrt{T})$ rate};
+
+% Axes labels
+\foreach \x/\label in {1/2, 2/4, 3/6, 4/8, 5/10, 6/12} {
+    \node[below] at (\x,-0.15) {\small \label};
+}
+\foreach \y/\label in {1/1, 2/2, 3/3, 4/4, 5/5} {
+    \node[left] at (-0.15,\y) {\small \label};
+}
+\end{scope}
+
+% Right: Fisher Information adaptive LR
+\begin{scope}[shift={(9.5,0)}]
+\draw[->] (0,0) -- (6,0) node[right] {Parameter Space $\theta_i$};
+\draw[->] (0,0) -- (0,6) node[above] {Value};
+
+% Parameter landscape (shaded)
+\draw[thick,fill=blue!15] (0.5,0) .. controls (1,2.5) and (2,3.5) .. (3,4.2) .. controls (4,4.0) and (5,2.5) .. (5.5,0.5) -- cycle;
+
+% Fisher Information (curvature) - green line
+\draw[thick,green!70!black,line width=1.3pt,domain=0.8:5.2,samples=60] plot (\x,{2.0 + 1.5*sin(2*\x r)});
+\node[green!70!black,above,font=\small] at (3, 4.8) {$\sqrt{F_{ii}}$ (curvature)};
+
+% Adaptive learning rate (inverse) - red line
+\draw[thick,red,line width=1.3pt,domain=1.0:5.0,samples=60] plot (\x,{3.5 - 1.5*sin(2*\x r)});
+\node[red,below,font=\small] at (3, 1.3) {$\eta_i = \eta_0/\sqrt{F_{ii}}$};
+
+% High curvature annotation
+\draw[->,thick,blue,line width=1.2pt] (1.8,1.5) -- (1.8,3.2);
+\node[blue,right,font=\small] at (1.9,2.3) {High curvature};
+\node[blue,right,font=\small] at (1.9,1.9) {$\Rightarrow$ Small LR};
+
+% Low curvature annotation
+\draw[->,thick,orange,line width=1.2pt] (4.2,4.2) -- (4.2,2.0);
+\node[orange,right,font=\small] at (4.3,3.1) {Low curvature};
+\node[orange,right,font=\small] at (4.3,2.7) {$\Rightarrow$ Large LR};
+
+\end{scope}
+
+\end{tikzpicture}
+\caption{\textbf{Convergence Under Low-Precision and Adaptive Learning Rates.} \textit{Left:} FP32 (blue) converges to machine precision, BF16 (orange) has minimal noise floor, while FP16 (red) hits quantization noise floor $d\sigma^2 \approx 0.45$. All follow $O(1/\sqrt{T})$ convergence rate until noise dominates. \textit{Right:} Fisher Information Matrix $F_{ii}$ (green) measures loss curvature per parameter. Adam's adaptive learning rates (red) are inversely proportional: $\eta_i \propto 1/\sqrt{F_{ii}}$, automatically taking smaller steps in sharp valleys and larger steps in flat regions.}
+\label{fig:convergence_adaptive_lr}
+\end{figure}
+
+\textit{Part 2: Memory Efficiency and Convergence Rates}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=1.4]
+% Left: Memory comparison
+\begin{scope}
+\draw[->] (0,0) -- (7,0) node[right] {Optimizer};
+\draw[->] (0,0) -- (0,5) node[above] {Memory Overhead (GB)};
+
+% Grid
+\foreach \y in {1,2,3,4} {
+    \draw[dashed,gray!30] (0,\y) -- (7,\y);
+}
+
+% Bar chart with better spacing
+\fill[blue!60] (0.8,0) rectangle (1.5,3.5);
+\node[below,font=\small] at (1.15,-0.3) {SGD};
+\node[above,font=\small] at (1.15,3.6) {1× baseline};
+
+\fill[orange!60] (2.2,0) rectangle (2.9,3.5);
+\node[below,font=\small] at (2.55,-0.3) {Momentum};
+\node[above,font=\small] at (2.55,3.6) {2× (+100\%)};
+
+\fill[red!60] (3.6,0) rectangle (4.3,3.5);
+\node[below,font=\small] at (3.95,-0.3) {AdamW};
+\node[above,font=\small] at (3.95,3.6) {3× (+200\%)};
+
+\fill[green!60] (5.0,0) rectangle (5.7,1.9);
+\node[below,font=\small] at (5.35,-0.3) {Adafactor};
+\node[above,font=\small] at (5.35,2.0) {1.5× (+50\%)};
+
+% Memory savings annotation
+\draw[<->,thick,purple,line width=1.2pt] (4.5,3.5) -- (4.5,1.9);
+\node[left,purple,font=\small] at (4.4,2.7) {2× savings};
+
+% Axes labels
+\foreach \y/\label in {1/10, 2/20, 3/30, 4/40} {
+    \node[left] at (-0.2,\y) {\small \label};
+}
+
+% Annotation
+\node[font=\small] at (3.5, -1.2) {For 10B parameter model (40 GB baseline)};
+
+\end{scope}
+
+% Right: Convergence rate comparison
+\begin{scope}[shift={(9,0)}]
+\draw[->] (0,0) -- (6,0) node[right] {Iterations (log scale)};
+\draw[->] (0,0) -- (0,5) node[above] {Error (log scale)};
 
 % Grid
 \foreach \x in {1,2,3,4,5} {
@@ -3817,125 +3970,31 @@ This is exactly Adam's denominator: $\eta_i = \eta_0 / \sqrt{v_{t,i}}$
     \draw[dashed,gray!30] (0,\y) -- (6,\y);
 }
 
-% FP32 convergence (ideal)
-\draw[thick,blue,domain=0.1:5.8,samples=100] plot (\x,{4.5*exp(-0.6*\x) + 0.05});
-\node[blue,right] at (4, 0.3) {FP32 (ideal)};
-
-% FP16 convergence (with noise floor)
-\draw[thick,red,domain=0.1:5.8,samples=100] plot (\x,{4.5*exp(-0.6*\x) + 0.35});
-\node[red,right] at (4, 0.65) {FP16 (noise floor)};
-
-% BF16 convergence (intermediate)
-\draw[thick,orange,domain=0.1:5.8,samples=100] plot (\x,{4.5*exp(-0.6*\x) + 0.18});
-\node[orange,right] at (4, 0.45) {BF16};
-
-% Noise floor annotation
-\draw[dashed,red] (0,0.35) -- (6,0.35);
-\node[red,left] at (0,0.35) {\tiny $d\sigma^2$};
-
-% Convergence rate annotation
-\draw[<->,thick] (5.2, 4.5) -- (5.2, 0.35);
-\node[right] at (5.2, 2.4) {\scriptsize $O(1/\sqrt{T})$};
-
-% Axes labels
-\foreach \x/\label in {1/2, 2/4, 3/6, 4/8, 5/10} {
-    \node[below] at (\x,-0.1) {\tiny \label};
-}
-\foreach \y/\label in {1/1, 2/2, 3/3, 4/4} {
-    \node[left] at (-0.1,\y) {\tiny \label};
-}
-
-\end{scope}
-
-% Right panel: Fisher Information adaptive LR
-\begin{scope}[shift={(8,0)}]
-\draw[->] (0,0) -- (5,0) node[right] {Parameter $\theta_i$};
-\draw[->] (0,0) -- (0,5) node[above] {Learning Rate $\eta_i$};
-
-% Parameter landscape
-\draw[thick,fill=blue!10] (0.5,0) .. controls (1,2) and (2,3) .. (2.5,3.5) .. controls (3,3.8) and (4,3.5) .. (4.5,0.5) -- cycle;
-
-% Fisher Information (curvature)
-\draw[thick,green,domain=0.5:4.5,samples=50] plot (\x,{1.5 + 1.2*sin(2*\x r)});
-\node[green] at (2.5, 4.5) {$\sqrt{F_{ii}}$ (curvature)};
-
-% Adaptive learning rate (inverse)
-\draw[thick,red,domain=0.6:4.4,samples=50] plot (\x,{3 - 1.2*sin(2*\x r)});
-\node[red] at (2.5, 1.2) {$\eta_i = \eta_0/\sqrt{F_{ii}}$};
-
-% Annotations
-\draw[->,thick,blue] (1.5,1) -- (1.5,2.5);
-\node[blue,right] at (1.5,1.75) {\tiny High curvature};
-\node[blue,right] at (1.5,1.45) {\tiny $\Rightarrow$ Low LR};
-
-\draw[->,thick,orange] (3.5,3.2) -- (3.5,1.5);
-\node[orange,right] at (3.5,2.35) {\tiny Low curvature};
-\node[orange,right] at (3.5,2.05) {\tiny $\Rightarrow$ High LR};
-
-\end{scope}
-
-% Bottom panel: Memory comparison
-\begin{scope}[shift={(0,-3)}]
-\draw[->] (0,0) -- (6,0) node[right] {Optimizer};
-\draw[->] (0,0) -- (0,4) node[above] {Memory (GB)};
-
-% Bar chart
-\fill[blue!60] (0.5,0) rectangle (1.2,3.5);
-\node[below] at (0.85,-0.2) {\scriptsize SGD};
-\node[above] at (0.85,3.5) {\tiny 1×};
-
-\fill[orange!60] (1.7,0) rectangle (2.4,3.5);
-\node[below] at (2.05,-0.2) {\scriptsize Momentum};
-\node[above] at (2.05,3.5) {\tiny 2×};
-
-\fill[red!60] (2.9,0) rectangle (3.6,3.5);
-\node[below] at (3.25,-0.2) {\scriptsize AdamW};
-\node[above] at (3.25,3.5) {\tiny 3×};
-
-\fill[green!60] (4.1,0) rectangle (4.8,1.8);
-\node[below] at (4.45,-0.2) {\scriptsize Adafactor};
-\node[above] at (4.45,1.8) {\tiny 1.5×};
-
-% Axes
-\foreach \y/\label in {1/10, 2/20, 3/30} {
-    \node[left] at (-0.1,\y) {\tiny \label};
-}
-
-% Annotation
-\node[anchor=north] at (3, -1) {\scriptsize For 10B parameter model};
-
-\end{scope}
-
-% Bottom-right panel: Convergence rate comparison
-\begin{scope}[shift={(8,-3)}]
-\draw[->] (0,0) -- (5,0) node[right] {Iterations ($\log T$)};
-\draw[->] (0,0) -- (0,4) node[above] {Error ($\log \epsilon$)};
-
 % SGD: O(1/T)
-\draw[thick,blue,domain=0.2:4.8] plot (\x,{3.5 - 0.7*\x});
-\node[blue,right] at (3.5, 1) {\tiny SGD: $O(1/T)$};
+\draw[thick,blue,line width=1.3pt,domain=0.3:5.5] plot (\x,{4.2 - 0.7*\x});
+\node[blue,above,font=\small] at (4.5, 1.1) {SGD: $O(1/T)$};
 
 % Adam: O(1/√T)
-\draw[thick,red,domain=0.2:4.8] plot (\x,{3.5 - 0.5*\x});
-\node[red,right] at (3.5, 1.6) {\tiny Adam: $O(1/\sqrt{T})$};
+\draw[thick,red,line width=1.3pt,domain=0.3:5.5] plot (\x,{4.2 - 0.5*\x});
+\node[red,above,font=\small] at (4.5, 1.9) {Adam: $O(1/\sqrt{T})$};
 
 % Newton: O(log log T)
-\draw[thick,green,domain=0.2:4.8] plot (\x,{3.5 - 1.2*ln(\x+1)});
-\node[green,right] at (1.5, 1.2) {\tiny Newton: $O(\log\log T)$};
+\draw[thick,green!70!black,line width=1.3pt,domain=0.5:5.5] plot (\x,{4.2 - 1.4*ln(\x+0.5)});
+\node[green!70!black,below,font=\small] at (2.5, 0.8) {Newton: $O(\log\log T)$};
 
-% Grid
-\foreach \x in {1,2,3,4} {
-    \draw[dashed,gray!30] (\x,0) -- (\x,4);
+% Axes labels
+\foreach \x/\label in {1/$10^1$, 2/$10^2$, 3/$10^3$, 4/$10^4$, 5/$10^5$} {
+    \node[below,font=\footnotesize] at (\x,-0.2) {\label};
 }
-\foreach \y in {1,2,3} {
-    \draw[dashed,gray!30] (0,\y) -- (5,\y);
+\foreach \y/\label in {1/$10^{-1}$, 2/$10^{-2}$, 3/$10^{-3}$, 4/$10^{-4}$} {
+    \node[left,font=\footnotesize] at (-0.2,\y) {\label};
 }
 
 \end{scope}
 
 \end{tikzpicture}
-\caption{\textbf{Optimization Dynamics Under Low-Precision Training.} \textit{Top-left:} Convergence trajectories for FP32 (blue), BF16 (orange), and FP16 (red) training. All converge at $O(1/\sqrt{T})$ rate but FP16 hits a noise floor $d\sigma^2$ due to quantization error, preventing convergence to machine precision. BF16 offers better noise characteristics than FP16. \textit{Top-right:} Fisher Information Matrix (green) quantifies parameter-wise curvature; adaptive learning rates (red) are inversely proportional, allocating smaller steps in high-curvature regions and larger steps in flat regions. \textit{Bottom-left:} Memory overhead comparison showing SGD (1×), Momentum (2×), AdamW (3×), and Adafactor (1.5×). Adafactor achieves 2× memory reduction vs AdamW via low-rank factorization of second moments. \textit{Bottom-right:} Convergence rate comparison: SGD's $O(1/T)$, Adam's $O(1/\sqrt{T})$, and Newton's $O(\log\log T)$ theoretical rates (log-log scale).}
-\label{fig:optimization_convergence_analysis}
+\caption{\textbf{Memory Efficiency and Theoretical Convergence Rates.} \textit{Left:} Memory overhead for 10B parameters (40 GB baseline). AdamW requires 3× memory (120 GB) due to storing momentum and variance. Adafactor reduces this to 1.5× (60 GB) via low-rank factorization: $v_t \approx r_t \cdot c_t^T$, achieving 2× savings vs AdamW. \textit{Right:} Theoretical convergence rates (log-log scale). SGD's $O(1/T)$ is slowest. Adam's $O(1/\sqrt{T})$ is faster due to adaptive learning rates. Newton's $O(\log\log T)$ is fastest but impractical for LLMs (requires Hessian inversion).}
+\label{fig:memory_convergence_rates}
 \end{figure}
 
 \textbf{Key Takeaways:}
@@ -6733,95 +6792,142 @@ NF4 (Gaussian-optimal) & $0.65 \Delta_{uniform}$ & $(0.65 \Delta_{uniform})^2 / 
 
 \textbf{Quantization Noise Analysis}
 
+\textit{Part 1: Signal Quantization Process}
+
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[scale=1.0]
-% Left panel: Quantization levels
-\begin{scope}
+\begin{tikzpicture}[scale=1.3]
 \draw[->] (0,0) -- (0,6) node[above] {Value};
-\draw[->] (0,0) -- (3,0) node[right] {Time};
+\draw[->] (0,0) -- (6,0) node[right] {Time};
 
 % Continuous signal
-\draw[thick,blue,domain=0:2.8,samples=100] plot (\x,{2.5 + 1.5*sin(3*\x r)});
-\node[blue] at (1.5, 5.5) {Continuous signal $x(t)$};
+\draw[thick,blue,domain=0:5.5,samples=100] plot (\x,{2.5 + 1.5*sin(3*\x r)});
+\node[blue, above] at (3, 5.5) {Continuous signal $x(t)$};
 
 % Quantization levels
 \foreach \y in {0.5, 1.5, 2.5, 3.5, 4.5, 5.5} {
-    \draw[dashed,gray] (0,\y) -- (3,\y);
+    \draw[dashed,gray!50] (0,\y) -- (6,\y);
 }
 
 % Quantized signal
-\draw[thick,red,const plot] plot coordinates {
-    (0, 2.5) (0.3, 2.5) (0.3, 3.5) (0.6, 3.5) (0.6, 4.5)
-    (0.9, 4.5) (0.9, 3.5) (1.2, 3.5) (1.2, 2.5) (1.5, 2.5)
-    (1.5, 1.5) (1.8, 1.5) (1.8, 2.5) (2.1, 2.5) (2.1, 3.5)
-    (2.4, 3.5) (2.4, 2.5) (2.7, 2.5)
+\draw[thick,red,const plot,line width=1.2pt] plot coordinates {
+    (0, 2.5) (0.5, 2.5) (0.5, 3.5) (1.0, 3.5) (1.0, 4.5)
+    (1.5, 4.5) (1.5, 3.5) (2.0, 3.5) (2.0, 2.5) (2.5, 2.5)
+    (2.5, 1.5) (3.0, 1.5) (3.0, 2.5) (3.5, 2.5) (3.5, 3.5)
+    (4.0, 3.5) (4.0, 2.5) (4.5, 2.5) (4.5, 3.5) (5.0, 3.5) (5.5, 3.5)
 };
-\node[red] at (1.5, 0.3) {Quantized $Q(x)$};
+\node[red, below] at (3, 0.3) {Quantized signal $Q(x)$};
 
 % Delta annotation
-\draw[<->,thick] (3.3, 2.5) -- (3.3, 3.5);
-\node[right] at (3.3, 3) {$\Delta$};
+\draw[<->,thick,purple] (6.3, 2.5) -- (6.3, 3.5);
+\node[right, purple, font=\small] at (6.3, 3) {$\Delta$ (step size)};
 
-\end{scope}
+% Grid for time axis
+\foreach \x in {1,2,3,4,5} {
+    \node[below] at (\x,-0.2) {\small \x};
+}
 
-% Right panel: Error distribution
-\begin{scope}[shift={(5,0)}]
-\draw[->] (0,0) -- (0,6) node[above] {Density};
-\draw[->] (-1.5,0) -- (1.5,0) node[right] {Error $\epsilon$};
+% Grid for value axis
+\foreach \y/\label in {1/1, 2/2, 3/3, 4/4, 5/5} {
+    \node[left] at (-0.2,\y) {\small \label};
+}
+\end{tikzpicture}
+\caption{\textbf{Signal Quantization Process.} A continuous signal $x(t)$ (blue curve) is mapped to discrete quantization levels (red staircase). The step size $\Delta$ determines quantization resolution. Finer steps reduce error but require more bits to represent.}
+\label{fig:quantization_signal}
+\end{figure}
+
+\textit{Part 2: Quantization Error Distribution}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=1.4]
+\draw[->] (0,0) -- (0,6) node[above] {Probability Density};
+\draw[->] (-3,0) -- (3,0) node[right] {Quantization Error $\epsilon$};
 
 % Uniform distribution
-\draw[thick,fill=green!20] (-1,0) -- (-1,4) -- (1,4) -- (1,0) -- cycle;
-\node at (0, 4.5) {$p(\epsilon) = \frac{1}{\Delta}$};
+\draw[thick,fill=green!30,line width=1.2pt] (-2,0) -- (-2,4.5) -- (2,4.5) -- (2,0) -- cycle;
 
-% Annotations
-\draw[<->] (-1,-0.3) -- (1,-0.3);
-\node[below] at (0, -0.3) {$\Delta$};
-\draw[dashed] (-1,0) -- (-1,4.5);
-\draw[dashed] (1,0) -- (1,4.5);
-\node[left] at (-1,2) {$-\frac{\Delta}{2}$};
-\node[right] at (1,2) {$\frac{\Delta}{2}$};
+% Distribution equation
+\node[font=\large] at (0, 5.2) {$p(\epsilon) = \frac{1}{\Delta}$ for $\epsilon \in [-\frac{\Delta}{2}, \frac{\Delta}{2}]$};
 
-% Variance formula
-\node[anchor=north] at (0,-1) {$\mathbb{E}[\epsilon^2] = \frac{\Delta^2}{12}$};
+% Annotations for bounds
+\draw[<->,thick,blue] (-2,-0.5) -- (2,-0.5);
+\node[below, blue, font=\small] at (0, -0.5) {Width = $\Delta$};
 
-\end{scope}
+\draw[dashed,gray,line width=1pt] (-2,0) -- (-2,5);
+\draw[dashed,gray,line width=1pt] (2,0) -- (2,5);
 
-% Bottom panel: SQNR vs bit-width
-\begin{scope}[shift={(0,-3)}]
-\draw[->] (0,0) -- (6,0) node[right] {Bits ($b$)};
-\draw[->] (0,0) -- (0,4) node[above] {SQNR (dB)};
+\node[left, font=\small] at (-2,2.5) {$-\frac{\Delta}{2}$};
+\node[right, font=\small] at (2,2.5) {$+\frac{\Delta}{2}$};
+
+% Height annotation
+\draw[<->,thick,orange] (2.5,0) -- (2.5,4.5);
+\node[right, orange, font=\small] at (2.5,2.25) {Height = $\frac{1}{\Delta}$};
+
+% Variance formula box
+\node[draw,fill=yellow!20,thick,rounded corners,font=\large] at (0, -2.3) {
+    $\mathbb{E}[\epsilon^2] = \int_{-\Delta/2}^{\Delta/2} \epsilon^2 \cdot \frac{1}{\Delta} d\epsilon = \frac{\Delta^2}{12}$
+};
+
+% Axis labels
+\foreach \x in {-2,-1,0,1,2} {
+    \node[below] at (\x,-0.1) {\small \x$\frac{\Delta}{2}$};
+}
+\end{tikzpicture}
+\caption{\textbf{Quantization Error Distribution.} The error $\epsilon = x - Q(x)$ follows a uniform distribution over $[-\Delta/2, \Delta/2]$. The variance $\mathbb{E}[\epsilon^2] = \Delta^2/12$ is derived from the uniform distribution, showing error grows quadratically with step size.}
+\label{fig:quantization_error_dist}
+\end{figure}
+
+\textit{Part 3: Signal-to-Quantization-Noise Ratio (SQNR)}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=1.4]
+\draw[->] (0,0) -- (7,0) node[right] {Bit-width ($b$)};
+\draw[->] (0,0) -- (0,6) node[above] {SQNR (dB)};
 
 % Grid
-\foreach \x in {1,2,3,4,5} {
-    \draw[dashed,gray] (\x,0) -- (\x,4);
+\foreach \x in {1,2,3,4,5,6} {
+    \draw[dashed,gray!40] (\x,0) -- (\x,6);
 }
-\foreach \y in {0.5,1,1.5,2,2.5,3,3.5} {
-    \draw[dashed,gray] (0,\y) -- (6,\y);
+\foreach \y in {1,2,3,4,5} {
+    \draw[dashed,gray!40] (0,\y) -- (7,\y);
 }
 
 % SQNR line (6.02b + 1.76)
-\draw[thick,blue,domain=0:5.5] plot (\x,{0.06*\x + 0.02 + 0.6*\x});
-\node[blue,right] at (5.5, 3.5) {SQNR $\approx 6.02b$ dB};
+\draw[thick,blue,line width=1.5pt,domain=0.5:6.5] plot (\x,{0.1*\x + 0.3 + 0.85*\x});
+\node[blue,above,font=\small] at (5, 5.2) {SQNR = $6.02b + 1.76$ dB};
 
-% Data points
-\fill[red] (2, 0.6) circle (2pt) node[above] {\tiny 2-bit};
-\fill[red] (4, 1.8) circle (2pt) node[above] {\tiny 4-bit (QLoRA)};
-\fill[red] (5, 2.4) circle (2pt) node[above right] {\tiny 8-bit};
+% Reference line
+\draw[dashed,red,thick] (0,0.5) -- (6.5,5.5);
 
-% Axes labels
-\foreach \x in {1,2,3,4,5} {
-    \node[below] at (\x,-0.1) {\tiny \x};
+% Data points with larger circles
+\fill[orange] (2, 1.55) circle (4pt);
+\node[above, orange, font=\small] at (2, 1.55) {2-bit: 13.8 dB};
+
+\fill[red] (4, 3.15) circle (4pt);
+\node[above, red, font=\small] at (4, 3.15) {4-bit (QLoRA): 25.8 dB};
+
+\fill[purple] (8/3, 2.35) circle (4pt);
+\node[below right, purple, font=\small] at (8/3, 2.35) {3-bit: 19.8 dB};
+
+\fill[green!60!black] (5, 3.95) circle (4pt);
+\node[above, green!60!black, font=\small] at (5, 3.95) {8-bit: 49.9 dB};
+
+% Axis labels
+\foreach \x in {1,2,3,4,5,6} {
+    \node[below] at (\x,-0.15) {\small \x};
 }
-\foreach \y/\label in {0.5/15, 1/30, 1.5/45, 2/60, 2.5/75, 3/90} {
-    \node[left] at (-0.1,\y) {\tiny \label};
+\foreach \y/\label in {1/20, 2/40, 3/60, 4/80, 5/100} {
+    \node[left] at (-0.15,\y) {\small \label};
 }
 
-\end{scope}
-
+% Annotation: 6 dB per bit rule
+\draw[<->,thick,purple] (3,2.35) -- (4,3.15);
+\node[right, purple, font=\footnotesize] at (4,2.75) {+1 bit = +6 dB};
 \end{tikzpicture}
-\caption{\textbf{Quantization Noise Analysis.} \textit{Top-left:} Continuous signal (blue) quantized to discrete levels (red) with step size $\Delta$. \textit{Top-right:} Quantization error $\epsilon$ follows uniform distribution over $[-\Delta/2, \Delta/2]$ with variance $\Delta^2/12$. \textit{Bottom:} Signal-to-Quantization-Noise Ratio increases linearly with bit-width at approximately 6 dB per bit. QLoRA's 4-bit quantization achieves $\approx$26 dB SQNR, balancing memory efficiency and accuracy.}
-\label{fig:quantization_noise_analysis}
+\caption{\textbf{SQNR vs Bit-Width.} Signal-to-Quantization-Noise Ratio increases linearly at approximately 6 dB per additional bit. QLoRA's 4-bit quantization (25.8 dB) provides sufficient precision for fine-tuning while reducing memory by 4× compared to 16-bit. The "6 dB per bit" rule guides precision-memory trade-offs.}
+\label{fig:sqnr_bitwidth}
 \end{figure}
 
 \textbf{Practical Takeaways for QLoRA:}
