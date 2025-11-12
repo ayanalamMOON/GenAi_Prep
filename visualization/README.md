@@ -28,6 +28,8 @@ visualization/
 │   │   └── lora_visualizations.py
 │   ├── pretraining/                              # Pre-training Section (1 script, 8 visualizations)
 │   │   └── pretraining_visualizations.py
+│   ├── qakd/                                     # Section 13: QAKD (1 script, 7 visualizations)
+│   │   └── qakd_visualizations.py
 │   ├── qlora/                                    # QLoRA Section (1 script, 6 visualizations)
 │   │   └── qlora_visualizations.py
 │   ├── rag/                                      # Section 12: RAG Systems (3 scripts, 6 visualizations)
@@ -49,6 +51,7 @@ visualization/
 │   ├── langgraph/                                # LangGraph visualizations (8 PNG files)
 │   ├── lora/                                     # LoRA visualizations (9 PNG files)
 │   ├── pretraining/                              # Pre-training visualizations (8 PNG files)
+│   ├── qakd/                                     # Section 13 visualizations (7 PNG files, 2.8 MB)
 │   ├── qlora/                                    # QLoRA visualizations (6 PNG files)
 │   ├── rag/                                      # Section 12 visualizations (6 PNG files, 2.1 MB)
 │   └── safety/                                   # Section 11 visualizations (6 PNG files, 2.8 MB)
@@ -188,6 +191,43 @@ This generates 6 comprehensive visualizations:
 4. **retrieval_strategies.png** - Dense vs Sparse vs Hybrid retrieval comparison + Top-k selection impact on quality/speed
 5. **advanced_rag_architectures.png** - Evolution of RAG methods (Naive → HyDE → Self-RAG → RAPTOR) + Quality vs Latency trade-off
 6. **reranking_impact.png** - Two-stage retrieval pipeline + Reranking performance gains across metrics
+
+### QAKD (Quantization-Aware Knowledge Distillation) Visualizations (Section 13)
+
+```bash
+cd visualization/scripts/qakd
+python qakd_visualizations.py
+```
+
+This generates 7 comprehensive visualizations:
+
+1. **qakd_framework.png** - Dual loss architecture showing:
+   - Left panel: Teacher (frozen FP16) + Student (trainable + fake quant) → Dual loss ($\mathcal{L}_{\text{KD}}$ + $\lambda \cdot \mathcal{L}_{\text{quant}}$)
+   - Right panel: Training (fake quantization with STE) vs Inference (true INT4 via GPTQ/AWQ)
+2. **qakd_training_dynamics.png** - 4-panel training progress for 7B→1.5B INT4 compression:
+   - Loss convergence (KD loss: 3.45→1.62, Quant loss: 2.8→0.9)
+   - Accuracy gap reduction (13.5%→1.7% over 2500 steps)
+   - Per-layer quantization error across 32 layers
+   - Lambda balance monitoring (maintaining 1:1000 ratio)
+3. **quantization_comparison.png** - Method comparison:
+   - Accuracy vs Memory trade-off (QAKD Pareto-optimal at 76.3%, 1.75GB)
+   - Detailed comparison table (Full FP16, Standard KD, PTQ INT4, QAKD INT4)
+4. **awq_impact.png** - Activation-aware quantization benefits:
+   - Per-channel activation magnitude distribution (top 10% channels with 5-10× higher magnitudes)
+   - Quantization error by channel importance (64% overall error reduction with AWQ)
+5. **gptq_mechanism.png** - Hessian-based quantization:
+   - Heavy-tailed weight distribution showing outliers (5% beyond ±0.1)
+   - Sequential quantization algorithm (5 steps: Hessian computation → Cholesky decomposition → Sequential quantization → Error compensation → Weight updates)
+6. **mixed_precision_strategy.png** - Precision hierarchy:
+   - Left panel: Operations by precision (INT4/INT8 inference, FP16 forward/gradients, FP32 updates/normalization)
+   - Right panel: Gradient scaling preventing FP16 underflow (scale factor S=1024)
+7. **deployment_workflow.png** - Complete pipeline from training to deployment:
+   - Phase 1-2 (2h): Model selection + hyperparameter configuration
+   - Phase 3 (2h): AWQ calibration (500-1000 samples)
+   - Phase 4 (36h): QAKD training with dual loss
+   - Phase 5 (2h): True quantization (GPTQ/AWQ: 3GB→1.75GB)
+   - Phase 6 (4h): Evaluation (target ≥97% teacher accuracy)
+   - Phase 7: Deployment (7× CPU speedup, 1.75GB memory)
 
 ### Other Topic Visualizations
 
