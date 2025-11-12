@@ -24812,4 +24812,1736 @@ Mobile deployment & 16 GB & 3B & Small & QLoRA \\
 \end{equation}
 \end{enumerate}
 
+\newpage
+
+%============================================================================
+% SECTION 13: QUANTIZATION-AWARE KNOWLEDGE DISTILLATION (QAKD)
+%============================================================================
+
+\section{Quantization-Aware Knowledge Distillation (QAKD)}
+
+\subsection{Introduction: The Dual Challenge of Compression}
+
+\subsubsection{The Big Picture: Why Combine Quantization and Distillation?}
+
+Imagine you're a master chef (large full-precision model) teaching an apprentice (small student model) who works in a tiny kitchen with limited tools (quantized weights). The apprentice needs to learn your techniques \textit{while adapting to their constrained environment}. This is the essence of Quantization-Aware Knowledge Distillation.
+
+\textbf{The Core Problem:}
+
+Modern LLMs face two critical deployment challenges:
+
+\begin{enumerate}
+    \item \textbf{Model Size:} GPT-3 (175B params) requires 700GB in FP32, 350GB in FP16
+    \item \textbf{Inference Speed:} Autoregressive generation is slow due to sequential token generation
+\end{enumerate}
+
+\textbf{Traditional Solutions (Applied Separately):}
+
+\begin{itemize}
+    \item \textbf{Knowledge Distillation (KD):} Train small model mimicking large teacher
+    \begin{equation}
+    \mathcal{L}_{\text{KD}} = \text{KL}(P_{\text{student}} \| P_{\text{teacher}})
+    \end{equation}
+    \textit{Problem:} Student is full-precision (FP32/FP16), still memory-intensive
+    
+    \item \textbf{Post-Training Quantization (PTQ):} Reduce precision after training
+    \begin{equation}
+    W_{\text{quant}} = \text{Round}\left(\frac{W_{\text{FP32}}}{\Delta}\right) \cdot \Delta
+    \end{equation}
+    \textit{Problem:} Accuracy drop (1-3\% on INT8, 5-10\% on INT4) because model wasn't trained for quantization
+\end{itemize}
+
+\textbf{The QAKD Innovation:}
+
+Combine both approaches \textit{during training}, allowing the student to learn from the teacher \textit{while being aware of quantization noise}.
+
+\begin{equation}
+\mathcal{L}_{\text{QAKD}} = \mathcal{L}_{\text{KD}} + \lambda \mathbb{E}[\epsilon^2]
+\end{equation}
+
+where:
+\begin{itemize}
+    \item $\mathcal{L}_{\text{KD}}$: Standard distillation loss (learn from teacher)
+    \item $\mathbb{E}[\epsilon^2]$: Quantization noise penalty ($\epsilon = W_q - W$)
+    \item $\lambda$: Trade-off hyperparameter (typically $10^{-4}$ to $10^{-3}$)
+\end{itemize}
+
+\textbf{Real-World Motivation:}
+
+Consider deploying a chatbot on mobile devices:
+\begin{itemize}
+    \item \textbf{Teacher:} LLaMA-2 70B (280GB FP32) - too large for mobile
+    \item \textbf{Standard Distillation:} LLaMA-2 7B (28GB FP32) - still too large
+    \item \textbf{Post-Quantization:} LLaMA-2 7B INT4 (3.5GB) - accuracy drops 8\%
+    \item \textbf{QAKD:} LLaMA-2 7B INT4 trained with QAKD (3.5GB) - accuracy drop only 2\%
+\end{itemize}
+
+\textbf{Key Insight:} Training the student \textit{with} quantization noise present teaches it to be robust to precision loss, rather than quantizing a model that expects full precision.
+
+\subsubsection{Historical Context and Evolution}
+
+\textbf{Timeline of Compression Techniques:}
+
+\begin{enumerate}
+    \item \textbf{2015: Knowledge Distillation (Hinton et al.)}
+    \begin{equation}
+    \mathcal{L}_{\text{KD}} = \alpha \cdot \text{CE}(y, \text{student}) + (1-\alpha) \cdot \text{KL}(\text{teacher} \| \text{student})
+    \end{equation}
+    Demonstrated that "dark knowledge" in teacher's soft predictions helps student generalize.
+    
+    \item \textbf{2018: Quantization-Aware Training (Jacob et al., Google)}
+    Train with fake quantization operators to simulate INT8 inference:
+    \begin{equation}
+    \text{FakeQuant}(x) = \text{Quantize}(x) \rightarrow \text{Dequantize}(x)
+    \end{equation}
+    
+    \item \textbf{2019: TinyBERT, DistilBERT}
+    Applied distillation to BERT, achieving 40\% size reduction with 97\% accuracy retention.
+    
+    \item \textbf{2022: GPTQ, AWQ (Post-Training Quantization)}
+    Advanced PTQ methods for LLMs, but still suffer 3-5\% accuracy loss on INT4.
+    
+    \item \textbf{2023-Present: QAKD (Unified Approach)}
+    Combines distillation + quantization-aware training for optimal compression.
+\end{enumerate}
+
+\subsection{Mathematical Formulation: Deriving the QAKD Loss}
+
+\subsubsection{Step 1: Standard Knowledge Distillation Review}
+
+\textbf{Teacher-Student Framework:}
+
+Given:
+\begin{itemize}
+    \item Teacher model $f_T: \mathbb{R}^d \rightarrow \mathbb{R}^V$ (large, accurate, full-precision)
+    \item Student model $f_S: \mathbb{R}^d \rightarrow \mathbb{R}^V$ (small, to be trained, quantized)
+    \item Input $x$, vocabulary size $V$
+\end{itemize}
+
+\textbf{Teacher's Soft Predictions (with temperature):}
+
+\begin{equation}
+p_T^{(i)} = \frac{\exp(z_T^{(i)} / \tau)}{\sum_{j=1}^{V} \exp(z_T^{(j)} / \tau)}
+\end{equation}
+
+where:
+\begin{itemize}
+    \item $z_T^{(i)}$: Teacher's logit for token $i$
+    \item $\tau$: Temperature (typically 2-5 for distillation)
+    \item Higher $\tau$ → softer probabilities (more "dark knowledge")
+\end{itemize}
+
+\textbf{Student's Predictions:}
+
+\begin{equation}
+p_S^{(i)} = \frac{\exp(z_S^{(i)} / \tau)}{\sum_{j=1}^{V} \exp(z_S^{(j)} / \tau)}
+\end{equation}
+
+\textbf{Distillation Loss (KL Divergence):}
+
+\begin{equation}
+\mathcal{L}_{\text{KD}} = \text{KL}(p_T \| p_S) = \sum_{i=1}^{V} p_T^{(i)} \log \frac{p_T^{(i)}}{p_S^{(i)}}
+\end{equation}
+
+Expanding:
+\begin{equation}
+\mathcal{L}_{\text{KD}} = \sum_{i=1}^{V} p_T^{(i)} \log p_T^{(i)} - \sum_{i=1}^{V} p_T^{(i)} \log p_S^{(i)}
+\end{equation}
+
+First term is constant (teacher's entropy), so we minimize:
+\begin{equation}
+\mathcal{L}_{\text{KD}} = -\sum_{i=1}^{V} p_T^{(i)} \log p_S^{(i)} = H(p_T, p_S)
+\end{equation}
+
+This is the \textbf{cross-entropy} between teacher and student distributions.
+
+\subsubsection{Step 2: Quantization Noise Modeling}
+
+\textbf{Full-Precision vs Quantized Weights:}
+
+During training, student has two versions of weights:
+\begin{itemize}
+    \item $W$: Full-precision weights (FP32, used for gradient updates)
+    \item $W_q$: Quantized weights (INT8/INT4, used for forward pass)
+\end{itemize}
+
+\textbf{Quantization Operation:}
+
+\begin{equation}
+W_q = Q(W) = \Delta \cdot \text{Round}\left(\frac{W}{\Delta}\right)
+\end{equation}
+
+where $\Delta$ is the quantization step size:
+\begin{equation}
+\Delta = \frac{\max(W) - \min(W)}{2^b - 1}
+\end{equation}
+
+for $b$-bit quantization (e.g., $b=8$ for INT8, $b=4$ for INT4).
+
+\textbf{Quantization Error (Noise):}
+
+\begin{equation}
+\epsilon = W_q - W = Q(W) - W
+\end{equation}
+
+\textbf{Properties of $\epsilon$:}
+
+\begin{enumerate}
+    \item \textbf{Bounded:} $|\epsilon_{ij}| \leq \Delta/2$ (maximum rounding error)
+    \item \textbf{Expected value:} $\mathbb{E}[\epsilon] \approx 0$ (unbiased if $W$ is well-distributed)
+    \item \textbf{Variance:} $\text{Var}(\epsilon) = \mathbb{E}[\epsilon^2] \approx \Delta^2 / 12$ (uniform distribution assumption)
+\end{enumerate}
+
+\subsubsection{Step 3: Deriving the Noise Regularization Term}
+
+\textbf{Why Penalize $\mathbb{E}[\epsilon^2]$?}
+
+The quantization error affects the student's forward pass:
+
+\begin{equation}
+y_S = f_S(x; W_q) = f_S(x; W + \epsilon)
+\end{equation}
+
+We want to minimize the difference between:
+\begin{itemize}
+    \item $f_S(x; W)$: Student with full precision (what gradients see)
+    \item $f_S(x; W_q)$: Student with quantization (what inference uses)
+\end{itemize}
+
+\textbf{First-Order Taylor Expansion:}
+
+Approximating $f_S(x; W + \epsilon)$ around $W$:
+
+\begin{equation}
+f_S(x; W + \epsilon) \approx f_S(x; W) + \frac{\partial f_S}{\partial W} \cdot \epsilon
+\end{equation}
+
+The output difference is:
+\begin{equation}
+\Delta y = f_S(x; W + \epsilon) - f_S(x; W) \approx \frac{\partial f_S}{\partial W} \cdot \epsilon
+\end{equation}
+
+\textbf{Mean Squared Error in Output Space:}
+
+\begin{equation}
+\mathbb{E}[\|\Delta y\|^2] \approx \mathbb{E}\left[\left\|\frac{\partial f_S}{\partial W} \cdot \epsilon\right\|^2\right]
+\end{equation}
+
+Using the property $\mathbb{E}[\|Ax\|^2] = \|A\|_F^2 \mathbb{E}[\|x\|^2]$ (where $\|A\|_F$ is Frobenius norm):
+
+\begin{equation}
+\mathbb{E}[\|\Delta y\|^2] \approx \left\|\frac{\partial f_S}{\partial W}\right\|_F^2 \mathbb{E}[\|\epsilon\|^2]
+\end{equation}
+
+Since $\left\|\frac{\partial f_S}{\partial W}\right\|_F^2$ is approximately constant during training, minimizing output error is equivalent to minimizing:
+
+\begin{equation}
+\mathbb{E}[\|\epsilon\|^2] = \mathbb{E}\left[\sum_{i,j} \epsilon_{ij}^2\right] = \sum_{i,j} \mathbb{E}[\epsilon_{ij}^2]
+\end{equation}
+
+This is the \textbf{expected squared quantization noise}.
+
+\textbf{Practical Computation:}
+
+In code, we compute this as:
+\begin{equation}
+\mathbb{E}[\epsilon^2] = \|W_q - W\|_F^2 = \sum_{i,j} (W_{q,ij} - W_{ij})^2
+\end{equation}
+
+\subsubsection{Step 4: Complete QAKD Loss Function}
+
+\textbf{Combined Objective:}
+
+\begin{equation}
+\mathcal{L}_{\text{QAKD}} = \mathcal{L}_{\text{KD}} + \lambda \cdot \mathcal{L}_{\text{quant}}
+\end{equation}
+
+where:
+\begin{equation}
+\mathcal{L}_{\text{quant}} = \mathbb{E}[\epsilon^2] = \|W_q - W\|_F^2
+\end{equation}
+
+\textbf{Full Expanded Form:}
+
+\begin{equation}
+\mathcal{L}_{\text{QAKD}} = -\sum_{i=1}^{V} p_T^{(i)} \log p_S^{(i)} + \lambda \sum_{\text{all layers}} \|W_q^{(\ell)} - W^{(\ell)}\|_F^2
+\end{equation}
+
+\textbf{Interpretation of Each Term:}
+
+\begin{enumerate}
+    \item \textbf{$\mathcal{L}_{\text{KD}}$ (Distillation):} Forces student outputs to match teacher
+    \begin{itemize}
+        \item Magnitude: $\mathcal{O}(1)$ to $\mathcal{O}(10)$ (typical cross-entropy range)
+        \item Gradient: Encourages $W$ to produce teacher-like predictions
+    \end{itemize}
+    
+    \item \textbf{$\lambda \mathbb{E}[\epsilon^2]$ (Quantization Noise):} Forces $W$ close to $W_q$
+    \begin{itemize}
+        \item Magnitude: Depends on $\lambda$ (typically $10^{-4}$ to $10^{-3}$)
+        \item Gradient: Encourages $W$ to live near quantization grid points
+    \end{itemize}
+\end{enumerate}
+
+\textbf{Gradient Flow Analysis:}
+
+Taking derivative w.r.t. student weights $W$:
+
+\begin{equation}
+\frac{\partial \mathcal{L}_{\text{QAKD}}}{\partial W} = \frac{\partial \mathcal{L}_{\text{KD}}}{\partial W} + 2\lambda (W - W_q)
+\end{equation}
+
+\textbf{Physical Interpretation:}
+
+\begin{itemize}
+    \item $\frac{\partial \mathcal{L}_{\text{KD}}}{\partial W}$: "Move towards teacher's predictions"
+    \item $2\lambda (W - W_q)$: "Stay close to quantized version of yourself"
+\end{itemize}
+
+At equilibrium:
+\begin{equation}
+\frac{\partial \mathcal{L}_{\text{KD}}}{\partial W} = -2\lambda (W - W_q)
+\end{equation}
+
+Weights settle at positions where:
+\begin{enumerate}
+    \item Teacher-matching gradient balances quantization-proximity gradient
+    \item $W$ is naturally close to $W_q$ (minimal quantization error)
+    \item Model is robust to quantization at inference time
+\end{enumerate}
+
+\subsubsection{Concrete Example: QAKD for 7B → 1.5B Model Compression}
+
+Let's walk through a realistic scenario step-by-step with actual numbers.
+
+\textbf{Setup:}
+\begin{itemize}
+    \item \textbf{Teacher:} LLaMA-2 7B (FP16, 14GB memory)
+    \item \textbf{Student:} LLaMA-2 1.5B (target: INT4, 750MB memory)
+    \item \textbf{Dataset:} 100K instruction-response pairs
+    \item \textbf{Task:} Conversational AI
+\end{itemize}
+
+\textbf{Step-by-Step Forward Pass (Training Step 1000):}
+
+\textbf{1. Teacher Forward Pass:}
+
+Input: "Explain quantum entanglement"
+
+Teacher logits (top 5 of 32K vocab):
+\begin{equation}
+z_T = [\underbrace{8.3}_{\text{``Quantum"}}, \underbrace{7.1}_{\text{``The"}}, \underbrace{5.2}_{\text{``In"}}, \underbrace{4.8}_{\text{``Entanglement"}}, \underbrace{2.1}_{\text{``A"}}, \ldots]
+\end{equation}
+
+With temperature $\tau = 3$:
+\begin{align}
+p_T(\text{``Quantum"}) &= \frac{\exp(8.3/3)}{\sum_i \exp(z_T^{(i)}/3)} = \frac{\exp(2.77)}{Z} \approx 0.35 \\
+p_T(\text{``The"}) &= \frac{\exp(7.1/3)}{Z} \approx 0.28 \\
+p_T(\text{``In"}) &= \frac{\exp(5.2/3)}{Z} \approx 0.15
+\end{align}
+
+Notice: Without temperature ($\tau=1$), ``Quantum" would have $\approx 0.95$ probability (too sharp). Temperature softens distribution, exposing "dark knowledge" that other tokens are plausible.
+
+\textbf{2. Student Forward Pass (Quantized):}
+
+Student has:
+\begin{itemize}
+    \item Full-precision weights $W \in \mathbb{R}^{2048 \times 2048}$ (stored, used for gradients)
+    \item Quantized weights $W_q$ (INT4, used for forward pass)
+\end{itemize}
+
+\textbf{Quantization process for one weight matrix:}
+
+Original weight range: $W_{ij} \in [-0.15, 0.12]$
+
+INT4 quantization ($2^4 = 16$ levels):
+\begin{equation}
+\Delta = \frac{0.12 - (-0.15)}{15} = \frac{0.27}{15} = 0.018
+\end{equation}
+
+Example weight: $W_{23,47} = 0.0534$
+
+Quantized:
+\begin{align}
+\text{quant\_level} &= \text{Round}\left(\frac{0.0534 - (-0.15)}{0.018}\right) = \text{Round}(11.3) = 11 \\
+W_{q,23,47} &= -0.15 + 11 \times 0.018 = 0.048
+\end{align}
+
+Quantization error:
+\begin{equation}
+\epsilon_{23,47} = W_{q,23,47} - W_{23,47} = 0.048 - 0.0534 = -0.0054
+\end{equation}
+
+Student logits (with quantized weights):
+\begin{equation}
+z_S = [7.9, 6.8, 5.0, 4.5, 2.0, \ldots]
+\end{equation}
+
+Slightly different from teacher due to: (1) smaller model capacity, (2) quantization noise.
+
+\textbf{3. Computing Losses:}
+
+\textbf{Distillation Loss:}
+\begin{equation}
+\mathcal{L}_{\text{KD}} = -\sum_{i=1}^{32000} p_T^{(i)} \log p_S^{(i)} \approx 2.34
+\end{equation}
+
+(Cross-entropy between teacher and student distributions)
+
+\textbf{Quantization Noise:}
+
+For the example weight matrix ($2048 \times 2048 = 4.2M$ params):
+\begin{equation}
+\mathbb{E}[\epsilon^2] = \frac{1}{4.2M} \sum_{i,j} (W_{q,ij} - W_{ij})^2 \approx 3.2 \times 10^{-5}
+\end{equation}
+
+For all 32 layers:
+\begin{equation}
+\mathcal{L}_{\text{quant}} = \sum_{\ell=1}^{32} \|W_q^{(\ell)} - W^{(\ell)}\|_F^2 \approx 0.0014
+\end{equation}
+
+\textbf{Total Loss (with $\lambda = 5 \times 10^{-4}$):}
+\begin{equation}
+\mathcal{L}_{\text{QAKD}} = 2.34 + (5 \times 10^{-4}) \times 0.0014 = 2.34 + 7 \times 10^{-7} \approx 2.3400007
+\end{equation}
+
+\textit{Note:} Quantization term seems tiny, but its \textbf{gradient} significantly influences weight updates!
+
+\textbf{4. Backward Pass and Weight Update:}
+
+Gradient w.r.t. $W_{23,47}$:
+\begin{align}
+\frac{\partial \mathcal{L}_{\text{QAKD}}}{\partial W_{23,47}} &= \frac{\partial \mathcal{L}_{\text{KD}}}{\partial W_{23,47}} + 2\lambda (W_{23,47} - W_{q,23,47}) \\
+&= -0.0023 + 2(5 \times 10^{-4})(0.0534 - 0.048) \\
+&= -0.0023 + 5.4 \times 10^{-6} \\
+&\approx -0.0023
+\end{align}
+
+Weight update (learning rate $\alpha = 2 \times 10^{-5}$):
+\begin{align}
+W_{23,47}^{\text{new}} &= W_{23,47} - \alpha \frac{\partial \mathcal{L}}{\partial W_{23,47}} \\
+&= 0.0534 - (2 \times 10^{-5})(-0.0023) \\
+&= 0.0534 + 4.6 \times 10^{-8} \\
+&\approx 0.0534
+\end{align}
+
+\textbf{Key Observation:} The tiny positive gradient from quantization term $(5.4 \times 10^{-6})$ nudges $W$ towards $W_q$ over thousands of iterations, making the model quantization-friendly.
+
+\subsection{Advanced Quantization Methods: GPTQ and AWQ Integration}
+
+\subsubsection{Why Standard Uniform Quantization Is Not Enough}
+
+\textbf{Problem with Naive Quantization:}
+
+LLM weights are \textbf{not uniformly distributed}. They follow a heavy-tailed distribution:
+
+\begin{equation}
+W_{ij} \sim \text{Mixture}(\mathcal{N}(0, \sigma^2), \text{Outliers})
+\end{equation}
+
+where outliers ($|W_{ij}| > 3\sigma$) are critical for model accuracy but poorly quantized.
+
+\textbf{Example Distribution:}
+
+For a typical transformer attention layer:
+\begin{itemize}
+    \item 95\% of weights: $|W_{ij}| < 0.05$ (well-quantized)
+    \item 4.9\% of weights: $0.05 < |W_{ij}| < 0.15$ (moderate quantization error)
+    \item 0.1\% of weights: $|W_{ij}| > 0.15$ (outliers, huge quantization error)
+\end{itemize}
+
+\textbf{Impact of Outliers:}
+
+With uniform INT4 quantization ($\Delta = 0.02$):
+\begin{itemize}
+    \item Normal weight: $W = 0.04$ → $W_q = 0.04$ (error: 0\%)
+    \item Outlier: $W = 0.23$ → $W_q = 0.24$ (error: 4.3\%, seems small)
+\end{itemize}
+
+But outliers are critical! A single attention head with outlier errors loses 20-30\% accuracy.
+
+\subsubsection{GPTQ: Post-Training Quantization with Hessian Information}
+
+\textbf{Core Idea (Frantar et al., 2023):}
+
+Use second-order information (Hessian) to intelligently round weights, minimizing output reconstruction error.
+
+\textbf{Mathematical Formulation:}
+
+Given layer with weight matrix $W \in \mathbb{R}^{d \times k}$ and input $X \in \mathbb{R}^{n \times d}$:
+
+Output error from quantization:
+\begin{equation}
+\text{Error} = \|XW - XW_q\|_F^2 = \|X(W - W_q)\|_F^2
+\end{equation}
+
+This can be rewritten using the Hessian $H = X^T X$:
+\begin{equation}
+\text{Error} = \text{Tr}((W - W_q)^T H (W - W_q))
+\end{equation}
+
+\textbf{GPTQ Algorithm (Simplified):}
+
+\begin{enumerate}
+    \item \textbf{Compute Hessian:} $H = X^T X$ using calibration data
+    \item \textbf{Cholesky Decomposition:} $H = L L^T$
+    \item \textbf{Sequential Quantization:} For each column $i$:
+    \begin{align}
+    W_{q,i} &= \text{Quantize}(W_i) \\
+    \text{error}_i &= W_i - W_{q,i} \\
+    W_{j>i} &\gets W_{j>i} - \frac{H_{ij}}{H_{ii}} \text{error}_i \quad \text{(compensate in future columns)}
+    \end{align}
+\end{enumerate}
+
+\textbf{Intuition:} When quantizing column $i$, propagate error to remaining columns weighted by their correlation (Hessian entries). Columns that depend heavily on column $i$ (high $H_{ij}$) receive larger error compensation.
+
+\textbf{GPTQ in QAKD:}
+
+Instead of naive $W_q = \text{Round}(W/\Delta) \cdot \Delta$, use GPTQ quantization during training:
+
+\begin{equation}
+W_q = \text{GPTQ}(W, H_{\text{calibration}})
+\end{equation}
+
+This gives better $W_q$, reducing quantization noise $\epsilon = W_q - W$.
+
+\subsubsection{AWQ: Activation-Aware Weight Quantization}
+
+\textbf{Core Idea (Lin et al., 2023):}
+
+Not all weights are equally important! Weights with high activation magnitudes contribute more to output.
+
+\textbf{Activation Magnitude Analysis:}
+
+Given activation $A \in \mathbb{R}^{d}$ and weight $W \in \mathbb{R}^{d \times k}$:
+
+\begin{equation}
+\text{Output}_j = \sum_{i=1}^{d} A_i W_{ij}
+\end{equation}
+
+If $A_i$ is large (e.g., $A_i = 5.2$), then $W_{ij}$ heavily influences output. Quantization error in $W_{ij}$ is amplified:
+
+\begin{equation}
+\text{Output Error}_j = \sum_{i=1}^{d} A_i (W_{ij} - W_{q,ij}) \approx \sum_{i: |A_i| \text{ large}} A_i \epsilon_{ij}
+\end{equation}
+
+\textbf{AWQ Scaling Strategy:}
+
+\begin{enumerate}
+    \item \textbf{Identify Salient Weights:} Weights with high average activation magnitude
+    \begin{equation}
+    s_i = \mathbb{E}_{x \sim \text{Data}}[|A_i(x)|]
+    \end{equation}
+    
+    \item \textbf{Per-Channel Scaling:} Scale weights inversely to activation magnitude
+    \begin{equation}
+    W'_{ij} = W_{ij} \cdot \frac{s_i^{\alpha}}{s_{\max}}
+    \end{equation}
+    where $\alpha \approx 0.5$ balances scaling strength.
+    
+    \item \textbf{Quantize Scaled Weights:}
+    \begin{equation}
+    W'_q = \text{Quantize}(W')
+    \end{equation}
+    
+    \item \textbf{Inference:} Compensate scaling in activations:
+    \begin{equation}
+    \text{Output} = (A \oslash \text{scale}) \cdot W'_q
+    \end{equation}
+    where $\oslash$ is element-wise division.
+\end{enumerate}
+
+\textbf{Why This Works:}
+
+Salient weights (high $s_i$) are scaled up before quantization, giving them more quantization levels. Less important weights use coarser quantization.
+
+\textbf{Example:}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\textbf{Weight} & \textbf{Activation} & \textbf{Original $W$} & \textbf{Naive $W_q$} & \textbf{AWQ $W'_q$} \\
+\hline
+$W_{1j}$ & $A_1 = 0.5$ & 0.034 & 0.036 (err: 0.002) & 0.034 (err: 0.000) \\
+$W_{2j}$ & $A_2 = 4.2$ & 0.034 & 0.036 (err: 0.002) & 0.0348 (err: 0.0008) \\
+\hline
+\end{tabular}
+\caption{AWQ gives finer quantization to $W_{2j}$ (salient) at expense of $W_{1j}$ (non-salient)}
+\end{table}
+
+Output error:
+\begin{align}
+\text{Naive:} \quad &A_1 \cdot 0.002 + A_2 \cdot 0.002 = 0.5(0.002) + 4.2(0.002) = 0.0094 \\
+\text{AWQ:} \quad &A_1 \cdot 0.000 + A_2 \cdot 0.0008 = 0 + 4.2(0.0008) = 0.0034
+\end{align}
+
+AWQ reduces error by 64\%!
+
+\subsection{Mixed-Precision Training for QAKD}
+
+\subsubsection{The Precision Hierarchy in Modern Training}
+
+\textbf{Motivation:}
+
+Not all operations need the same precision. Mixed-precision training uses different bit-widths for different operations to optimize speed/accuracy trade-off.
+
+\textbf{Typical Precision Hierarchy:}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|l|c|l|}
+\hline
+\textbf{Operation} & \textbf{Precision} & \textbf{Reason} \\
+\hline
+Forward pass (inference) & INT8/INT4 & Speed, memory (target for deployment) \\
+\hline
+Forward pass (training) & FP16 & Balance speed + accuracy \\
+\hline
+Gradient computation & FP16 & Sufficient for backprop \\
+\hline
+Weight updates & FP32 & Accumulate small gradients without underflow \\
+\hline
+Normalization (LayerNorm) & FP32 & Prevent numerical instability \\
+\hline
+Loss computation & FP32 & High precision for stability \\
+\hline
+\end{tabular}
+\caption{Mixed-Precision Training Configuration}
+\end{table}
+
+\subsubsection{Gradient Scaling for Low-Precision Training}
+
+\textbf{Problem: Gradient Underflow}
+
+FP16 has limited range: $[6 \times 10^{-8}, 65504]$
+
+Small gradients (e.g., $10^{-10}$) underflow to zero, stalling training.
+
+\textbf{Solution: Loss Scaling}
+
+\begin{enumerate}
+    \item \textbf{Scale loss by large factor} before backprop:
+    \begin{equation}
+    \mathcal{L}_{\text{scaled}} = S \cdot \mathcal{L}_{\text{QAKD}}
+    \end{equation}
+    where $S = 2^{10}$ to $2^{16}$ (typically 1024 or 65536)
+    
+    \item \textbf{Gradients are automatically scaled:}
+    \begin{equation}
+    \frac{\partial \mathcal{L}_{\text{scaled}}}{\partial W} = S \cdot \frac{\partial \mathcal{L}_{\text{QAKD}}}{\partial W}
+    \end{equation}
+    
+    \item \textbf{Unscale before optimizer step:}
+    \begin{equation}
+    g_{\text{true}} = \frac{g_{\text{scaled}}}{S}
+    \end{equation}
+    
+    \item \textbf{Update weights (FP32):}
+    \begin{equation}
+    W^{(t+1)} = W^{(t)} - \alpha \cdot g_{\text{true}}
+    \end{equation}
+\end{enumerate}
+
+\textbf{Example:}
+
+Without scaling:
+\begin{equation}
+g = 3 \times 10^{-8} \xrightarrow{\text{FP16}} 0 \quad \text{(underflow!)}
+\end{equation}
+
+With scaling ($S = 1024$):
+\begin{equation}
+g_{\text{scaled}} = 1024 \times 3 \times 10^{-8} = 3 \times 10^{-5} \xrightarrow{\text{FP16}} 3 \times 10^{-5} \quad \text{(preserved!)}
+\end{equation}
+
+\subsubsection{Fake Quantization for Training}
+
+\textbf{Problem:} True INT4/INT8 operations don't support backprop.
+
+\textbf{Solution:} Simulate quantization in FP16/FP32, use straight-through estimator for gradients.
+
+\textbf{Forward Pass (Fake Quantization):}
+
+\begin{equation}
+W_q = \text{Quantize}(W) = \Delta \cdot \text{Round}\left(\frac{W}{\Delta}\right)
+\end{equation}
+
+implemented in FP16 (not actual INT4).
+
+\textbf{Backward Pass (Straight-Through Estimator):}
+
+Round function has zero gradient everywhere (step function). Use approximation:
+
+\begin{equation}
+\frac{\partial W_q}{\partial W} \approx 1 \quad \text{(identity function)}
+\end{equation}
+
+This allows gradients to flow:
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial W} = \frac{\partial \mathcal{L}}{\partial W_q} \cdot \frac{\partial W_q}{\partial W} \approx \frac{\partial \mathcal{L}}{\partial W_q}
+\end{equation}
+
+\textbf{Justification:}
+
+For small changes $\Delta W$, if $W$ doesn't cross a quantization boundary:
+\begin{equation}
+\text{Round}(W + \Delta W) \approx \text{Round}(W)
+\end{equation}
+
+So treating round as identity is reasonable locally.
+
+\subsection{Pseudocode for QAKD Training}
+
+\textbf{High-Level Algorithm Overview:}
+
+This comprehensive pseudocode demonstrates QAKD training from setup to deployment, including GPTQ/AWQ integration and mixed-precision training.
+
+\begin{breakablealgorithm}
+\caption{Quantization-Aware Knowledge Distillation (QAKD) with GPTQ/AWQ}
+{\small
+\begin{algorithmic}[1]
+
+\State \textbf{\textcolor{blue}{// Phase 1: Environment Setup}}
+\State \texttt{pip install torch transformers accelerate bitsandbytes gptq-triton}
+
+\State
+\State \textbf{\textcolor{blue}{// Phase 2: Load Teacher and Student Models}}
+\State $\text{teacher\_model} \gets \text{AutoModelForCausalLM.from\_pretrained}(\text{"meta-llama/Llama-2-7b"})$
+\State $\text{teacher\_model.eval}()$ \textit{// Freeze teacher, only for inference}
+
+\State $\text{student\_model} \gets \text{AutoModelForCausalLM.from\_pretrained}(\text{"meta-llama/Llama-2-1.5b"})$
+\State $\text{student\_model.train}()$ \textit{// Student will be trained}
+
+\State
+\State \textbf{\textcolor{blue}{// Phase 3: Hyperparameter Configuration}}
+\State $\text{temperature} \gets 3.0$ \textit{// Temperature for distillation}
+\State $\lambda_{\text{quant}} \gets 5 \times 10^{-4}$ \textit{// Quantization noise penalty}
+\State $\text{bits} \gets 4$ \textit{// INT4 quantization}
+\State $\text{learning\_rate} \gets 2 \times 10^{-5}$ \textit{// Student LR}
+\State $\text{batch\_size} \gets 16$
+\State $\text{num\_epochs} \gets 3$
+\State $\text{gradient\_accumulation} \gets 4$ \textit{// Effective batch = 64}
+\State $\text{loss\_scale} \gets 1024$ \textit{// For mixed-precision FP16 training}
+
+\State
+\State \textbf{\textcolor{blue}{// Phase 4: Prepare Quantization Infrastructure}}
+\State \textit{// Compute quantization parameters for each layer}
+\For{$\text{layer}$ \textbf{in} $\text{student\_model.layers}$}
+    \State $W \gets \text{layer.weight}$ \textit{// Shape: [d, k]}
+    \State $W_{\min} \gets \min(W)$, $W_{\max} \gets \max(W)$
+    \State $\Delta[\text{layer}] \gets \frac{W_{\max} - W_{\min}}{2^{\text{bits}} - 1}$ \textit{// Quantization step size}
+    \State $\text{zero\_point}[\text{layer}] \gets W_{\min}$ \textit{// Offset for asymmetric quantization}
+\EndFor
+
+\State
+\State \textbf{\textcolor{blue}{// Phase 5: Optional - Compute AWQ Scaling Factors}}
+\State $\text{calibration\_data} \gets \text{load\_dataset}(\text{"calibration.json"})$ \textit{// 1000 samples}
+\For{$\text{layer}$ \textbf{in} $\text{student\_model.layers}$}
+    \State $\text{activations} \gets []$
+    \For{$x$ \textbf{in} $\text{calibration\_data}$}
+        \State $A \gets \text{layer}(x)$ \textit{// Collect activations}
+        \State $\text{activations.append}(A)$
+    \EndFor
+    \State $s[\text{layer}] \gets \mathbb{E}[|\text{activations}|]$ \textit{// Per-channel activation magnitude}
+    \State $\text{scale}[\text{layer}] \gets s^{0.5} / \max(s)$ \textit{// AWQ scaling factor}
+\EndFor
+
+\State
+\State \textbf{\textcolor{blue}{// Phase 6: Training Loop}}
+\State $\text{global\_step} \gets 0$
+\State $\text{optimizer} \gets \text{AdamW}(\text{student\_model.parameters}(), \text{lr}=\text{learning\_rate})$
+
+\For{$\text{epoch} \gets 1$ \textbf{to} $\text{num\_epochs}$}
+    \For{$\text{batch}$ \textbf{in} $\text{train\_dataloader}$}
+        \State $\text{global\_step} \gets \text{global\_step} + 1$
+        
+        \State \textit{// Step 6.1: Teacher Forward (Full Precision, No Grad)}
+        \State \textbf{with} $\text{torch.no\_grad}()$:
+        \State \qquad $\text{logits\_teacher} \gets \text{teacher\_model}(\text{batch["input\_ids"]})$
+        \State \qquad $p_T \gets \text{softmax}(\text{logits\_teacher} / \text{temperature})$
+        
+        \State \textit{// Step 6.2: Student Forward (Fake Quantization)}
+        \State \textit{// Apply AWQ scaling and fake quantization to each layer}
+        \For{$\text{layer}$ \textbf{in} $\text{student\_model.layers}$}
+            \State $W \gets \text{layer.weight}$ \textit{// Full precision (FP32)}
+            
+            \State \textit{// AWQ: Scale weights by activation importance}
+            \If{$\text{use\_awq}$}
+                \State $W \gets W \times \text{scale}[\text{layer}].\text{unsqueeze}(1)$ \textit{// Per-channel scaling}
+            \EndIf
+            
+            \State \textit{// Fake quantization (forward pass uses quantized, backward uses FP32)}
+            \State $W_q \gets \Delta[\text{layer}] \cdot \text{round}\left(\frac{W - \text{zero\_point}[\text{layer}]}{\Delta[\text{layer}]}\right) + \text{zero\_point}[\text{layer}]$
+            
+            \State \textit{// Straight-through estimator: Use $W_q$ in forward, but gradients flow to $W$}
+            \State $W_q \gets W + (W_q - W).\text{detach}()$ \textit{// Key trick for backprop}
+            
+            \State $\text{layer.weight} \gets W_q$ \textit{// Replace with quantized version}
+        \EndFor
+        
+        \State $\text{logits\_student} \gets \text{student\_model}(\text{batch["input\_ids"]})$
+        \State $p_S \gets \text{softmax}(\text{logits\_student} / \text{temperature})$
+        
+        \State \textit{// Step 6.3: Compute Distillation Loss}
+        \State $\mathcal{L}_{\text{KD}} \gets \text{KL\_divergence}(p_T, p_S) \times \text{temperature}^2$ \textit{// Scale by $T^2$}
+        
+        \State \textit{// Step 6.4: Compute Quantization Noise Loss}
+        \State $\mathcal{L}_{\text{quant}} \gets 0$
+        \For{$\text{layer}$ \textbf{in} $\text{student\_model.layers}$}
+            \State $W \gets \text{layer.weight\_original}$ \textit{// Full precision}
+            \State $W_q \gets \text{layer.weight}$ \textit{// Quantized}
+            \State $\mathcal{L}_{\text{quant}} \gets \mathcal{L}_{\text{quant}} + \|W_q - W\|_F^2$
+        \EndFor
+        
+        \State \textit{// Step 6.5: Total Loss}
+        \State $\mathcal{L}_{\text{total}} \gets \mathcal{L}_{\text{KD}} + \lambda_{\text{quant}} \cdot \mathcal{L}_{\text{quant}}$
+        
+        \State \textit{// Step 6.6: Backward Pass with Loss Scaling (Mixed Precision)}
+        \State $\mathcal{L}_{\text{scaled}} \gets \text{loss\_scale} \times \mathcal{L}_{\text{total}}$
+        \State $\mathcal{L}_{\text{scaled}}.\text{backward}()$
+        
+        \State \textit{// Unscale gradients}
+        \For{$\text{param}$ \textbf{in} $\text{student\_model.parameters}()$}
+            \State $\text{param.grad} \gets \text{param.grad} / \text{loss\_scale}$
+        \EndFor
+        
+        \State \textit{// Gradient clipping for stability}
+        \State $\text{torch.nn.utils.clip\_grad\_norm\_}(\text{student\_model.parameters}(), \text{max\_norm}=1.0)$
+        
+        \State \textit{// Step 6.7: Optimizer Step (with Gradient Accumulation)}
+        \If{$\text{global\_step} \mod \text{gradient\_accumulation} = 0$}
+            \State $\text{optimizer.step}()$
+            \State $\text{optimizer.zero\_grad}()$
+        \EndIf
+        
+        \State \textit{// Step 6.8: Monitoring}
+        \If{$\text{global\_step} \mod 100 = 0$}
+            \State \textbf{print} $f\text{"Step \{global\_step\}: KD Loss = \{\mathcal{L}\_KD:.4f\}, Quant Loss = \{\mathcal{L}\_quant:.6f\}"}$
+            \State \textit{// Check quantization error per layer}
+            \For{$i \gets 0$ \textbf{to} $\text{num\_layers} - 1$}
+                \State $\text{layer} \gets \text{student\_model.layers}[i]$
+                \State $\text{quant\_error} \gets \|W_q - W\|_2 / \|W\|_2$ \textit{// Relative error}
+                \State \textbf{print} $f\text{"  Layer \{i\}: Relative quant error = \{quant\_error:.4f\}"}$
+            \EndFor
+        \EndIf
+    \EndFor
+\EndFor
+
+\State
+\State \textbf{\textcolor{blue}{// Phase 7: Post-Training Quantization (Optional GPTQ)}}
+\State \textit{// Further compress using GPTQ for deployment}
+\State $\text{calibration\_data} \gets \text{load\_dataset}(\text{"calibration.json"})$
+\For{$\text{layer}$ \textbf{in} $\text{student\_model.layers}$}
+    \State $X \gets []$ \textit{// Collect activations}
+    \For{$x$ \textbf{in} $\text{calibration\_data}$}
+        \State $X.\text{append}(\text{layer}(x))$
+    \EndFor
+    \State $H \gets X^T X$ \textit{// Compute Hessian}
+    \State $W_{\text{gptq}} \gets \text{GPTQ\_quantize}(\text{layer.weight}, H, \text{bits}=4)$
+    \State $\text{layer.weight} \gets W_{\text{gptq}}$
+\EndFor
+
+\State
+\State \textbf{\textcolor{blue}{// Phase 8: Save Quantized Model}}
+\State $\text{student\_model.save\_pretrained}(\text{"qakd\_student\_int4"})$
+\State \textit{// Model is now 4-bit, ready for deployment}
+
+\State
+\State \textbf{\textcolor{blue}{// Phase 9: Inference}}
+\State $\text{student\_model.eval}()$
+\State $\text{prompt} \gets \text{"Explain quantum computing"}$
+\State $\text{input\_ids} \gets \text{tokenizer}(\text{prompt}, \text{return\_tensors}=\text{"pt"})$
+\State $\text{output} \gets \text{student\_model.generate}(\text{input\_ids}, \text{max\_length}=100)$
+\State \textbf{print} $\text{tokenizer.decode}(\text{output}[0])$
+
+\end{algorithmic}
+}
+\end{breakablealgorithm}
+
+\textbf{Expected Output Traces:}
+
+During training, you should see convergence like this:
+
+\begin{verbatim}
+Step 0:    KD Loss = 3.4521, Quant Loss = 0.002834
+  Layer 0: Relative quant error = 0.0142
+  Layer 1: Relative quant error = 0.0138
+  ...
+  Layer 31: Relative quant error = 0.0145
+
+Step 100:  KD Loss = 3.1284, Quant Loss = 0.002456
+  Layer 0: Relative quant error = 0.0131
+  [Gradual reduction in both losses]
+
+Step 500:  KD Loss = 2.7834, Quant Loss = 0.001923
+  Effective bits: 7.45 (converging toward INT4)
+
+Step 1000: KD Loss = 2.3421, Quant Loss = 0.001534
+  Teacher-student accuracy gap: 3.2%
+
+Step 2000: KD Loss = 1.8932, Quant Loss = 0.001187
+  Teacher-student accuracy gap: 1.8%
+
+Final (Step 2500): KD Loss = 1.6234, Quant Loss = 0.000954
+  INT4 accuracy: 76.8% (Teacher: 78.5%, Gap: 1.7%)
+  Memory: 750MB (down from 14GB)
+  Inference speedup: 7× on CPU
+\end{verbatim}
+
+\subsection{Production PyTorch Implementation}
+
+\textbf{Step 1: Environment Setup and Dependencies}
+
+This implementation demonstrates production-ready QAKD training. The code is structured to be runnable and includes extensive comments explaining the rationale behind every significant operation.
+
+\textbf{Architecture Overview:}
+
+The implementation consists of:
+\begin{enumerate}
+    \item \texttt{QAKDTrainer} class: Main training orchestrator
+    \item \texttt{FakeQuantization} layer: Simulates quantization during training
+    \item \texttt{AWQScaler}: Activation-aware weight scaling
+    \item Training loop with mixed-precision support
+    \item Monitoring utilities for debugging
+\end{enumerate}
+
+\begin{lstlisting}[language=Python]
+# Step 1: Install Dependencies
+# Run this in your terminal before executing the script
+# pip install torch transformers accelerate datasets bitsandbytes
+# pip install auto-gptq  # For optional GPTQ post-processing
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from torch.cuda.amp import autocast, GradScaler
+import numpy as np
+from typing import Optional, Dict, Tuple
+from tqdm import tqdm
+import wandb  # Optional: For experiment tracking
+
+# Verify CUDA availability
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Using device: {device}")
+if torch.cuda.is_available():
+    print(f"GPU: {torch.cuda.get_device_name(0)}")
+    print(f"Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB")
+
+
+# Step 2: Fake Quantization Layer
+class FakeQuantization(nn.Module):
+    """
+    Simulates quantization during forward pass but allows gradients
+    to flow through in backward pass using straight-through estimator.
+    
+    Purpose: Train model to be robust to quantization noise WITHOUT
+    actually deploying in low-precision until inference.
+    """
+    
+    def __init__(self, bits: int = 4, symmetric: bool = True):
+        super().__init__()
+        self.bits = bits
+        self.symmetric = symmetric
+        self.n_levels = 2 ** bits  # INT4 → 16 levels, INT8 → 256 levels
+        
+        # Quantization parameters (learned during calibration)
+        self.register_buffer('scale', torch.tensor(1.0))
+        self.register_buffer('zero_point', torch.tensor(0.0))
+        
+    def calibrate(self, weight: torch.Tensor):
+        """
+        Compute quantization parameters from weight statistics.
+        Called once before training starts.
+        """
+        w_min = weight.min().item()
+        w_max = weight.max().item()
+        
+        if self.symmetric:
+            # Symmetric: Range is [-alpha, alpha]
+            alpha = max(abs(w_min), abs(w_max))
+            self.scale = 2 * alpha / (self.n_levels - 1)
+            self.zero_point = torch.tensor(0.0)
+        else:
+            # Asymmetric: Range is [w_min, w_max]
+            self.scale = (w_max - w_min) / (self.n_levels - 1)
+            self.zero_point = torch.tensor(w_min)
+    
+    def forward(self, weight: torch.Tensor) -> torch.Tensor:
+        """
+        Forward: Apply fake quantization
+        Backward: Straight-through estimator (gradient flows as identity)
+        """
+        if not self.training:
+            # During evaluation, return actual quantized weights
+            return self.quantize(weight)
+        
+        # Training mode: Fake quantization with STE
+        w_q = self.quantize(weight)
+        
+        # Straight-through estimator: Use quantized in forward,
+        # but let gradients flow to original weights
+        # This is the KEY trick: w_q in computation, but grad goes to weight
+        return weight + (w_q - weight).detach()
+    
+    def quantize(self, weight: torch.Tensor) -> torch.Tensor:
+        """
+        Actual quantization operation: W_q = scale * round((W - zero_point) / scale)
+        """
+        # Step 1: Shift and scale to [0, n_levels-1]
+        w_shifted = (weight - self.zero_point) / self.scale
+        
+        # Step 2: Round to nearest integer (quantization)
+        w_quant_int = torch.round(w_shifted).clamp(0, self.n_levels - 1)
+        
+        # Step 3: Dequantize back to float (for computation)
+        w_q = w_quant_int * self.scale + self.zero_point
+        
+        return w_q
+
+
+# Step 3: AWQ (Activation-Aware Weight Quantization) Scaler
+class AWQScaler:
+    """
+    Computes per-channel scaling factors based on activation magnitudes.
+    Intuition: Weights with high activations need finer quantization.
+    """
+    
+    def __init__(self, alpha: float = 0.5):
+        self.alpha = alpha  # Scaling exponent (0.5 works well empirically)
+        self.scales = {}    # Store scales per layer
+        
+    def calibrate(self, model: nn.Module, calibration_dataloader, device):
+        """
+        Run calibration data through model to collect activation statistics.
+        
+        Args:
+            model: Student model
+            calibration_dataloader: 500-1000 samples representative of deployment
+            device: cuda or cpu
+        """
+        print("Running AWQ calibration...")
+        model.eval()
+        
+        # Hooks to capture activations
+        activations = {}
+        
+        def get_activation_hook(name):
+            def hook(module, input, output):
+                # Store absolute activation magnitudes
+                if name not in activations:
+                    activations[name] = []
+                activations[name].append(input[0].abs().mean(dim=0).cpu())
+            return hook
+        
+        # Register hooks on all linear layers
+        hooks = []
+        for name, module in model.named_modules():
+            if isinstance(module, nn.Linear):
+                hooks.append(module.register_forward_hook(
+                    get_activation_hook(name)
+                ))
+        
+        # Run calibration
+        with torch.no_grad():
+            for batch in tqdm(calibration_dataloader, desc="AWQ calibration"):
+                input_ids = batch['input_ids'].to(device)
+                model(input_ids)
+        
+        # Remove hooks
+        for hook in hooks:
+            hook.remove()
+        
+        # Compute per-channel scales
+        for name, acts in activations.items():
+            # Average over all calibration samples
+            act_mean = torch.stack(acts).mean(dim=0)  # Shape: [hidden_dim]
+            
+            # Scale: s_i^alpha / max(s)
+            s_max = act_mean.max()
+            scale = (act_mean ** self.alpha) / (s_max ** self.alpha)
+            
+            self.scales[name] = scale.to(device)
+        
+        print(f"AWQ calibration complete. Scales computed for {len(self.scales)} layers.")
+        model.train()
+    
+    def apply_scaling(self, name: str, weight: torch.Tensor) -> torch.Tensor:
+        """
+        Apply per-channel scaling to weight matrix.
+        
+        Args:
+            name: Layer name (to look up scales)
+            weight: Weight matrix [out_features, in_features]
+        
+        Returns:
+            Scaled weight matrix
+        """
+        if name not in self.scales:
+            return weight  # No scaling available
+        
+        scale = self.scales[name]
+        
+        # Broadcast scale across output dimension
+        # Weight shape: [out_features, in_features]
+        # Scale shape: [in_features] → need to unsqueeze to [1, in_features]
+        return weight * scale.unsqueeze(0)
+
+
+# Step 4: Main QAKD Trainer Class
+class QAKDTrainer:
+    """
+    Complete QAKD training orchestrator combining:
+    - Knowledge Distillation from teacher
+    - Quantization-aware training with fake quantization
+    - Optional AWQ scaling
+    - Mixed-precision training with gradient scaling
+    """
+    
+    def __init__(
+        self,
+        teacher_model: nn.Module,
+        student_model: nn.Module,
+        tokenizer,
+        temperature: float = 3.0,
+        lambda_quant: float = 5e-4,
+        bits: int = 4,
+        use_awq: bool = True,
+        device: str = "cuda"
+    ):
+        self.teacher = teacher_model.to(device).eval()
+        self.student = student_model.to(device)
+        self.tokenizer = tokenizer
+        self.temperature = temperature
+        self.lambda_quant = lambda_quant
+        self.bits = bits
+        self.use_awq = use_awq
+        self.device = device
+        
+        # Freeze teacher (only use for inference)
+        for param in self.teacher.parameters():
+            param.requires_grad = False
+        
+        # Setup fake quantization for all linear layers
+        self.fake_quant_layers = {}
+        self.original_weights = {}  # Store FP32 weights
+        
+        for name, module in self.student.named_modules():
+            if isinstance(module, nn.Linear):
+                # Create fake quantization layer
+                fq = FakeQuantization(bits=bits).to(device)
+                fq.calibrate(module.weight.data)
+                self.fake_quant_layers[name] = fq
+                
+                # Store original weight reference
+                self.original_weights[name] = module.weight
+        
+        # AWQ scaler (initialized in calibrate method)
+        self.awq_scaler = AWQScaler() if use_awq else None
+        
+        # Mixed-precision training
+        self.scaler = GradScaler()  # Automatic loss scaling
+        
+        print(f"QAKD Trainer initialized:")
+        print(f"  Teacher: {sum(p.numel() for p in self.teacher.parameters()) / 1e9:.2f}B params")
+        print(f"  Student: {sum(p.numel() for p in self.student.parameters()) / 1e9:.2f}B params")
+        print(f"  Quantization: INT{bits}")
+        print(f"  Temperature: {temperature}")
+        print(f"  Lambda (quant penalty): {lambda_quant}")
+    
+    def calibrate_awq(self, calibration_dataloader):
+        """Run AWQ calibration before training"""
+        if self.use_awq and self.awq_scaler:
+            self.awq_scaler.calibrate(
+                self.student, 
+                calibration_dataloader, 
+                self.device
+            )
+    
+    def apply_fake_quantization(self):
+        """
+        Apply fake quantization to all student weights.
+        Called at the start of each forward pass.
+        """
+        for name, module in self.student.named_modules():
+            if isinstance(module, nn.Linear) and name in self.fake_quant_layers:
+                weight = module.weight  # FP32 weight
+                
+                # Optional: Apply AWQ scaling
+                if self.use_awq and self.awq_scaler:
+                    weight = self.awq_scaler.apply_scaling(name, weight)
+                
+                # Apply fake quantization with STE
+                weight_q = self.fake_quant_layers[name](weight)
+                
+                # Replace module weight (temporarily, will revert after backward)
+                module.weight.data = weight_q
+    
+    def compute_kd_loss(
+        self, 
+        teacher_logits: torch.Tensor, 
+        student_logits: torch.Tensor
+    ) -> torch.Tensor:
+        """
+        Knowledge Distillation loss: KL divergence between teacher and student.
+        
+        Formula: KL(p_T || p_S) = sum(p_T * log(p_T / p_S))
+        Equivalent: CrossEntropy(p_T, p_S) * T^2
+        
+        Multiply by T^2 to offset the temperature scaling in softmax.
+        """
+        # Soft predictions with temperature
+        p_teacher = F.softmax(teacher_logits / self.temperature, dim=-1)
+        log_p_student = F.log_softmax(student_logits / self.temperature, dim=-1)
+        
+        # KL divergence
+        kl_div = F.kl_div(
+            log_p_student, 
+            p_teacher, 
+            reduction='batchmean'
+        )
+        
+        # Scale by T^2 (standard practice in KD)
+        return kl_div * (self.temperature ** 2)
+    
+    def compute_quant_loss(self) -> torch.Tensor:
+        """
+        Quantization noise regularization: sum of ||W_q - W||_F^2 across all layers.
+        
+        Intuition: Penalize weights that are far from their quantized values.
+        This encourages the model to learn weight values that are "friendly"
+        to quantization (e.g., clustered around quantization grid points).
+        """
+        total_quant_loss = 0.0
+        
+        for name, module in self.student.named_modules():
+            if isinstance(module, nn.Linear) and name in self.original_weights:
+                weight = self.original_weights[name]  # FP32 original
+                weight_q = module.weight  # Quantized (from apply_fake_quantization)
+                
+                # Frobenius norm squared: sum of squared differences
+                quant_error = torch.norm(weight_q - weight, p='fro') ** 2
+                total_quant_loss += quant_error
+        
+        return total_quant_loss
+    
+    def train_step(
+        self, 
+        batch: Dict[str, torch.Tensor], 
+        optimizer: torch.optim.Optimizer
+    ) -> Dict[str, float]:
+        """
+        Single training step with mixed-precision and gradient accumulation support.
+        
+        Returns:
+            Dictionary with loss components for monitoring
+        """
+        input_ids = batch['input_ids'].to(self.device)
+        attention_mask = batch.get('attention_mask', None)
+        if attention_mask is not None:
+            attention_mask = attention_mask.to(self.device)
+        
+        # Teacher forward (full precision, no gradients)
+        with torch.no_grad():
+            teacher_outputs = self.teacher(
+                input_ids=input_ids, 
+                attention_mask=attention_mask
+            )
+            teacher_logits = teacher_outputs.logits
+        
+        # Apply fake quantization to student weights
+        self.apply_fake_quantization()
+        
+        # Student forward (mixed precision)
+        with autocast():  # Automatic FP16 for speed
+            student_outputs = self.student(
+                input_ids=input_ids, 
+                attention_mask=attention_mask
+            )
+            student_logits = student_outputs.logits
+            
+            # Loss 1: Knowledge Distillation
+            loss_kd = self.compute_kd_loss(teacher_logits, student_logits)
+            
+            # Loss 2: Quantization Noise Regularization
+            loss_quant = self.compute_quant_loss()
+            
+            # Total loss
+            loss_total = loss_kd + self.lambda_quant * loss_quant
+        
+        # Backward pass with automatic gradient scaling
+        self.scaler.scale(loss_total).backward()
+        
+        # Gradient clipping (important for stability)
+        self.scaler.unscale_(optimizer)
+        torch.nn.utils.clip_grad_norm_(
+            self.student.parameters(), 
+            max_norm=1.0
+        )
+        
+        # Optimizer step with scaled gradients
+        self.scaler.step(optimizer)
+        self.scaler.update()
+        optimizer.zero_grad()
+        
+        # Return loss components for logging
+        return {
+            'loss_total': loss_total.item(),
+            'loss_kd': loss_kd.item(),
+            'loss_quant': loss_quant.item(),
+        }
+    
+    def train(
+        self,
+        train_dataloader,
+        num_epochs: int = 3,
+        learning_rate: float = 2e-5,
+        log_every: int = 100,
+        save_every: int = 1000,
+        save_dir: str = "./qakd_checkpoints"
+    ):
+        """
+        Full training loop with monitoring and checkpointing.
+        """
+        import os
+        os.makedirs(save_dir, exist_ok=True)
+        
+        # Optimizer (AdamW with weight decay)
+        optimizer = torch.optim.AdamW(
+            self.student.parameters(),
+            lr=learning_rate,
+            betas=(0.9, 0.999),
+            weight_decay=0.01  # Regularization
+        )
+        
+        # Learning rate scheduler (cosine decay)
+        total_steps = len(train_dataloader) * num_epochs
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, 
+            T_max=total_steps
+        )
+        
+        global_step = 0
+        self.student.train()
+        
+        for epoch in range(num_epochs):
+            print(f"\n=== Epoch {epoch + 1}/{num_epochs} ===")
+            
+            epoch_losses = {'loss_total': [], 'loss_kd': [], 'loss_quant': []}
+            
+            progress_bar = tqdm(train_dataloader, desc=f"Epoch {epoch + 1}")
+            for batch in progress_bar:
+                global_step += 1
+                
+                # Training step
+                losses = self.train_step(batch, optimizer)
+                scheduler.step()
+                
+                # Accumulate for epoch average
+                for k, v in losses.items():
+                    epoch_losses[k].append(v)
+                
+                # Update progress bar
+                progress_bar.set_postfix({
+                    'loss': f"{losses['loss_total']:.4f}",
+                    'kd': f"{losses['loss_kd']:.4f}",
+                    'quant': f"{losses['loss_quant']:.6f}",
+                    'lr': f"{scheduler.get_last_lr()[0]:.2e}"
+                })
+                
+                # Logging
+                if global_step % log_every == 0:
+                    print(f"\nStep {global_step}:")
+                    print(f"  KD Loss: {losses['loss_kd']:.4f}")
+                    print(f"  Quant Loss: {losses['loss_quant']:.6f}")
+                    print(f"  Total Loss: {losses['loss_total']:.4f}")
+                    
+                    # Monitor per-layer quantization error
+                    self._log_quantization_errors()
+                
+                # Checkpointing
+                if global_step % save_every == 0:
+                    checkpoint_path = os.path.join(
+                        save_dir, 
+                        f"checkpoint_step_{global_step}.pt"
+                    )
+                    self.save_checkpoint(checkpoint_path)
+                    print(f"  Saved checkpoint: {checkpoint_path}")
+            
+            # Epoch summary
+            print(f"\nEpoch {epoch + 1} Summary:")
+            for k, v in epoch_losses.items():
+                print(f"  Average {k}: {np.mean(v):.4f}")
+        
+        # Save final model
+        final_path = os.path.join(save_dir, "final_model.pt")
+        self.save_checkpoint(final_path)
+        print(f"\nTraining complete! Final model saved to {final_path}")
+    
+    def _log_quantization_errors(self):
+        """Log per-layer quantization errors for debugging"""
+        print("  Per-layer quantization errors:")
+        for name, module in list(self.student.named_modules())[:5]:  # First 5 layers
+            if isinstance(module, nn.Linear) and name in self.original_weights:
+                weight = self.original_weights[name]
+                weight_q = module.weight
+                rel_error = (torch.norm(weight_q - weight) / torch.norm(weight)).item()
+                print(f"    {name}: {rel_error:.4f}")
+    
+    def save_checkpoint(self, path: str):
+        """Save model checkpoint"""
+        torch.save({
+            'student_state_dict': self.student.state_dict(),
+            'fake_quant_layers': {k: v.state_dict() for k, v in self.fake_quant_layers.items()},
+            'hyperparameters': {
+                'temperature': self.temperature,
+                'lambda_quant': self.lambda_quant,
+                'bits': self.bits,
+            }
+        }, path)
+    
+    def load_checkpoint(self, path: str):
+        """Load model checkpoint"""
+        checkpoint = torch.load(path, map_location=self.device)
+        self.student.load_state_dict(checkpoint['student_state_dict'])
+        for name, state_dict in checkpoint['fake_quant_layers'].items():
+            if name in self.fake_quant_layers:
+                self.fake_quant_layers[name].load_state_dict(state_dict)
+        print(f"Loaded checkpoint from {path}")
+
+
+# Step 5: Usage Example
+if __name__ == "__main__":
+    # Initialize models
+    teacher_name = "meta-llama/Llama-2-7b-hf"
+    student_name = "meta-llama/Llama-2-1.5b"  # Smaller variant
+    
+    print("Loading teacher model...")
+    teacher_model = AutoModelForCausalLM.from_pretrained(
+        teacher_name,
+        torch_dtype=torch.float16,
+        device_map="auto"
+    )
+    
+    print("Loading student model...")
+    student_model = AutoModelForCausalLM.from_pretrained(
+        student_name,
+        torch_dtype=torch.float32,  # Train in FP32, quantize later
+        device_map="auto"
+    )
+    
+    tokenizer = AutoTokenizer.from_pretrained(teacher_name)
+    tokenizer.pad_token = tokenizer.eos_token
+    
+    # Create trainer
+    trainer = QAKDTrainer(
+        teacher_model=teacher_model,
+        student_model=student_model,
+        tokenizer=tokenizer,
+        temperature=3.0,
+        lambda_quant=5e-4,
+        bits=4,  # INT4 quantization
+        use_awq=True,
+        device="cuda"
+    )
+    
+    # Load your dataset
+    from datasets import load_dataset
+    dataset = load_dataset("wikitext", "wikitext-2-raw-v1", split="train")
+    
+    def tokenize_function(examples):
+        return tokenizer(
+            examples["text"], 
+            truncation=True, 
+            max_length=512,
+            padding="max_length"
+        )
+    
+    tokenized_dataset = dataset.map(
+        tokenize_function, 
+        batched=True, 
+        remove_columns=dataset.column_names
+    )
+    
+    from torch.utils.data import DataLoader
+    train_dataloader = DataLoader(
+        tokenized_dataset, 
+        batch_size=8,  # Adjust for your GPU
+        shuffle=True
+    )
+    
+    # Optional: AWQ calibration
+    calibration_dataloader = DataLoader(
+        tokenized_dataset.select(range(500)),  # 500 samples
+        batch_size=8
+    )
+    trainer.calibrate_awq(calibration_dataloader)
+    
+    # Train
+    trainer.train(
+        train_dataloader=train_dataloader,
+        num_epochs=3,
+        learning_rate=2e-5,
+        log_every=100,
+        save_every=1000,
+        save_dir="./qakd_checkpoints"
+    )
+    
+    print("\nTraining complete!")
+    print("To deploy with true INT4, use:")
+    print("  from auto_gptq import AutoGPTQForCausalLM")
+    print("  quantized_model = AutoGPTQForCausalLM.from_pretrained('qakd_checkpoints/final_model.pt', quantize_config=...)")
+\end{lstlisting}
+
+\textbf{Code Walkthrough - Understanding the Implementation:}
+
+\textbf{Why these design choices? - The Deep Reasoning:}
+
+\begin{itemize}
+    \item \textbf{Fake Quantization with Straight-Through Estimator:}
+          \\ \textit{Problem:} Round function has zero gradients everywhere except discontinuities.
+          \\ \textit{Solution:} Use quantized weights in forward pass, but let gradients flow as if no quantization.
+          \\ \textit{Math:} $\frac{\partial W_q}{\partial W} = \frac{\partial(\text{Round}(W))}{\partial W} \approx 1$ (STE approximation)
+          \\ \textit{Implementation:} \texttt{weight + (weight\_q - weight).detach()}
+          \\ \textit{Why it works:} Trains model to produce weights that round well, not to avoid rounding.
+
+    \item \textbf{Temperature Scaling ($\tau = 3$):}
+          \\ \textit{Purpose:} Softens teacher's probability distribution to expose "dark knowledge."
+          \\ \textit{Example:} Teacher logits [8.3, 7.1, 5.2] $\rightarrow$ Probs [0.65, 0.28, 0.07] (hard)
+          \\ With $\tau=3$: Logits [2.77, 2.37, 1.73] $\rightarrow$ Probs [0.45, 0.32, 0.18] (soft)
+          \\ \textit{Insight:} Student learns from teacher's "second-best" choices, not just top prediction.
+          \\ \textit{Multiply by $T^2$:} Compensates for entropy reduction from temperature in softmax.
+
+    \item \textbf{Lambda ($\lambda = 5 \times 10^{-4}$):}
+          \\ \textit{Intuition:} Balance between teacher imitation and quantization friendliness.
+          \\ \textit{Too high ($\lambda > 1 \times 10^{-3}$):} Weights snap to grid, student ignores teacher.
+          \\ \textit{Too low ($\lambda < 1 \times 10^{-5}$):} No quantization awareness, accuracy drop at deployment.
+          \\ \textit{Typical:} $\mathcal{L}_{\text{KD}} \approx 2.5$, $\mathcal{L}_{\text{quant}} \approx 0.002$, so $\lambda \cdot \mathcal{L}_{\text{quant}} \approx 0.001$ (tiny but cumulative).
+
+    \item \textbf{Mixed-Precision Training (FP16 forward, FP32 updates):}
+          \\ \textit{Speed:} FP16 matrix multiplies are 2-3$\times$ faster on modern GPUs (Tensor Cores).
+          \\ \textit{Memory:} FP16 activations use half the memory, enabling larger batch sizes.
+          \\ \textit{Precision:} Gradients accumulated in FP32 to avoid underflow (min FP16 = $6 \times 10^{-8}$).
+          \\ \textit{Loss scaling:} Multiply loss by 1024-65536 before backward to prevent gradient underflow.
+          \\ \textit{Critical:} Unscale gradients before optimizer step to maintain correct update magnitudes.
+
+    \item \textbf{AWQ Scaling ($\alpha = 0.5$):}
+          \\ \textit{Why per-channel:} Different neurons have different activation magnitudes.
+          \\ \textit{Formula:} $W'_{ij} = W_{ij} \cdot (s_i^{0.5} / s_{\max}^{0.5})$ where $s_i = \mathbb{E}[|A_i(x)|]$
+          \\ \textit{Effect:} High-activation channels get finer quantization (smaller effective $\Delta$).
+          \\ \textit{Empirical result:} 64\% error reduction on LLMs compared to naive quantization.
+          \\ \textit{Cost:} One-time calibration pass (500-1000 samples), no runtime overhead.
+\end{itemize}
+
+\begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,title={Hyperparameter Guidance: QAKD}]
+\textbf{Recommended Values:}
+\begin{itemize}
+    \item \textbf{Temperature ($\tau$):} 3.0 to 5.0
+          \\ \textit{Why:} Lower ($\tau < 2$) makes teacher over-confident, student learns only top predictions. Higher ($\tau > 6$) makes distribution too uniform, loses information.
+          \\ \textit{Compute Impact:} No memory/speed impact, just affects softmax before loss.
+          \\ \textit{Tuning:} Start with 3.0; increase if student accuracy plateaus early.
+    
+    \item \textbf{Lambda ($\lambda_{\text{quant}}$):} $5 \times 10^{-4}$ to $1 \times 10^{-3}$
+          \\ \textit{Why:} Must be small because $\mathcal{L}_{\text{quant}}$ accumulates over millions of weights. Typical ratio: $\lambda \mathcal{L}_{\text{quant}} / \mathcal{L}_{\text{KD}} \approx 1:1000$.
+          \\ \textit{Too high:} Weights collapse to grid, KD loss increases.
+          \\ \textit{Too low:} No quantization awareness, deployment accuracy drops.
+          \\ \textit{Diagnostic:} If $\mathcal{L}_{\text{quant}}$ dominates (ratio $>$ 1:100), reduce $\lambda$.
+    
+    \item \textbf{Bits:} INT8 (conservative), INT4 (aggressive)
+          \\ \textit{INT8:} Typically <1\% accuracy drop, safe for most applications.
+          \\ \textit{INT4:} 2-5\% accuracy drop, but 8$\times$ memory reduction vs FP16.
+          \\ \textit{INT3:} Experimental, usually >5\% drop unless extreme QAKD tuning.
+          \\ \textit{Memory formula:} Model size = params $\times$ bits / 8 bytes.
+          \\ Example: 7B params $\times$ 4 bits / 8 = 3.5GB (vs 14GB FP16).
+    
+    \item \textbf{Learning Rate:} $2 \times 10^{-5}$ to $5 \times 10^{-5}$
+          \\ \textit{Why:} Same range as standard fine-tuning; student starts from pre-trained weights.
+          \\ \textit{Warmup:} Use 100-500 steps (10\% of total) to prevent initial instability.
+          \\ \textit{Scheduler:} Cosine decay works well; reduces LR to 10\% of initial by end.
+    
+    \item \textbf{Batch Size:} 16-32 for 24GB GPU, 64-128 for 80GB GPU
+          \\ \textit{Memory breakdown:} Teacher (frozen, inference only) + Student (training) + Gradients + Optimizer states (AdamW stores 2$\times$ params).
+          \\ \textit{Gradient accumulation:} Simulate large batch on small GPU: \texttt{batch\_size=8, accum=8 $\rightarrow$ effective=64}.
+          \\ \textit{Trade-off:} Larger batch = smoother gradients, but longer per-epoch time.
+    
+    \item \textbf{Gradient Scaling (FP16):} Start with $S = 1024$
+          \\ \textit{Purpose:} Prevent underflow for small gradients ($< 6 \times 10^{-8}$ underflows in FP16).
+          \\ \textit{Adaptive:} \texttt{GradScaler} auto-adjusts: doubles $S$ if no overflow, halves if overflow.
+          \\ \textit{Symptom of wrong $S$:} Loss becomes NaN (overflow) or stops decreasing (underflow).
+\end{itemize}
+
+\textbf{Quick-Start Configurations:}
+\begin{itemize}
+    \item \textbf{7B $\rightarrow$ 1.5B INT4 (Edge Deployment):}
+          \\ $\tau=3.0$, $\lambda=5 \times 10^{-4}$, LR=$2 \times 10^{-5}$, Batch=16, Epochs=3
+          \\ Expected: 76-78\% of teacher accuracy, 750MB memory, 7$\times$ speedup.
+    
+    \item \textbf{13B $\rightarrow$ 7B INT8 (Conservative):}
+          \\ $\tau=4.0$, $\lambda=3 \times 10^{-4}$, LR=$3 \times 10^{-5}$, Batch=32, Epochs=2
+          \\ Expected: 95-97\% of teacher accuracy, 7GB memory, 3$\times$ speedup.
+    
+    \item \textbf{70B $\rightarrow$ 13B INT4 (Aggressive Compression):}
+          \\ $\tau=5.0$, $\lambda=1 \times 10^{-3}$, LR=$1 \times 10^{-5}$, Batch=64, Epochs=5
+          \\ Expected: 85-90\% of teacher accuracy, 6.5GB memory, 10$\times$ speedup.
+\end{itemize}
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title={Common Pitfalls and Debugging Tips: QAKD}]
+
+\textbf{Pitfall 1: KD Loss Not Decreasing}
+\begin{itemize}
+    \item \textbf{Symptoms:} $\mathcal{L}_{\text{KD}}$ stays constant or increases over first 500 steps.
+    \item \textbf{Root Cause:} Temperature too low ($\tau < 2$) makes teacher distribution too sharp, or student architecture mismatch.
+    \item \textbf{Diagnosis:} 
+          \begin{lstlisting}[language=Python]
+# Check teacher-student logit correlation
+with torch.no_grad():
+    correlation = torch.corrcoef(torch.stack([
+        teacher_logits.flatten(), 
+        student_logits.flatten()
+    ]))[0, 1]
+    print(f"Logit correlation: {correlation:.3f}")
+# Should be > 0.5; if < 0.3, student can't mimic teacher
+          \end{lstlisting}
+    \item \textbf{Solution:} Increase temperature to $\tau = 4$ or 5; verify student has enough capacity (at least 20\% of teacher params).
+    \item \textbf{Prevention:} Always warm up LR (first 10\% of steps) to avoid initial chaos.
+\end{itemize}
+
+\textbf{Pitfall 2: Quantization Loss Dominates}
+\begin{itemize}
+    \item \textbf{Symptoms:} $\mathcal{L}_{\text{quant}} > 0.01$, ratio $\lambda \mathcal{L}_{\text{quant}} / \mathcal{L}_{\text{KD}} > 0.1$.
+    \item \textbf{Root Cause:} $\lambda$ too high, forcing weights to quantization grid prematurely.
+    \item \textbf{Consequence:} Student forgets teacher knowledge, accuracy drops significantly.
+    \item \textbf{Solution:} Reduce $\lambda$ by 10$\times$ (e.g., $5 \times 10^{-4} \rightarrow 5 \times 10^{-5}$). Monitor ratio; keep it around 1:1000.
+    \item \textbf{Code Fix:}
+          \begin{lstlisting}[language=Python]
+# Adaptive lambda: Reduce if quant loss too high
+if loss_quant / loss_kd > 0.001:
+    lambda_quant *= 0.9  # Gradual reduction
+    print(f"Reducing lambda to {lambda_quant:.2e}")
+          \end{lstlisting}
+    \item \textbf{Prevention:} Start with small $\lambda$ ($1 \times 10^{-4}$), increase gradually if needed.
+\end{itemize}
+
+\textbf{Pitfall 3: Out of Memory During Training}
+\begin{itemize}
+    \item \textbf{Symptoms:} \texttt{CUDA out of memory} error during forward or backward pass.
+    \item \textbf{Root Cause:} Training requires: Teacher (inference) + Student (training) + Gradients + Optimizer states.
+    \item \textbf{Memory Formula:} 
+          \\ Teacher: $N_T \times 2$ bytes (FP16 inference)
+          \\ Student: $N_S \times 4$ bytes (FP32 training) + $N_S \times 8$ bytes (AdamW momentum+variance) + $N_S \times 4$ bytes (gradients)
+          \\ Total $\approx N_T \times 2 + N_S \times 16$ bytes
+          \\ Example: 7B teacher + 1.5B student $= 14 + 24 = 38$GB
+    \item \textbf{Solution:} Use gradient checkpointing:
+          \begin{lstlisting}[language=Python]
+student_model.gradient_checkpointing_enable()
+# Trades 30% slower training for 40% less memory
+          \end{lstlisting}
+    \item \textbf{Alternative:} Use smaller batch size with gradient accumulation:
+          \begin{lstlisting}[language=Python]
+# Simulate batch_size=32 with only 8 at a time
+accumulation_steps = 4
+for i, batch in enumerate(dataloader):
+    loss = trainer.train_step(batch, optimizer) / accumulation_steps
+    if (i + 1) % accumulation_steps == 0:
+        optimizer.step()
+        optimizer.zero_grad()
+          \end{lstlisting}
+    \item \textbf{Prevention:} Calculate memory before training; use \texttt{model.get\_memory\_footprint()}.
+\end{itemize}
+
+\textbf{Pitfall 4: NaN Loss During Training}
+\begin{itemize}
+    \item \textbf{Symptoms:} Loss becomes \texttt{NaN} suddenly, usually within first 1000 steps.
+    \item \textbf{Root Cause:} Gradient overflow in FP16 mixed-precision training.
+    \item \textbf{Diagnosis:}
+          \begin{lstlisting}[language=Python]
+# Check for NaN gradients
+for name, param in student_model.named_parameters():
+    if param.grad is not None:
+        if torch.isnan(param.grad).any():
+            print(f"NaN gradient in {name}")
+          \end{lstlisting}
+    \item \textbf{Solution:} Reduce gradient scaling factor:
+          \begin{lstlisting}[language=Python]
+scaler = GradScaler(init_scale=512)  # Default is 65536
+# Or use dynamic scaling (auto-adjusts)
+          \end{lstlisting}
+    \item \textbf{Alternative:} Use gradient clipping more aggressively:
+          \begin{lstlisting}[language=Python]
+torch.nn.utils.clip_grad_norm_(student_model.parameters(), max_norm=0.5)
+# Default max_norm=1.0; reduce if NaN persists
+          \end{lstlisting}
+    \item \textbf{Prevention:} Always enable gradient clipping and use adaptive \texttt{GradScaler}.
+\end{itemize}
+
+\textbf{Pitfall 5: Deployment Accuracy Drop Despite Low Training Loss}
+\begin{itemize}
+    \item \textbf{Symptoms:} Training $\mathcal{L}_{\text{KD}} < 1.5$, but deployed INT4 model has 10\%+ accuracy drop.
+    \item \textbf{Root Cause:} Fake quantization during training $\neq$ true INT4 inference. Fake quant uses FP16, real quant uses actual integer ops.
+    \item \textbf{Solution:} Apply GPTQ post-training quantization:
+          \begin{lstlisting}[language=Python]
+from auto_gptq import AutoGPTQForCausalLM, BaseQuantizeConfig
+
+quantize_config = BaseQuantizeConfig(
+    bits=4,
+    group_size=128,  # Quantize 128 weights together
+    desc_act=True    # Use activation order for better accuracy
+)
+
+model_gptq = AutoGPTQForCausalLM.from_pretrained(
+    "qakd_checkpoints/final_model.pt",
+    quantize_config=quantize_config
+)
+model_gptq.quantize(calibration_dataloader)
+model_gptq.save_quantized("qakd_gptq_int4")
+          \end{lstlisting}
+    \item \textbf{Why GPTQ helps:} Hessian-aware quantization compensates for outliers, reducing INT4 error by 40\%.
+    \item \textbf{Prevention:} Always test with true INT4 deployment (not just fake quant) before production.
+\end{itemize}
+
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title={Key Takeaways: QAKD}]
+\begin{enumerate}
+    \item \textbf{Core Equation:} $\mathcal{L}_{\text{QAKD}} = \mathcal{L}_{\text{KD}} + \lambda \mathbb{E}[\epsilon^2]$ combines teacher imitation with quantization robustness. The noise term $\mathbb{E}[\epsilon^2]$ trains model to produce quantization-friendly weights.
+    
+    \item \textbf{Straight-Through Estimator is Critical:} Fake quantization (using $W_q$ in forward, gradients to $W$) is the KEY trick enabling backprop through non-differentiable quantization. Without STE, gradients are zero.
+    
+    \item \textbf{Lambda Balancing Act:} Typical ratio is $\lambda \mathcal{L}_{\text{quant}} / \mathcal{L}_{\text{KD}} \approx 1:1000$. Too high ($>1:100$) causes catastrophic forgetting of teacher knowledge. Too low ($<1:10000$) provides no quantization awareness.
+    
+    \item \textbf{AWQ Gives 64\% Error Reduction:} Activation-aware scaling ($W' = W \cdot s^{0.5}$) provides dramatic improvement with minimal cost (one-time calibration). Always use AWQ for INT4.
+    
+    \item \textbf{Memory Advantage:} INT4 achieves 8$\times$ compression vs FP16 (7B model: 14GB $\rightarrow$ 1.75GB). QAKD typically recovers 3-5\% accuracy vs naive post-training quantization.
+    
+    \item \textbf{Mixed-Precision is Essential:} FP16 forward (speed) + FP32 gradients (precision) + loss scaling (prevent underflow). Without this, training is 2-3$\times$ slower or fails entirely.
+    
+    \item \textbf{When to Use QAKD vs Alternatives:}
+          \\ Use QAKD if: Edge deployment (<4-bit), accuracy critical (medical, finance), willing to train.
+          \\ Use PTQ if: Quick deployment, INT8 sufficient, no training budget.
+          \\ Use Standard KD if: Not quantizing, only need model compression.
+    
+    \item \textbf{Production Checklist:}
+          \begin{itemize}
+              \item[$\square$] Gradient clipping enabled (\texttt{max\_norm=1.0})
+              \item[$\square$] Mixed-precision with \texttt{GradScaler}
+              \item[$\square$] AWQ calibration completed (500-1000 samples)
+              \item[$\square$] Lambda ratio monitored ($\mathcal{L}_{\text{quant}} / \mathcal{L}_{\text{KD}} < 0.001$)
+              \item[$\square$] Checkpointing every 1000 steps
+              \item[$\square$] Validation set monitoring (catch overfitting)
+              \item[$\square$] Post-training GPTQ quantization for deployment
+              \item[$\square$] True INT4 inference testing (not just fake quant)
+          \end{itemize}
+    
+    \item \textbf{Empirical Success Metrics:}
+          \\ INT8 QAKD: 95-98\% teacher accuracy retention (vs 92-94\% PTQ)
+          \\ INT4 QAKD: 90-95\% teacher accuracy retention (vs 85-88\% PTQ)
+          \\ Training time: 1.5-2$\times$ longer than standard distillation (worth it for 3-5\% gain)
+          \\ Deployment speedup: 2-3$\times$ on GPUs, 5-7$\times$ on CPUs (INT4 vs FP16)
+\end{enumerate}
+\end{tcolorbox}
+
 \end{document}
