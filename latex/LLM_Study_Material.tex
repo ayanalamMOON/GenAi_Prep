@@ -3834,7 +3834,7 @@ This is exactly Adam's denominator: $\eta_i = \eta_0 / \sqrt{v_{t,i}}$
 
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[scale=1.4]
+\begin{tikzpicture}[scale=1.05]
 % Left: Convergence trajectories
 \begin{scope}
 \draw[->] (0,0) -- (7,0) node[right] {Training Steps ($\times 10^3$)};
@@ -3879,7 +3879,7 @@ This is exactly Adam's denominator: $\eta_i = \eta_0 / \sqrt{v_{t,i}}$
 \end{scope}
 
 % Right: Fisher Information adaptive LR
-\begin{scope}[shift={(9.5,0)}]
+\begin{scope}[shift={(8,0)}]
 \draw[->] (0,0) -- (6,0) node[right] {Parameter Space $\theta_i$};
 \draw[->] (0,0) -- (0,6) node[above] {Value};
 
@@ -3915,7 +3915,7 @@ This is exactly Adam's denominator: $\eta_i = \eta_0 / \sqrt{v_{t,i}}$
 
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[scale=1.4]
+\begin{tikzpicture}[scale=1.05]
 % Left: Memory comparison
 \begin{scope}
 \draw[->] (0,0) -- (7,0) node[right] {Optimizer};
@@ -3958,7 +3958,7 @@ This is exactly Adam's denominator: $\eta_i = \eta_0 / \sqrt{v_{t,i}}$
 \end{scope}
 
 % Right: Convergence rate comparison
-\begin{scope}[shift={(9,0)}]
+\begin{scope}[shift={(8,0)}]
 \draw[->] (0,0) -- (6,0) node[right] {Iterations (log scale)};
 \draw[->] (0,0) -- (0,5) node[above] {Error (log scale)};
 
