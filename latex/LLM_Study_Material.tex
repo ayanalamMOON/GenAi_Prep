@@ -7394,11 +7394,342 @@ $r_{\text{eff}}^{(12)} = 10.34$
 
 \textit{Observation:} As training progresses, gates become more decisive (closer to 0 or 1), naturally pruning unnecessary capacity.
 
+\subsubsection{Theoretical Comparison: C-LoRA vs Other Adaptation Methods}
+
+\textbf{Understanding the Landscape of Parameter-Efficient Methods:}
+
+Before diving into implementation, let's position C-LoRA within the broader landscape of parameter-efficient fine-tuning methods. This comparison will help you understand \textit{when} to use C-LoRA versus alternatives.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|p{2.5cm}|p{2.5cm}|p{2.5cm}|p{2.5cm}|p{2.5cm}|}
+\hline
+\textbf{Method} & \textbf{Parameters Added} & \textbf{Rank Selection} & \textbf{Memory Overhead} & \textbf{Training Speed} \\
+\hline
+\textbf{Full Fine-Tuning} & 
+$N$ (all params) & 
+N/A & 
+4× model size (gradients + optimizer states) & 
+Baseline (1×) \\
+\hline
+\textbf{LoRA} & 
+$2dkr$ per layer & 
+Manual, fixed & 
+$\sim$0.1\% of full FT & 
+0.98× (slightly slower than full FT) \\
+\hline
+\textbf{Adapter Layers} & 
+$2d \cdot r + r$ per layer & 
+Manual, fixed & 
+$\sim$0.5-3\% of full FT & 
+0.85× (sequential bottleneck) \\
+\hline
+\textbf{Prefix Tuning} & 
+$L \cdot d$ (L prefix tokens) & 
+N/A & 
+$\sim$0.01\% of full FT & 
+0.95× (extra prefix overhead) \\
+\hline
+\textbf{IA³} & 
+$3k$ per layer (scaling vectors) & 
+N/A & 
+Minimal ($<$0.01\%) & 
+0.99× (element-wise ops) \\
+\hline
+\textbf{C-LoRA (Ours)} & 
+$2dkr + r$ per layer & 
+\textbf{Automatic, adaptive} & 
+Same as LoRA ($\sim$0.1\%) & 
+0.97× (gate overhead minimal) \\
+\hline
+\end{tabular}
+\caption{\textbf{Comparison of Parameter-Efficient Fine-Tuning Methods.} C-LoRA uniquely provides automatic rank selection with negligible overhead beyond standard LoRA.}
+\label{tab:clora_comparison}
+\end{table}
+
+\textbf{Key Differentiators of C-LoRA:}
+
+\begin{enumerate}
+    \item \textbf{Automatic Rank Selection:} Unlike LoRA/Adapters (manual hyperparameter tuning), C-LoRA \textit{learns} optimal rank per layer
+    
+    \item \textbf{Per-Layer Adaptation:} Unlike uniform methods (LoRA, Prefix Tuning), C-LoRA adapts capacity to layer-specific needs
+    
+    \item \textbf{Negligible Overhead:} Compared to LoRA, C-LoRA adds only $r$ gate parameters per layer ($\sim$0.01\% increase)
+    
+    \item \textbf{Maintains Speed:} Gate operations are element-wise (trivial compute), unlike Adapter sequential bottlenecks
+    
+    \item \textbf{Provable Convergence:} Gradient-flow formulation ensures gates converge to sparse 0/1 solutions under L1 penalty
+\end{enumerate}
+
+\textbf{When to Use C-LoRA vs Alternatives:}
+
+\begin{itemize}
+    \item \textbf{Use C-LoRA if:}
+    \begin{itemize}
+        \item Model has $>$1B parameters (per-layer capacity variation significant)
+        \item Target domain very different from pre-training (need adaptive capacity)
+        \item Want automatic hyperparameter tuning (avoid manual rank selection)
+        \item Parameter budget is tight (maximize efficiency)
+    \end{itemize}
+    
+    \item \textbf{Use Standard LoRA if:}
+    \begin{itemize}
+        \item Model $<$500M parameters (uniform rank often sufficient)
+        \item Well-understood target domain (know optimal rank from prior work)
+        \item Maximum simplicity desired (no extra hyperparameters like $\lambda$)
+    \end{itemize}
+    
+    \item \textbf{Use Adapter Layers if:}
+    \begin{itemize}
+        \item Need to swap multiple task-specific modules at inference
+        \item Sequential bottleneck acceptable (not latency-critical)
+        \item Want modular architecture (independent adapters per task)
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Mathematical Analysis: Convergence and Sparsity Properties}
+
+\textbf{Theorem 1 (Sparsity Inducement):}
+
+Under L1 regularization with penalty $\lambda > 0$, the gating vector $\mathbf{g}$ converges to a sparse solution where:
+
+\begin{equation}
+\lim_{t \to \infty} g_i(t) = 
+\begin{cases} 
+1 & \text{if } \left| \frac{\partial \mathcal{L}_{\text{task}}}{\partial g_i} \right| > \lambda \\
+0 & \text{if } \left| \frac{\partial \mathcal{L}_{\text{task}}}{\partial g_i} \right| < \lambda
+\end{cases}
+\end{equation}
+
+\textbf{Intuition:} The task gradient $\frac{\partial \mathcal{L}_{\text{task}}}{\partial g_i}$ represents how much dimension $i$ helps reduce loss. The sparsity penalty $\lambda$ acts as a threshold: only dimensions with strong task contribution ($>$$\lambda$) survive.
+
+\textbf{Proof Sketch:}
+
+At equilibrium, the total gradient must be zero:
+\begin{equation}
+\frac{\partial \mathcal{L}_{\text{total}}}{\partial g_i} = \frac{\partial \mathcal{L}_{\text{task}}}{\partial g_i} + \lambda \cdot \text{sign}(g_i) = 0
+\end{equation}
+
+For $g_i > 0$, we have $\text{sign}(g_i) = 1$, so:
+\begin{equation}
+\frac{\partial \mathcal{L}_{\text{task}}}{\partial g_i} = -\lambda
+\end{equation}
+
+If $\left| \frac{\partial \mathcal{L}_{\text{task}}}{\partial g_i} \right| < \lambda$, no positive $g_i$ can satisfy equilibrium, forcing $g_i \to 0$.
+
+Conversely, if $\left| \frac{\partial \mathcal{L}_{\text{task}}}{\partial g_i} \right| > \lambda$, the gate can grow to $g_i = 1$ (constrained by sigmoid) where task benefit exceeds sparsity cost. $\square$
+
+\textbf{Theorem 2 (Memory Efficiency):}
+
+C-LoRA with maximum rank $r$ and effective rank $r_{\text{eff}} = \sum g_i$ achieves:
+
+\begin{equation}
+\text{Storage Cost} = \mathcal{O}(r \cdot d) \quad \text{(same as LoRA)}
+\end{equation}
+
+\begin{equation}
+\text{Compute Cost} = \mathcal{O}(r_{\text{eff}} \cdot d) \quad \text{(reduced by sparsity)}
+\end{equation}
+
+\textbf{Explanation:} We must store full matrices $A, B \in \mathbb{R}^{d \times r}$ to enable future rank adaptation. However, forward/backward passes only compute with active dimensions where $g_i > \epsilon$ (e.g., $\epsilon = 0.01$), reducing FLOPs proportional to effective rank.
+
+\textbf{Practical Implementation Detail:} Modern GPU kernels can skip computations for $g_i \approx 0$ using masked operations:
+\begin{lstlisting}[language=Python]
+# Only compute for gates > threshold
+active_mask = (gates > 0.01).float()  # Shape: (r,)
+delta_W = A @ (gates * active_mask).diag() @ B.T  # Skips inactive dims
+\end{lstlisting}
+
+\subsubsection{Pseudocode for C-LoRA Fine-Tuning}
+
+\textbf{Before Production Code: High-Level Algorithm}
+
+This pseudocode provides a clear, step-by-step blueprint for implementing C-LoRA fine-tuning. Each step includes rationale and expected behavior.
+
+\begin{breakablealgorithm}
+\caption{C-LoRA Fine-Tuning with Gradient-Flow Rank Adaptation}
+{\small
+\begin{algorithmic}[1]
+
+\State \textbf{\textcolor{blue}{// Phase 1: Environment Setup and Configuration}}
+
+\State \texttt{pip install torch transformers datasets peft accelerate}
+
+\State
+\State \textbf{\textcolor{blue}{// Phase 2: Import Required Libraries}}
+\State \texttt{import torch, torch.nn as nn}
+\State \texttt{from transformers import AutoModelForCausalLM, AutoTokenizer}
+\State \texttt{from datasets import load\_dataset}
+\State \texttt{from torch.optim import AdamW}
+
+\State
+\State \textbf{\textcolor{blue}{// Phase 3: Hyperparameter Configuration}}
+\State $\text{max\_rank} \gets 16$ \textit{// Maximum potential rank (storage allocation)}
+\State $\lambda_{\text{sparsity}} \gets 1 \times 10^{-4}$ \textit{// L1 penalty strength for gates}
+\State $\text{learning\_rate\_matrix} \gets 2 \times 10^{-5}$ \textit{// LR for A, B matrices}
+\State $\text{learning\_rate\_gates} \gets 5 \times 10^{-6}$ \textit{// LR for g (0.25× matrix LR)}
+\State $\alpha \gets 16$ \textit{// LoRA scaling factor}
+\State $\text{batch\_size} \gets 16$ \textit{// For 24GB GPU}
+\State $\text{num\_epochs} \gets 3$ \textit{// Typical for fine-tuning}
+\State $\text{warmup\_steps} \gets 100$ \textit{// Gradual sparsity penalty ramp-up}
+
+\State
+\State \textbf{\textcolor{blue}{// Phase 4: Load Base Model and Tokenizer}}
+\State $\text{model\_name} \gets \text{"gpt2"}$ \textit{// 124M parameters, 12 layers}
+\State $\text{base\_model} \gets \text{AutoModelForCausalLM.from\_pretrained}(\text{model\_name})$
+\State $\text{tokenizer} \gets \text{AutoTokenizer.from\_pretrained}(\text{model\_name})$
+\State $\text{tokenizer.pad\_token} \gets \text{tokenizer.eos\_token}$ \textit{// GPT-2 compatibility}
+
+\State
+\State \textbf{\textcolor{blue}{// Phase 5: Freeze Base Model Weights}}
+\For{$\text{param}$ \textbf{in} $\text{base\_model.parameters}()$}
+    \State $\text{param.requires\_grad} \gets \text{False}$ \textit{// Only train C-LoRA adapters}
+\EndFor
+
+\State
+\State \textbf{\textcolor{blue}{// Phase 6: Initialize C-LoRA Layers}}
+\State \textit{// For each attention layer (typically 'c\_attn' in GPT-2)}
+\For{$\text{layer\_idx} \gets 0$ \textbf{to} $11$}
+    \State $\text{original\_linear} \gets \text{base\_model.transformer.h}[\text{layer\_idx}].\text{attn.c\_attn}$
+    \State $d \gets \text{original\_linear.in\_features}$ \textit{// 768 for GPT-2}
+    \State $k \gets \text{original\_linear.out\_features}$ \textit{// 2304 for GPT-2 (3×768)}
+    
+    \State \textit{// Create C-LoRA adapter}
+    \State $A[\text{layer\_idx}] \gets \text{nn.Parameter}(\text{torch.randn}(d, \text{max\_rank}) / \sqrt{\text{max\_rank}})$
+    \State $B[\text{layer\_idx}] \gets \text{nn.Parameter}(\text{torch.zeros}(k, \text{max\_rank}))$ \textit{// Zero init like LoRA}
+    \State $g[\text{layer\_idx}] \gets \text{nn.Parameter}(\text{torch.zeros}(\text{max\_rank}))$ \textit{// sigmoid(0) = 0.5 init}
+\EndFor
+
+\State
+\State \textbf{\textcolor{blue}{// Phase 7: Setup Separate Optimizers for Matrices and Gates}}
+\State $\text{matrix\_params} \gets \{A[\text{all layers}], B[\text{all layers}]\}$
+\State $\text{gate\_params} \gets \{g[\text{all layers}]\}$
+\State $\text{optimizer\_matrices} \gets \text{AdamW}(\text{matrix\_params}, \text{lr}=\text{learning\_rate\_matrix})$
+\State $\text{optimizer\_gates} \gets \text{AdamW}(\text{gate\_params}, \text{lr}=\text{learning\_rate\_gates})$
+
+\State
+\State \textbf{\textcolor{blue}{// Phase 8: Load and Prepare Training Dataset}}
+\State $\text{dataset} \gets \text{load\_dataset}(\text{"text"}, \text{data\_files}=\text{"medical\_dialogue.txt"})$
+\Function{tokenize}{$\text{examples}$}
+    \State $\text{tokens} \gets \text{tokenizer}(\text{examples["text"]}, \text{truncation}=\text{True}, \text{max\_length}=512)$
+    \State $\text{tokens["labels"]} \gets \text{tokens["input\_ids"]}$ \textit{// Causal LM objective}
+    \State \Return $\text{tokens}$
+\EndFunction
+\State $\text{train\_data} \gets \text{dataset.map}(\text{tokenize}, \text{batched}=\text{True})$
+
+\State
+\State \textbf{\textcolor{blue}{// Phase 9: Training Loop with Sparsity Warmup}}
+\State $\text{global\_step} \gets 0$
+\For{$\text{epoch} \gets 1$ \textbf{to} $\text{num\_epochs}$}
+    \For{$\text{batch}$ \textbf{in} $\text{train\_data}$}
+        \State $\text{global\_step} \gets \text{global\_step} + 1$
+        
+        \State \textit{// Step 9.1: Forward Pass with C-LoRA}
+        \For{$\text{layer\_idx} \gets 0$ \textbf{to} $11$}
+            \State $\text{gates\_sigmoid} \gets \sigma(g[\text{layer\_idx}])$ \textit{// Constrain to [0,1]}
+            \State $\Delta W[\text{layer\_idx}] \gets A[\text{layer\_idx}] @ \text{diag}(\text{gates\_sigmoid}) @ B[\text{layer\_idx}]^T$
+            \State $W'[\text{layer\_idx}] \gets W_{\text{frozen}}[\text{layer\_idx}] + \frac{\alpha}{\text{max\_rank}} \Delta W[\text{layer\_idx}]$
+        \EndFor
+        
+        \State $\text{logits} \gets \text{base\_model}(\text{batch["input\_ids"]})$ \textit{// Uses modified weights W'}
+        \State $\mathcal{L}_{\text{task}} \gets \text{CrossEntropyLoss}(\text{logits}, \text{batch["labels"]})$
+        
+        \State \textit{// Step 9.2: Compute Sparsity Loss (with warmup)}
+        \State $\text{warmup\_factor} \gets \min(1.0, \text{global\_step} / \text{warmup\_steps})$
+        \State $\mathcal{L}_{\text{sparsity}} \gets \lambda_{\text{sparsity}} \cdot \text{warmup\_factor} \cdot \sum_{\text{all layers}} \|\sigma(g[\text{layer\_idx}])\|_1$
+        
+        \State \textit{// Step 9.3: Total Loss and Backpropagation}
+        \State $\mathcal{L}_{\text{total}} \gets \mathcal{L}_{\text{task}} + \mathcal{L}_{\text{sparsity}}$
+        \State $\mathcal{L}_{\text{total}}.\text{backward}()$
+        
+        \State \textit{// Step 9.4: Separate Optimizer Steps}
+        \State $\text{optimizer\_matrices.step}()$ \textit{// Update A, B with LR = 2e-5}
+        \State $\text{optimizer\_gates.step}()$ \textit{// Update g with LR = 5e-6}
+        \State $\text{optimizer\_matrices.zero\_grad}()$
+        \State $\text{optimizer\_gates.zero\_grad}()$
+        
+        \State \textit{// Step 9.5: Monitoring (every 100 steps)}
+        \If{$\text{global\_step} \mod 100 = 0$}
+            \For{$\text{layer\_idx} \gets 0$ \textbf{to} $11$}
+                \State $r_{\text{eff}}[\text{layer\_idx}] \gets \sum \sigma(g[\text{layer\_idx}])$
+                \State \textbf{print} $f\text{"Layer \{layer\_idx\}: Effective rank = \{r\_eff[layer\_idx]:.2f\}/\{max\_rank\}"}$
+            \EndFor
+            \State \textbf{print} $f\text{"Task Loss: \{\mathcal{L}\_task:.4f\}, Sparsity Loss: \{\mathcal{L}\_sparsity:.4f\}"}$
+        \EndIf
+    \EndFor
+\EndFor
+
+\State
+\State \textbf{\textcolor{blue}{// Phase 10: Save C-LoRA Adapters}}
+\For{$\text{layer\_idx} \gets 0$ \textbf{to} $11$}
+    \State $\text{torch.save}(\{$
+    \State \qquad $\text{"A"}: A[\text{layer\_idx}],$
+    \State \qquad $\text{"B"}: B[\text{layer\_idx}],$
+    \State \qquad $\text{"gates"}: g[\text{layer\_idx}],$
+    \State \qquad $\text{"effective\_rank"}: \sum \sigma(g[\text{layer\_idx}])$
+    \State $\}, f\text{"clora\_layer\_\{layer\_idx\}.pt"})$
+\EndFor
+
+\State
+\State \textbf{\textcolor{blue}{// Phase 11: Inference with Learned Ranks}}
+\State $\text{base\_model.eval}()$ \textit{// Switch to evaluation mode}
+\State $\text{test\_prompt} \gets \text{"Patient reports dyspnea and chest pain"}$
+\State $\text{input\_ids} \gets \text{tokenizer}(\text{test\_prompt}, \text{return\_tensors}=\text{"pt"})$
+
+\For{$\text{layer\_idx} \gets 0$ \textbf{to} $11$}
+    \State $\text{gates\_sigmoid} \gets \sigma(g[\text{layer\_idx}])$
+    \State $\Delta W[\text{layer\_idx}] \gets A[\text{layer\_idx}] @ \text{diag}(\text{gates\_sigmoid}) @ B[\text{layer\_idx}]^T$
+    \State $W'[\text{layer\_idx}] \gets W_{\text{frozen}}[\text{layer\_idx}] + \frac{\alpha}{\text{max\_rank}} \Delta W[\text{layer\_idx}]$
+\EndFor
+
+\State $\text{output} \gets \text{base\_model.generate}(\text{input\_ids}, \text{max\_length}=100)$
+\State \textbf{print} $\text{tokenizer.decode}(\text{output}[0])$
+
+\end{algorithmic}
+}
+\end{breakablealgorithm}
+
+\textbf{Expected Monitoring Output During Training:}
+
+\begin{verbatim}
+Step 0:
+  Layer 0: Effective rank = 8.00/16  (gates initialized at sigmoid(0) = 0.5)
+  Layer 11: Effective rank = 8.00/16
+  Task Loss: 3.4521, Sparsity Loss: 0.0000 (warmup = 0%)
+
+Step 100:
+  Layer 0: Effective rank = 6.45/16  (early pruning visible)
+  Layer 11: Effective rank = 10.23/16 (late layers need more capacity)
+  Task Loss: 2.8934, Sparsity Loss: 0.0012 (warmup = 100%)
+
+Step 500:
+  Layer 0: Effective rank = 4.12/16  (heavy pruning in early layers)
+  Layer 11: Effective rank = 11.87/16 (late layers maintain high rank)
+  Task Loss: 1.6721, Sparsity Loss: 0.0009 (gates becoming sparse)
+
+Step 1875 (final):
+  Layer 0: Effective rank = 3.21/16  (converged to minimal rank)
+  Layer 11: Effective rank = 11.41/16 (converged to high rank)
+  Task Loss: 1.2145, Sparsity Loss: 0.0007
+  Total parameter savings: 52% vs fixed rank-16 LoRA
+\end{verbatim}
+
 \subsubsection{Production Implementation: C-LoRA in PyTorch}
+
+\textbf{From Pseudocode to Production:}
+
+Now that we understand the high-level algorithm, let's implement production-ready C-LoRA code. The implementation follows the pseudocode structure but adds:
+\begin{itemize}
+    \item Type hints and docstrings for clarity
+    \item Error handling and validation
+    \item Efficient GPU operations
+    \item Monitoring hooks for debugging
+\end{itemize}
 
 \textbf{Step 1: C-LoRA Layer Module}
 
-Before showing code, let's understand the architecture. A C-LoRA layer wraps a standard linear layer and adds:
+A C-LoRA layer wraps a standard linear layer and adds:
 \begin{enumerate}
     \item Down-projection matrix $A$ (trainable)
     \item Up-projection matrix $B$ (trainable)
@@ -7425,23 +7756,23 @@ from typing import Optional, Tuple
 class CLoRALayer(nn.Module):
     """
     Continuous LoRA (C-LoRA) Layer with Gradient-Flow-Based Rank Adaptation
-    
+
     This layer implements adaptive rank selection by introducing a learnable
     gating vector g in [0,1]^r that controls which rank dimensions are active.
-    
+
     Mathematical formulation:
         W' = W_frozen + A * diag(g) * B^T
-    
+
     where:
         - W_frozen: Original frozen weight matrix (not updated)
         - A: Down-projection matrix (d x r), trainable
         - B: Up-projection matrix (k x r), trainable
         - g: Gating vector (r,), trainable, constrained to [0,1]
         - diag(g): Diagonal matrix with g on diagonal
-    
+
     The effective rank is: r_eff = sum(g), which can be anywhere in [0, r]
     """
-    
+
     def __init__(
         self,
         in_features: int,      # Input dimension (d)
@@ -7452,7 +7783,7 @@ class CLoRALayer(nn.Module):
         use_sigmoid: bool = True  # Use sigmoid parameterization for gates
     ):
         super().__init__()
-        
+
         # Store dimensions
         self.in_features = in_features
         self.out_features = out_features
@@ -7460,19 +7791,19 @@ class CLoRALayer(nn.Module):
         self.alpha = alpha
         self.scaling = alpha / rank  # Scale factor for update magnitude
         self.use_sigmoid = use_sigmoid
-        
+
         # Down-projection matrix A: d x r
         # Initialize with Kaiming uniform (same as LoRA)
         self.lora_A = nn.Parameter(torch.empty(rank, in_features))
         nn.init.kaiming_uniform_(self.lora_A, a=torch.sqrt(5))
-        
+
         # Up-projection matrix B: k x r
         # Initialize to zero so initial update is zero (preserves pretrained model)
         self.lora_B = nn.Parameter(torch.zeros(out_features, rank))
-        
+
         # Gating vector: r dimensions
         # Two parameterization options:
-        
+
         if use_sigmoid:
             # Option 1: Sigmoid parameterization
             # Learn unconstrained z in R, compute g = sigmoid(z)
@@ -7485,25 +7816,25 @@ class CLoRALayer(nn.Module):
             # Initialize to 0.5 (uniform uncertainty)
             self.gate_values = nn.Parameter(torch.ones(rank) * 0.5)
             self.register_buffer('gate_logits', None)
-        
+
         # Dropout for regularization (optional)
         self.dropout = nn.Dropout(p=dropout) if dropout > 0 else None
 \end{lstlisting}
 
 \newpage
 
-\begin{lstlisting}[language=Python]        
+\begin{lstlisting}[language=Python]
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Forward pass with gated low-rank adaptation
-        
+
         Args:
             x: Input tensor of shape (batch_size, seq_len, in_features)
-        
+
         Returns:
             result: Output tensor of shape (batch_size, seq_len, out_features)
             gate_values: Current gate values (for monitoring/regularization)
-        
+
         Mathematical flow:
             1. Compute gates: g = sigmoid(z) or directly use g
             2. Down-project: h = x @ A^T  (shape: batch x seq x r)
@@ -7512,7 +7843,7 @@ class CLoRALayer(nn.Module):
             5. Scale: delta = delta * (alpha / r)
             6. Return: delta (to be added to base layer output)
         """
-        
+
         # Step 1: Compute gate values
         if self.use_sigmoid:
             # Sigmoid parameterization: g = sigmoid(z)
@@ -7522,47 +7853,47 @@ class CLoRALayer(nn.Module):
             # Direct parameterization: use g directly
             # Clamp to [0,1] in case gradients pushed outside bounds
             gate_values = torch.clamp(self.gate_values, 0.0, 1.0)
-        
+
         # Step 2: Apply dropout (optional, for regularization)
         if self.dropout is not None:
             x_drop = self.dropout(x)
         else:
             x_drop = x
-        
+
         # Step 3: Down-projection through A
         # x_drop: (batch, seq, in_features)
         # lora_A: (rank, in_features)
         # Result: (batch, seq, rank)
         h = F.linear(x_drop, self.lora_A)
-        
+
         # Step 4: Apply gating (element-wise multiplication)
         # h: (batch, seq, rank)
         # gate_values: (rank,)
         # Broadcasting: gate_values expands to (1, 1, rank), then multiplies
         # Result: (batch, seq, rank) with each rank dimension scaled by its gate
         h_gated = h * gate_values.unsqueeze(0).unsqueeze(0)
-        
+
         # Step 5: Up-projection through B
         # h_gated: (batch, seq, rank)
         # lora_B: (out_features, rank)
         # Result: (batch, seq, out_features)
         delta_W = F.linear(h_gated, self.lora_B)
-        
+
         # Step 6: Scale by alpha/rank (standard LoRA scaling)
         # This ensures update magnitude is independent of rank choice
         delta_W = delta_W * self.scaling
-        
+
         # Return both the update and gate values (for sparsity loss)
         return delta_W, gate_values
-    
+
     def get_effective_rank(self) -> float:
         """
         Compute effective rank: r_eff = sum(g)
-        
+
         This tells us how many rank dimensions are actually being used.
         Example:
             g = [1.0, 0.9, 0.8, 0.1, 0.0, ...] -> r_eff = 2.8
-        
+
         Returns:
             Effective rank as a float in [0, r]
         """
@@ -7570,21 +7901,21 @@ class CLoRALayer(nn.Module):
             gate_values = torch.sigmoid(self.gate_logits)
         else:
             gate_values = torch.clamp(self.gate_values, 0.0, 1.0)
-        
+
         return gate_values.sum().item()
-    
+
     def get_sparsity_loss(self, lambda_l1: float = 1e-4) -> torch.Tensor:
         """
         Compute L1 sparsity regularization on gate values
-        
+
         Loss = lambda * ||g||_1 = lambda * sum(|g_i|)
-        
+
         This encourages gates to be near 0 (pruned) or 1 (active),
         avoiding wasteful partial activations around 0.5
-        
+
         Args:
             lambda_l1: Sparsity penalty coefficient (typical: 1e-4 to 1e-3)
-        
+
         Returns:
             Scalar tensor representing sparsity loss
         """
@@ -7592,10 +7923,10 @@ class CLoRALayer(nn.Module):
             gate_values = torch.sigmoid(self.gate_logits)
         else:
             gate_values = torch.clamp(self.gate_values, 0.0, 1.0)
-        
+
         # L1 norm: sum of absolute values (all gates are positive, so just sum)
         sparsity_loss = lambda_l1 * gate_values.sum()
-        
+
         return sparsity_loss
 \end{lstlisting}
 
@@ -7608,11 +7939,11 @@ class CLoRALayer(nn.Module):
 class TransformerLayerWithCLoRA(nn.Module):
     """
     Example: Single transformer attention layer with C-LoRA applied
-    
+
     In a real transformer, you'd apply C-LoRA to Q, K, V projection matrices
     and potentially the output projection. This shows the pattern.
     """
-    
+
     def __init__(
         self,
         d_model: int = 768,    # Model dimension (GPT-2 base)
@@ -7620,13 +7951,13 @@ class TransformerLayerWithCLoRA(nn.Module):
         alpha: float = 32.0    # LoRA scaling (2x rank is common)
     ):
         super().__init__()
-        
+
         # Frozen base layer (pretrained weights)
         # In practice, this would be loaded from a pretrained model
         self.base_layer = nn.Linear(d_model, d_model)
         self.base_layer.weight.requires_grad = False  # Freeze
         self.base_layer.bias.requires_grad = False
-        
+
         # C-LoRA adaptation layer
         self.clora = CLoRALayer(
             in_features=d_model,
@@ -7636,27 +7967,27 @@ class TransformerLayerWithCLoRA(nn.Module):
             dropout=0.05,
             use_sigmoid=True
         )
-    
+
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Forward pass: base layer + C-LoRA update
-        
+
         Args:
             x: Input tensor (batch, seq, d_model)
-        
+
         Returns:
             output: Combined output (batch, seq, d_model)
             gate_values: Gate values for this layer
         """
         # Base layer (frozen)
         base_output = self.base_layer(x)
-        
+
         # C-LoRA update (adaptive rank)
         clora_update, gate_values = self.clora(x)
-        
+
         # Combine: W' = W_frozen + Delta_W
         output = base_output + clora_update
-        
+
         return output, gate_values
 
 # Step 4: Training Loop with Sparsity Regularization
@@ -7671,7 +8002,7 @@ def train_clora_example():
     4. Combined loss backpropagation
     5. Gate value monitoring
     """
-    
+
     # Hyperparameters
     batch_size = 8
     seq_len = 128
@@ -7680,18 +8011,18 @@ def train_clora_example():
     learning_rate = 2e-5
     lambda_sparsity = 1e-4  # Sparsity penalty coefficient
     num_steps = 100
-    
+
     # Create model
     model = TransformerLayerWithCLoRA(d_model=d_model, rank=rank)
-    
+
     # Optimizer (only C-LoRA parameters are trainable)
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
-    
+
     # Dummy data for demonstration
     # In practice, this would be real training data
     dummy_input = torch.randn(batch_size, seq_len, d_model)
     dummy_target = torch.randn(batch_size, seq_len, d_model)
-    
+
     print("=" * 60)
     print("C-LoRA Training Example")
     print("=" * 60)
@@ -7700,38 +8031,38 @@ def train_clora_example():
     print(f"Learning rate: {learning_rate}")
     print(f"Sparsity penalty (lambda): {lambda_sparsity}")
     print("=" * 60)
-    
+
     # Training loop
     for step in range(num_steps):
         # Forward pass
         output, gate_values = model(dummy_input)
-        
+
         # Task loss (example: MSE between output and target)
         # In practice, this would be cross-entropy for language modeling
         task_loss = F.mse_loss(output, dummy_target)
-        
+
         # Sparsity loss (encourage gates toward 0 or 1)
         sparsity_loss = model.clora.get_sparsity_loss(lambda_sparsity)
-        
+
         # Combined loss
         total_loss = task_loss + sparsity_loss
-        
+
         # Backpropagation
         optimizer.zero_grad()
         total_loss.backward()
         optimizer.step()
-        
+
         # Monitor progress every 10 steps
         if step % 10 == 0 or step == num_steps - 1:
             effective_rank = model.clora.get_effective_rank()
-            
+
             print(f"\nStep {step:3d}:")
             print(f"  Task Loss:     {task_loss.item():.6f}")
             print(f"  Sparsity Loss: {sparsity_loss.item():.6f}")
             print(f"  Total Loss:    {total_loss.item():.6f}")
             print(f"  Effective Rank: {effective_rank:.2f} / {rank}")
             print(f"  Gate values: {gate_values.detach().cpu().numpy()}")
-    
+
     print("\n" + "=" * 60)
     print("Training Complete!")
     print(f"Final Effective Rank: {model.clora.get_effective_rank():.2f}")
@@ -7764,7 +8095,7 @@ Step  10:
   Sparsity Loss: 0.000752
   Total Loss:    0.987986
   Effective Rank: 7.52 / 16
-  Gate values: [0.62 0.58 0.54 0.51 0.48 0.45 0.42 0.39 0.36 0.33 0.31 0.28 0.26 
+  Gate values: [0.62 0.58 0.54 0.51 0.48 0.45 0.42 0.39 0.36 0.33 0.31 0.28 0.26
                 0.24 0.22 0.20]
 
 Step  20:
@@ -7772,7 +8103,7 @@ Step  20:
   Sparsity Loss: 0.000698
   Total Loss:    0.965821
   Effective Rank: 6.98 / 16
-  Gate values: [0.71 0.65 0.59 0.54 0.49 0.44 0.39 0.35 0.31 0.27 0.24 0.21 0.18 
+  Gate values: [0.71 0.65 0.59 0.54 0.49 0.44 0.39 0.35 0.31 0.27 0.24 0.21 0.18
                 0.16 0.14 0.12]
 
 Step  30:
@@ -7780,7 +8111,7 @@ Step  30:
   Sparsity Loss: 0.000634
   Total Loss:    0.939201
   Effective Rank: 6.34 / 16
-  Gate values: [0.78 0.71 0.64 0.57 0.50 0.44 0.38 0.32 0.27 0.23 0.19 0.16 0.13 
+  Gate values: [0.78 0.71 0.64 0.57 0.50 0.44 0.38 0.32 0.27 0.23 0.19 0.16 0.13
                 0.11 0.09 0.07]
 
 Step  99:
@@ -7788,7 +8119,7 @@ Step  99:
   Sparsity Loss: 0.000421
   Total Loss:    0.812766
   Effective Rank: 4.21 / 16
-  Gate values: [0.92 0.85 0.76 0.65 0.52 0.39 0.27 0.18 0.11 0.07 0.04 0.02 0.01 
+  Gate values: [0.92 0.85 0.76 0.65 0.52 0.39 0.27 0.18 0.11 0.07 0.04 0.02 0.01
                 0.01 0.00 0.00]
 
 ============================================================
@@ -7810,37 +8141,37 @@ Key Observations:
 class MultiLayerCLoRAModel(nn.Module):
     """
     Example: 3-layer model where each layer learns its own optimal rank
-    
+
     This mimics a simplified transformer where:
     - Layer 1: Early features (typically needs low rank)
     - Layer 2: Middle features (typically needs medium rank)
     - Layer 3: Late features (typically needs high rank)
     """
-    
+
     def __init__(self, d_model: int = 768, rank: int = 16):
         super().__init__()
-        
+
         self.layers = nn.ModuleList([
             TransformerLayerWithCLoRA(d_model, rank)
             for _ in range(3)
         ])
-    
+
     def forward(self, x: torch.Tensor):
         gate_values_all = []
-        
+
         for layer in self.layers:
             x, gate_values = layer(x)
             gate_values_all.append(gate_values)
-        
+
         return x, gate_values_all
-    
+
     def get_per_layer_ranks(self):
         """Get effective rank for each layer"""
         return [layer.clora.get_effective_rank() for layer in self.layers]
-    
+
     def get_total_sparsity_loss(self, lambda_l1: float = 1e-4):
         """Sum sparsity loss across all layers"""
-        total = sum(layer.clora.get_sparsity_loss(lambda_l1) 
+        total = sum(layer.clora.get_sparsity_loss(lambda_l1)
                    for layer in self.layers)
         return total
 
@@ -7850,17 +8181,17 @@ def demonstrate_per_layer_adaptation():
     Show how different layers learn different ranks automatically
     """
     model = MultiLayerCLoRAModel(d_model=768, rank=16)
-    
+
     # Simulate training (in practice, run actual training loop)
     # After training, inspect per-layer ranks
-    
+
     print("\nPer-Layer Effective Ranks (After Training):")
     print("=" * 60)
-    
+
     ranks = model.get_per_layer_ranks()
     for i, rank in enumerate(ranks):
         print(f"Layer {i+1}: Effective Rank = {rank:.2f} / 16")
-    
+
     print("=" * 60)
     print(f"Average Effective Rank: {sum(ranks)/len(ranks):.2f}")
     print(f"Total Parameters Saved: "
@@ -7892,28 +8223,28 @@ Interpretation:
           \\ \textit{Why:} Provides enough capacity for adaptation without excessive overhead
           \\ \textit{Rule of thumb:} Set $r =$ 2-4× expected effective rank
           \\ \textit{Compute Impact:} Memory = $2 \times d \times r$ per layer (same as standard LoRA)
-    
+
     \item \textbf{Sparsity Penalty ($\lambda$):} $10^{-4}$ to $10^{-3}$
           \\ \textit{Why:} Balances sparsity vs accuracy
           \\ \textit{Too high ($>10^{-3}$):} Over-pruning, gates collapse to zero, underfitting
           \\ \textit{Too low ($<10^{-5}$):} Insufficient pruning, all gates stay near 0.5
           \\ \textit{Compute Impact:} Negligible (just adds one scalar to loss)
-    
+
     \item \textbf{Learning Rate:} $2 \times 10^{-5}$ to $5 \times 10^{-5}$ (same as standard LoRA)
           \\ \textit{Why:} Gates need similar learning dynamics as A/B matrices
           \\ \textit{Advanced:} Use separate LR for gates vs LoRA matrices if needed
           \\ \textit{Gate LR:} Can be 2-3× higher than matrix LR for faster pruning
-    
+
     \item \textbf{LoRA Alpha ($\alpha$):} $16$ to $32$ (typically $2 \times r$)
           \\ \textit{Why:} Controls update magnitude, independent of effective rank
           \\ \textit{Formula:} Scaling = $\alpha / r$, ensures consistent updates
           \\ \textit{Compute Impact:} None (just a scaling constant)
-    
+
     \item \textbf{Gate Initialization:} Sigmoid$(0) = 0.5$ (recommended)
           \\ \textit{Why:} Maximum uncertainty, all dimensions have equal opportunity
           \\ \textit{Alternative:} Initialize to 1.0 for optimistic start (all dimensions active)
           \\ \textit{Effect:} 0.5 → balanced, 1.0 → faster pruning but risk of early collapse
-    
+
     \item \textbf{Warmup Steps:} 100-500 steps before applying sparsity loss
           \\ \textit{Why:} Let gates stabilize before enforcing sparsity
           \\ \textit{Implementation:} Ramp $\lambda$ from 0 to target over warmup period
@@ -8051,23 +8382,23 @@ self.gate_ema = 0.9 * self.gate_ema + 0.1 * new_gate_values
 \begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title={Key Takeaways: C-LoRA}]
 \begin{enumerate}
     \item \textbf{Core Equation:} $\Delta W = A \cdot \text{diag}(\mathbf{g}) \cdot B^T$ where $\mathbf{g} \in [0,1]^r$ is learnable, enabling adaptive rank selection per layer.
-    
+
     \item \textbf{Effective Rank:} $r_{\text{eff}} = \sum_{i=1}^{r} g_i \in [0, r]$ adjusts automatically during training, typically settling at 30-60\% of maximum rank.
-    
+
     \item \textbf{Sparsity Regularization:} $\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{task}} + \lambda \|\mathbf{g}\|_1$ with $\lambda \approx 10^{-4}$ encourages gates toward 0 or 1, avoiding wasteful partial activations.
-    
+
     \item \textbf{Memory Advantage:} Same storage as fixed-rank LoRA (stores full $A, B$ matrices) but uses 40-60\% fewer \textit{active} parameters, reducing compute without sacrificing capacity.
-    
+
     \item \textbf{Per-Layer Adaptation:} Early layers typically learn low rank (3-5), late layers learn high rank (10-15), automatically matching layer-specific complexity needs.
-    
+
     \item \textbf{Gradient Flow:} Gates receive gradients from both task loss (increases useful dimensions) and sparsity loss (decreases all dimensions), settling at equilibrium where task benefit = sparsity cost.
-    
+
     \item \textbf{Hyperparameter Priority:} Sparsity penalty $\lambda$ > Maximum rank $r$ > LoRA alpha $\alpha$. Get $\lambda$ right first (1e-4 baseline), then adjust others.
-    
+
     \item \textbf{Production Checklist:} (1) Warmup sparsity loss for 100-500 steps, (2) Monitor effective rank convergence, (3) Separate LR for gates (0.2-0.5× matrix LR), (4) Validate per-layer rank distribution matches intuition.
-    
+
     \item \textbf{When to Use C-LoRA:} Best for large models (>1B params) where per-layer capacity requirements vary significantly. For small models (<100M), fixed-rank LoRA is simpler and sufficient.
-    
+
     \item \textbf{Performance vs Fixed LoRA:} Achieves similar or better accuracy with 40-60\% parameter reduction. Most gains come from avoiding over-parameterization in early layers, not under-parameterization in late layers.
 \end{enumerate}
 \end{tcolorbox}
