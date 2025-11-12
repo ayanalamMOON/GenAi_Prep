@@ -14,7 +14,7 @@
 \usepackage{amsthm}
 \usepackage{tikz}
 \usepackage{pgfplots}
-\usepackage{tcolorbox}
+\usepackage[most,breakable]{tcolorbox}
 \usetikzlibrary{positioning,shapes,arrows,calc,patterns,matrix,decorations.pathreplacing}
 \pgfplotsset{compat=1.18}
 
@@ -2113,7 +2113,7 @@ Typical values:
     \item Crossover point: $N^* \approx 1000$ examples
 \end{itemize}
 
-\begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,title={Hyperparameter Guidance: Fine-Tuning LLMs}]
+\begin{tcolorbox}[breakable,colback=blue!5!white,colframe=blue!75!black,title={Hyperparameter Guidance: Fine-Tuning LLMs}]
 \textbf{Recommended Values by Use Case:}
 \begin{itemize}
     \item \textbf{Learning Rate:} $3 \times 10^{-5}$ to $5 \times 10^{-5}$ for GPT-2 size models ($<$1B params)
@@ -2246,7 +2246,7 @@ Math Bound & $O(\frac{1}{\epsilon})$ & $O(\frac{1}{\epsilon^2})$ \\
     \item \textbf{In-Context:} Few examples ($<100$), rapid iteration, multi-task inference
 \end{itemize}
 
-\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title={Common Pitfalls and Debugging Tips: Fine-Tuning}]
+\begin{tcolorbox}[breakable,colback=orange!5!white,colframe=orange!75!black,title={Common Pitfalls and Debugging Tips: Fine-Tuning}]
 
 \textbf{Pitfall 1: Loss Not Decreasing or Diverging}
 \begin{itemize}
@@ -2456,7 +2456,7 @@ for i in np.random.choice(len(dataset), 5):
 \end{enumerate}
 \end{tcolorbox}
 
-\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title={Key Takeaways: Fine-Tuning LLMs}]
+\begin{tcolorbox}[breakable,colback=green!5!white,colframe=green!75!black,title={Key Takeaways: Fine-Tuning LLMs}]
 
 \textbf{Essential Mathematical Formulas:}
 \begin{enumerate}
@@ -10067,7 +10067,7 @@ The SFT model serves as the starting point for RL optimization. Without this ini
     \item A reference point for measuring how much the model changes during RL (used in the KL penalty)
 \end{itemize}
 
-\begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,title={Hyperparameter Guidance: SFT Stage}]
+\begin{tcolorbox}[breakable,colback=blue!5!white,colframe=blue!75!black,title={Hyperparameter Guidance: SFT Stage}]
 \textbf{Recommended defaults for SFT (7B parameter models):}
 \begin{itemize}
     \item \textbf{Learning rate:} $2 \times 10^{-5}$ to $5 \times 10^{-5}$ (lower than pre-training)
@@ -10093,7 +10093,7 @@ The SFT model serves as the starting point for RL optimization. Without this ini
 \end{itemize}
 \end{tcolorbox}
 
-\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title={Common Pitfalls and Debugging Tips: SFT}]
+\begin{tcolorbox}[breakable,colback=orange!5!white,colframe=orange!75!black,title={Common Pitfalls and Debugging Tips: SFT}]
 \textbf{Pitfall 1: Overfitting on small datasets}
 \begin{itemize}
     \item \textit{Symptom:} Training loss decreases but validation loss increases or plateaus
@@ -10124,7 +10124,7 @@ The SFT model serves as the starting point for RL optimization. Without this ini
 \end{itemize}
 \end{tcolorbox}
 
-\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title={Key Takeaways: Supervised Fine-Tuning Stage}]
+\begin{tcolorbox}[breakable,colback=green!5!white,colframe=green!75!black,title={Key Takeaways: Supervised Fine-Tuning Stage}]
 \begin{enumerate}
     \item SFT creates a strong baseline by teaching the model desired response formats through human demonstrations
     \item Loss function: Standard cross-entropy $\mathcal{L} = -\sum_t \log P_\theta(y_t | x, y_{<t})$
@@ -10250,7 +10250,7 @@ class RewardModel(nn.Module):
     \item \textbf{Batch Construction:} Each batch contains $(x, y^w, y^l)$ triples, compute rewards for both $y^w$ and $y^l$, apply Bradley-Terry loss
 \end{itemize}
 
-\begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,title={Hyperparameter Guidance: Reward Model Training}]
+\begin{tcolorbox}[breakable,colback=blue!5!white,colframe=blue!75!black,title={Hyperparameter Guidance: Reward Model Training}]
 \textbf{Recommended defaults for reward model (7B parameter base):}
 \begin{itemize}
     \item \textbf{Learning rate:} $1 \times 10^{-5}$ to $3 \times 10^{-5}$ (lower than SFT)
@@ -10276,7 +10276,7 @@ class RewardModel(nn.Module):
 \end{itemize}
 \end{tcolorbox}
 
-\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title={Common Pitfalls and Debugging Tips: Reward Model}]
+\begin{tcolorbox}[breakable,colback=orange!5!white,colframe=orange!75!black,title={Common Pitfalls and Debugging Tips: Reward Model}]
 \textbf{Pitfall 1: Reward hacking / Exploitation}
 \begin{itemize}
     \item \textit{Symptom:} During RL stage, policy generates nonsense that gets high rewards
@@ -10315,7 +10315,7 @@ class RewardModel(nn.Module):
 \end{enumerate}
 \end{tcolorbox}
 
-\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title={Key Takeaways: Reward Model Training}]
+\begin{tcolorbox}[breakable,colback=green!5!white,colframe=green!75!black,title={Key Takeaways: Reward Model Training}]
 \begin{enumerate}
     \item Reward model learns to predict human preferences from pairwise comparisons
     \item Loss: Bradley-Terry model $\mathcal{L} = -\mathbb{E}\left[\log \sigma(r_\phi(y^w) - r_\phi(y^l))\right]$
@@ -10611,7 +10611,7 @@ Batch size & 64 - 256 & Prompts per rollout \\
 \caption{PPO Hyperparameters for RLHF}
 \end{table}
 
-\begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,title={Hyperparameter Guidance: PPO for RLHF}]
+\begin{tcolorbox}[breakable,colback=blue!5!white,colframe=blue!75!black,title={Hyperparameter Guidance: PPO for RLHF}]
 \textbf{Critical PPO hyperparameters explained:}
 
 \begin{itemize}
@@ -10668,7 +10668,7 @@ Batch size & 64 - 256 & Prompts per rollout \\
 \end{itemize}
 \end{tcolorbox}
 
-\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title={Common Pitfalls and Debugging Tips: PPO Training}]
+\begin{tcolorbox}[breakable,colback=orange!5!white,colframe=orange!75!black,title={Common Pitfalls and Debugging Tips: PPO Training}]
 \textbf{Pitfall 1: Reward hacking / Model collapse}
 \begin{itemize}
     \item \textit{Symptoms:}
@@ -10758,7 +10758,7 @@ Batch size & 64 - 256 & Prompts per rollout \\
 \end{itemize}
 \end{tcolorbox}
 
-\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title={Key Takeaways: PPO for RLHF}]
+\begin{tcolorbox}[breakable,colback=green!5!white,colframe=green!75!black,title={Key Takeaways: PPO for RLHF}]
 \begin{enumerate}
     \item PPO optimizes policy via clipped objective: $L = \min(r_t A_t, \text{clip}(r_t, 1\pm\epsilon) A_t)$
     \item Key components: Policy network, value network, reference model (frozen SFT), reward model
@@ -11494,7 +11494,7 @@ print("Training complete! Model saved to ./rlhf_final_model")
     \end{itemize}
 \end{enumerate}
 
-\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title={Key Takeaways: TRL Implementation}]
+\begin{tcolorbox}[breakable,colback=green!5!white,colframe=green!75!black,title={Key Takeaways: TRL Implementation}]
 \begin{enumerate}
     \item TRL automates the complex PPO mechanics: rollouts, advantage estimation, clipped updates
     \item Critical components: policy model + value head, frozen reference model, reward model
@@ -11782,7 +11782,7 @@ tokenizer.save_pretrained("./dpo_model")
     \end{itemize}
 \end{enumerate}
 
-\begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,title={Hyperparameter Guidance: DPO Training}]
+\begin{tcolorbox}[breakable,colback=blue!5!white,colframe=blue!75!black,title={Hyperparameter Guidance: DPO Training}]
 \textbf{Recommended defaults for DPO (7B models):}
 \begin{itemize}
     \item \textbf{Beta ($\beta$): 0.1-0.5}
@@ -11829,7 +11829,7 @@ tokenizer.save_pretrained("./dpo_model")
 \end{itemize}
 \end{tcolorbox}
 
-\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title={Common Pitfalls and Debugging Tips: DPO}]
+\begin{tcolorbox}[breakable,colback=orange!5!white,colframe=orange!75!black,title={Common Pitfalls and Debugging Tips: DPO}]
 \textbf{Pitfall 1: Training accuracy plateaus at 50-60\%}
 \begin{itemize}
     \item \textit{Symptom}: Accuracy doesn't improve beyond random chance
@@ -11901,7 +11901,7 @@ print(f"Difference: {(policy_chosen_logps - ref_chosen_logps)[:5]}")
 \end{enumerate}
 \end{tcolorbox}
 
-\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title={Key Takeaways: Direct Preference Optimization}]
+\begin{tcolorbox}[breakable,colback=green!5!white,colframe=green!75!black,title={Key Takeaways: Direct Preference Optimization}]
 \begin{enumerate}
     \item DPO eliminates reward model and RL, directly optimizes policy on preferences
     \item Core insight: Reward can be expressed as $r_\theta(x,y) = \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)}$
@@ -14517,7 +14517,7 @@ For LLaMA-7B with LoRA (r=16):
 
 This fits comfortably in 24GB GPU memory with overhead.
 
-\begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,title={Hyperparameter Guidance: Instruction Fine-Tuning}]
+\begin{tcolorbox}[breakable,colback=blue!5!white,colframe=blue!75!black,title={Hyperparameter Guidance: Instruction Fine-Tuning}]
 \textbf{Recommended Values:}
 \begin{itemize}
     \item \textbf{Learning Rate:} 1×10⁻⁵ to 5×10⁻⁵ (even lower than standard fine-tuning)
@@ -14564,7 +14564,7 @@ This fits comfortably in 24GB GPU memory with overhead.
 \end{itemize}
 \end{tcolorbox}
 
-\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title={Common Pitfalls and Debugging Tips: Instruction Fine-Tuning}]
+\begin{tcolorbox}[breakable,colback=orange!5!white,colframe=orange!75!black,title={Common Pitfalls and Debugging Tips: Instruction Fine-Tuning}]
 
 \textbf{Pitfall 1: Model Generates Gibberish or Repeats Instructions}
 \begin{itemize}
@@ -14721,7 +14721,7 @@ outputs = model.generate(
 \end{itemize}
 \end{tcolorbox}
 
-\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title={Key Takeaways: Instruction Fine-Tuning}]
+\begin{tcolorbox}[breakable,colback=green!5!white,colframe=green!75!black,title={Key Takeaways: Instruction Fine-Tuning}]
 \begin{enumerate}
     \item \textbf{Core Objective:} Train models to follow diverse instructions by maximizing $\mathbb{E}_{(I,x,y)} [\log P_\theta(y | I, x)]$ across multi-task datasets, enabling zero-shot generalization to novel tasks.
 
@@ -15188,7 +15188,7 @@ print(f"Conditional Perplexity: {cond_ppl:.2f}")
 \label{fig:error_analysis}
 \end{figure}
 
-\begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,title={Hyperparameter Guidance: Model Evaluation}]
+\begin{tcolorbox}[breakable,colback=blue!5!white,colframe=blue!75!black,title={Hyperparameter Guidance: Model Evaluation}]
 \textbf{Perplexity Computation:}
 \begin{itemize}
     \item \textbf{Sequence Length:} Use max\_length=512-1024 for efficient computation
@@ -15219,7 +15219,7 @@ print(f"Conditional Perplexity: {cond_ppl:.2f}")
 \end{itemize}
 \end{tcolorbox}
 
-\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title={Common Pitfalls and Debugging Tips: Evaluation}]
+\begin{tcolorbox}[breakable,colback=orange!5!white,colframe=orange!75!black,title={Common Pitfalls and Debugging Tips: Evaluation}]
 
 \textbf{Pitfall 1: Overfitting to Metrics}
 \begin{itemize}
@@ -15302,7 +15302,7 @@ loss = model(input_ids, labels=labels).loss  # Only output tokens
 \end{itemize}
 \end{tcolorbox}
 
-\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title={Key Takeaways: Model Evaluation}]
+\begin{tcolorbox}[breakable,colback=green!5!white,colframe=green!75!black,title={Key Takeaways: Model Evaluation}]
 \begin{enumerate}
     \item \textbf{Perplexity Formula:} $\text{PPL} = \exp\left(-\frac{1}{N}\sum_{i=1}^N \log P(w_i | w_{<i})\right)$ is the exponential of average negative log-likelihood. Lower is better.
 
@@ -17683,7 +17683,7 @@ print(f"\nTPR by group: {fairness['tpr_by_group']}")
 print(f"FPR by group: {fairness['fpr_by_group']}")
 \end{lstlisting}
 
-\begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,title={Hyperparameter Guidance: Fairness Metrics Selection}]
+\begin{tcolorbox}[breakable,colback=blue!5!white,colframe=blue!75!black,title={Hyperparameter Guidance: Fairness Metrics Selection}]
 \textbf{Metric Selection by Application Domain:}
 \begin{itemize}
     \item \textbf{Demographic Parity Threshold:} $\Delta_{DP} \leq 0.1$ (10\% disparity)
@@ -17723,7 +17723,7 @@ Track all three simultaneously and investigate when ANY threshold is exceeded:
 \end{itemize}
 \end{tcolorbox}
 
-\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title={Common Pitfalls and Debugging Tips: Fairness Metrics}]
+\begin{tcolorbox}[breakable,colback=orange!5!white,colframe=orange!75!black,title={Common Pitfalls and Debugging Tips: Fairness Metrics}]
 
 \textbf{Pitfall 1: Ignoring Base Rate Differences}
 \begin{itemize}
@@ -17839,7 +17839,7 @@ for col in feature_names:
 \end{itemize}
 \end{tcolorbox}
 
-\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title={Key Takeaways: Fairness Metrics}]
+\begin{tcolorbox}[breakable,colback=green!5!white,colframe=green!75!black,title={Key Takeaways: Fairness Metrics}]
 \begin{enumerate}
     \item \textbf{Core Impossibility Result:} Cannot simultaneously satisfy demographic parity, equalized odds, and calibration when base rates differ across groups (unless perfect classifier). This is mathematical fact, not engineering limitation.
 
@@ -19667,7 +19667,7 @@ print("Similarity matrix:")
 print(sim_matrix)
 \end{lstlisting}
 
-\begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,title={Hyperparameter Guidance: Embedding and Similarity Metrics for RAG}]
+\begin{tcolorbox}[breakable,colback=blue!5!white,colframe=blue!75!black,title={Hyperparameter Guidance: Embedding and Similarity Metrics for RAG}]
 \textbf{Embedding Model Selection:}
 \begin{itemize}
     \item \textbf{Dimension vs Performance Trade-off:}
@@ -19729,7 +19729,7 @@ print(sim_matrix)
 \end{itemize}
 \end{tcolorbox}
 
-\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title={Common Pitfalls and Debugging Tips: RAG Embeddings}]
+\begin{tcolorbox}[breakable,colback=orange!5!white,colframe=orange!75!black,title={Common Pitfalls and Debugging Tips: RAG Embeddings}]
 
 \textbf{Pitfall 1: Not Normalizing Embeddings}
 \begin{itemize}
@@ -19857,7 +19857,7 @@ class VersionedVectorDB:
 \end{itemize}
 \end{tcolorbox}
 
-\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title={Key Takeaways: Embeddings and Similarity for RAG}]
+\begin{tcolorbox}[breakable,colback=green!5!white,colframe=green!75!black,title={Key Takeaways: Embeddings and Similarity for RAG}]
 \begin{enumerate}
     \item \textbf{Core Mathematical Relationship:} For L2-normalized embeddings:
     \begin{equation}
