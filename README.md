@@ -7,7 +7,7 @@
 [![Status](https://img.shields.io/badge/Status-Actively%20Maintained-brightgreen.svg)]()
 [![Updates](https://img.shields.io/badge/Updates-Regular-blue.svg)]()
 
-> **Comprehensive university-level study guide for Large Language Models (LLMs), transformers, RLHF, fine-tuning, and generative AI techniques. Includes 335+ pages of theory (actively expanding), 47 visualizations, and 4 practical Jupyter notebooks. Regular updates with enhanced content and new implementations.**
+> **Comprehensive university-level study guide for Large Language Models (LLMs), transformers, RLHF, fine-tuning, and generative AI techniques. Includes 440+ pages of theory with rigorous mathematical derivations (actively expanding), 69+ visualizations, and 4 practical Jupyter notebooks. Regular updates with enhanced content and new implementations.**
 
 **Keywords:** Large Language Models, LLM, Transformers, RLHF, LoRA, QLoRA, Fine-Tuning, GPT, BERT, Attention Mechanism, Pre-training, Instruction Tuning, RAG, LangChain, LangGraph, Deep Learning, Natural Language Processing, NLP, Machine Learning, AI Safety
 
@@ -18,7 +18,7 @@ This repository contains comprehensive study materials for understanding Large L
 ```
 GenAi_Prep/
 ├── docs/                          # Documentation and compiled PDFs
-│   ├── LLM_Study_Material.pdf    # Main study guide (335 pages)
+│   ├── LLM_Study_Material.pdf    # Main study guide (440 pages)
 │   └── GenAI-Part-2.pdf          # Supplementary materials
 ├── notebooks/                     # Jupyter notebooks for hands-on learning
 │   ├── Finetuning_Dr_Patient.ipynb
@@ -29,7 +29,7 @@ GenAi_Prep/
 │   ├── LLM_Study_Material.tex
 │   └── AI_Assignment_3.tex
 ├── visualization/                 # Educational visualizations
-│   ├── images/                   # Generated diagrams (47 visualizations)
+│   ├── images/                   # Generated diagrams (69+ visualizations)
 │   ├── scripts/                  # Python visualization generators
 │   └── README.md
 ├── requirements.txt              # Python dependencies
@@ -38,11 +38,18 @@ GenAi_Prep/
 
 ## Primary Study Material
 
-**`docs/LLM_Study_Material.pdf`** (335+ pages, actively expanding)
+**`docs/LLM_Study_Material.pdf`** (440 pages, actively expanding)
 
 The main study document covering end-to-end LLM development, from fundamental concepts through advanced techniques. Each section includes mathematical derivations, practical code implementations, hyperparameter guidance, and debugging strategies.
 
-> **Note:** This document is regularly updated with enhanced content, additional sections, and improved explanations based on the latest research and best practices.
+> **Latest Update (November 12, 2025):** Added comprehensive advanced mathematical theory including:
+> - **Scaling Laws** (Kaplan 2020, Chinchilla 2022): Complete derivations with Lagrange optimization, compute-optimal training formulas
+> - **Eckart-Young Theorem**: SVD-based optimality proof for low-rank approximation in LoRA
+> - **Quantization Noise Analysis**: E[ε²] = Δ²/12 derivation, SQNR formula (6 dB per bit rule)
+> - **Optimization Dynamics**: AdamW convergence under FP16, Fisher Information, Adafactor memory efficiency
+> - **Information-Theoretic Perspective**: Mutual information flow, layer redundancy analysis, compression bounds
+> - **10 Professional TikZ Diagrams**: Iso-compute curves, SVD visualization, quantization noise, convergence trajectories, information flow
+> - **Total Enhancement**: +1,102 lines, +33 pages of rigorous mathematical content with complete step-by-step derivations
 
 ### Topics Covered
 
@@ -56,6 +63,13 @@ The main study document covering end-to-end LLM development, from fundamental co
 - Fine-tuning approaches (LoRA, QLoRA, PEFT)
 - Reinforcement Learning from Human Feedback (RLHF)
 - Direct Preference Optimization (DPO)
+
+**Advanced Mathematical Theory** ⭐ NEW
+- **Scaling Laws**: Kaplan & Chinchilla compute-optimal training (N_opt ∝ C^0.5, D_opt ∝ C^0.5)
+- **Eckart-Young Theorem**: Optimal low-rank approximation with SVD, error bounds for LoRA
+- **Quantization Noise**: Complete derivation of E[ε²] = Δ²/12, SQNR analysis for 4-bit quantization
+- **Optimization Dynamics**: AdamW convergence under low-precision, Fisher Information Matrix
+- **Information Theory**: Mutual information I(X;H), layer redundancy (92% in GPT-2 layers 9-12)
 
 **Advanced Techniques**
 - Instruction fine-tuning and dataset preparation
@@ -141,11 +155,15 @@ See `visualization/README.md` for the complete collection of visualizations and 
 
 ## Repository Statistics
 
-- **Study Material**: 335+ pages of comprehensive content (actively expanding)
+- **Study Material**: 440 pages of comprehensive content (actively expanding)
 - **Jupyter Notebooks**: 4 practical implementations
-- **Visualizations**: 47 educational diagrams across 6 categories
+- **Visualizations**: 69+ educational diagrams across 9 categories
+  - 47 Python-generated visualizations (matplotlib/seaborn)
+  - 10 LaTeX TikZ mathematical diagrams
+  - 12 updated RAG architecture visualizations
 - **Code Examples**: Production-ready implementations with extensive documentation
 - **Topics Covered**: 12 major sections from fundamentals to advanced techniques
+- **Mathematical Content**: 60+ equations with complete derivations
 - **Status**: Actively maintained with regular updates
 
 ## Development Status & Roadmap
@@ -332,6 +350,41 @@ If you identify errors or areas for improvement, please document them clearly wi
 - Follow the [Projects](https://github.com/ayanalamMOON/GenAi_Prep/projects) board for development progress
 
 ## Changelog
+
+### Version 1.1.0 (November 12, 2025)
+**Major Enhancement: Advanced Mathematical Theory**
+- **Added 1,102 lines (+33 pages) of rigorous mathematical content**
+- **Scaling Laws**: Complete Kaplan (2020) and Chinchilla (2022) derivations
+  - Full Lagrange optimization with 15+ equations
+  - Compute-optimal formulas: N_opt ∝ C^0.50, D_opt ∝ C^0.50
+  - Gopher vs Chinchilla comparison table
+  - 8×6 TikZ diagram with iso-compute curves and optimal paths
+- **Eckart-Young Theorem**: SVD-based optimality proof for LoRA
+  - Frobenius norm error bounds: ||ΔW - ΔW_r||²_F = Σσ²_i
+  - Connection to low-rank adaptation
+  - Empirical validation table with singular value decay
+  - TikZ diagram showing SVD decomposition and rank truncation
+- **Quantization Noise Analysis**: Complete mathematical foundation for QLoRA
+  - Step-by-step derivation: E[ε²] = Δ²/12
+  - SQNR formula: 6.02b + 1.76 dB (6 dB per bit rule)
+  - NF4 vs Int4 comparison (58% noise reduction)
+  - Bit-width comparison table (2-bit to 32-bit)
+  - 3-panel TikZ diagram: signal quantization, error distribution, SQNR plot
+- **Optimization Dynamics**: AdamW convergence under low-precision arithmetic
+  - Complete 6-step convergence proof with quantization noise
+  - Fisher Information Matrix: F_ij = E[∂_i log p · ∂_j log p]
+  - Adafactor factorization for memory efficiency (nm → n+m)
+  - 4-panel TikZ diagram: FP32/BF16/FP16 convergence, adaptive LR, memory comparison
+- **Information-Theoretic Perspective**: Layer redundancy and compression analysis
+  - Mutual information: I(X;H) = H(X) - H(X|H)
+  - Information Bottleneck Principle
+  - Empirical GPT-2 layer analysis (40% → 100% information retention)
+  - Redundancy matrix showing 92% redundancy in final layers
+  - Connection to LoRA low-rank adaptation
+  - 3-panel TikZ diagram: information flow, redundancy heatmap, compression trade-off
+- **10 Professional TikZ Diagrams**: High-quality mathematical visualizations
+- **Bug Fixes**: Resolved all (??) equation reference errors and duplicate fig:training_dynamics label
+- **Document Growth**: 407 pages → 440 pages (27.98 MB)
 
 ### Version 1.0.0 (November 2025)
 - Initial release with 335 pages of comprehensive content
