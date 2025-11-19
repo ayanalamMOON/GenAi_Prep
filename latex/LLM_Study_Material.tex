@@ -27853,10 +27853,166 @@ D_{\text{KL}} = \sum_{\text{tokens}} P_{\text{train}}(\text{token}) \log \frac{P
 PSI is a standard metric in industry for detecting distribution shifts:
 
 \begin{equation}
-\text{PSI} = \sum_{i=1}^{n} (\text{Actual}_i - \text{Expected}_i) \times \ln\left(\frac{\text{Actual}_i}{\text{Expected}_i}\right)
+\text{PSI} = \sum_{i=1}^{n_{\text{bins}}} \left(P_{\text{prod}}^{(i)} - P_{\text{baseline}}^{(i)}\right) \times \ln\left(\frac{P_{\text{prod}}^{(i)}}{P_{\text{baseline}}^{(i)}}\right)
+\label{eq:psi_foundation}
 \end{equation}
 
-Where distributions are binned into $n$ buckets (typically 10-20 bins).
+Where distributions are binned into $n_{\text{bins}}$ buckets (typically 10-20 bins), $P_{\text{prod}}^{(i)}$ is the proportion of production data in bin $i$, and $P_{\text{baseline}}^{(i)}$ is the proportion of baseline (training) data in bin $i$.
+
+\textbf{Mathematical Derivation of PSI:}
+
+\textit{Step 1: Motivation from Information Theory}
+
+PSI is derived from the Kullback-Leibler (KL) divergence, which measures the difference between two probability distributions. The KL divergence from distribution $Q$ to distribution $P$ is:
+
+\begin{equation}
+D_{\text{KL}}(P \| Q) = \sum_{i=1}^{n} P(i) \ln\left(\frac{P(i)}{Q(i)}\right)
+\end{equation}
+
+\textit{Intuition:} KL divergence quantifies how many extra bits are needed to encode data from distribution $P$ using a code optimized for distribution $Q$. In our context, $P$ is the production distribution and $Q$ is the baseline (expected) distribution.
+
+\textit{Step 2: Symmetrization for Practical Use}
+
+KL divergence is asymmetric: $D_{\text{KL}}(P \| Q) \neq D_{\text{KL}}(Q \| P)$. For drift detection, we want a symmetric measure that treats both distributions equally. PSI modifies KL divergence by:
+
+\begin{align}
+\text{PSI} &= \sum_{i=1}^{n} \left(P_{\text{prod}}^{(i)} - P_{\text{baseline}}^{(i)}\right) \times \ln\left(\frac{P_{\text{prod}}^{(i)}}{P_{\text{baseline}}^{(i)}}\right) \\
+&= \sum_{i=1}^{n} P_{\text{prod}}^{(i)} \ln\left(\frac{P_{\text{prod}}^{(i)}}{P_{\text{baseline}}^{(i)}}\right) - \sum_{i=1}^{n} P_{\text{baseline}}^{(i)} \ln\left(\frac{P_{\text{prod}}^{(i)}}{P_{\text{baseline}}^{(i)}}\right)
+\end{align}
+
+\textit{Step 3: Expanding the Formula}
+
+Let's expand the second term using logarithm properties:
+
+\begin{align}
+\sum_{i=1}^{n} P_{\text{baseline}}^{(i)} \ln\left(\frac{P_{\text{prod}}^{(i)}}{P_{\text{baseline}}^{(i)}}\right) &= \sum_{i=1}^{n} P_{\text{baseline}}^{(i)} \left[\ln(P_{\text{prod}}^{(i)}) - \ln(P_{\text{baseline}}^{(i)})\right]
+\end{align}
+
+Substituting back into the PSI formula:
+
+\begin{align}
+\text{PSI} &= \sum_{i=1}^{n} P_{\text{prod}}^{(i)} \ln\left(\frac{P_{\text{prod}}^{(i)}}{P_{\text{baseline}}^{(i)}}\right) - \sum_{i=1}^{n} P_{\text{baseline}}^{(i)} \ln(P_{\text{prod}}^{(i)}) + \sum_{i=1}^{n} P_{\text{baseline}}^{(i)} \ln(P_{\text{baseline}}^{(i)})
+\end{align}
+
+\textit{Step 4: Interpretation of Each Term}
+
+\begin{itemize}
+    \item \textbf{Term 1:} $\sum_{i} P_{\text{prod}}^{(i)} \ln\left(\frac{P_{\text{prod}}^{(i)}}{P_{\text{baseline}}^{(i)}}\right)$ = Forward KL divergence $D_{\text{KL}}(P_{\text{prod}} \| P_{\text{baseline}})$
+    \item \textbf{Term 2 - Term 3:} Cross-entropy adjustment ensuring symmetry
+\end{itemize}
+
+The key insight: PSI is a \textit{weighted sum of logarithmic ratios}, where the weight is the \textit{difference in proportions} between production and baseline.
+
+\textit{Step 5: Why Logarithmic Ratios?}
+
+The logarithm serves two purposes:
+\begin{enumerate}
+    \item \textbf{Scale invariance:} $\ln\left(\frac{0.20}{0.10}\right) = \ln(2) = 0.693$ has the same magnitude as $\ln\left(\frac{0.10}{0.05}\right) = \ln(2)$. Doubling of probability is treated equally regardless of absolute values.
+    \item \textbf{Sensitivity to small probabilities:} When $P_{\text{prod}}^{(i)} \to 0$ but $P_{\text{baseline}}^{(i)} > 0$ (or vice versa), $\ln\left(\frac{P_{\text{prod}}^{(i)}}{P_{\text{baseline}}^{(i)}}\right) \to -\infty$, strongly penalizing disappeared bins.
+\end{enumerate}
+
+\textbf{Concrete Example: Sentiment Distribution Drift}
+
+Suppose we deployed a sentiment classifier trained on balanced data. After 3 months in production, we observe a shift in input sentiment distribution.
+
+\textit{Baseline Distribution (Training Data):}
+\begin{itemize}
+    \item Bin 1 (Very Negative): $P_{\text{baseline}}^{(1)} = 0.20$
+    \item Bin 2 (Negative): $P_{\text{baseline}}^{(2)} = 0.30$
+    \item Bin 3 (Neutral): $P_{\text{baseline}}^{(3)} = 0.30$
+    \item Bin 4 (Positive): $P_{\text{baseline}}^{(4)} = 0.15$
+    \item Bin 5 (Very Positive): $P_{\text{baseline}}^{(5)} = 0.05$
+\end{itemize}
+
+\textit{Production Distribution (Current Data):}
+\begin{itemize}
+    \item Bin 1 (Very Negative): $P_{\text{prod}}^{(1)} = 0.10$ \quad (halved)
+    \item Bin 2 (Negative): $P_{\text{prod}}^{(2)} = 0.25$ \quad (decreased)
+    \item Bin 3 (Neutral): $P_{\text{prod}}^{(3)} = 0.35$ \quad (increased)
+    \item Bin 4 (Positive): $P_{\text{prod}}^{(4)} = 0.20$ \quad (increased)
+    \item Bin 5 (Very Positive): $P_{\text{prod}}^{(5)} = 0.10$ \quad (doubled)
+\end{itemize}
+
+\textit{Step-by-Step PSI Calculation:}
+
+\textbf{Bin 1:}
+\begin{align}
+\text{Contribution}_1 &= (P_{\text{prod}}^{(1)} - P_{\text{baseline}}^{(1)}) \times \ln\left(\frac{P_{\text{prod}}^{(1)}}{P_{\text{baseline}}^{(1)}}\right) \\
+&= (0.10 - 0.20) \times \ln\left(\frac{0.10}{0.20}\right) \\
+&= (-0.10) \times \ln(0.5) \\
+&= (-0.10) \times (-0.693) \\
+&= 0.0693
+\end{align}
+
+\textbf{Bin 2:}
+\begin{align}
+\text{Contribution}_2 &= (0.25 - 0.30) \times \ln\left(\frac{0.25}{0.30}\right) \\
+&= (-0.05) \times \ln(0.833) \\
+&= (-0.05) \times (-0.182) \\
+&= 0.0091
+\end{align}
+
+\textbf{Bin 3:}
+\begin{align}
+\text{Contribution}_3 &= (0.35 - 0.30) \times \ln\left(\frac{0.35}{0.30}\right) \\
+&= (0.05) \times \ln(1.167) \\
+&= (0.05) \times (0.154) \\
+&= 0.0077
+\end{align}
+
+\textbf{Bin 4:}
+\begin{align}
+\text{Contribution}_4 &= (0.20 - 0.15) \times \ln\left(\frac{0.20}{0.15}\right) \\
+&= (0.05) \times \ln(1.333) \\
+&= (0.05) \times (0.287) \\
+&= 0.0144
+\end{align}
+
+\textbf{Bin 5:}
+\begin{align}
+\text{Contribution}_5 &= (0.10 - 0.05) \times \ln\left(\frac{0.10}{0.05}\right) \\
+&= (0.05) \times \ln(2.0) \\
+&= (0.05) \times (0.693) \\
+&= 0.0347
+\end{align}
+
+\textit{Total PSI:}
+\begin{align}
+\text{PSI} &= 0.0693 + 0.0091 + 0.0077 + 0.0144 + 0.0347 \\
+&= 0.1352
+\end{align}
+
+\textbf{Interpretation:} PSI = 0.1352 falls in the \textbf{moderate drift} range (0.1 $\leq$ PSI < 0.2), indicating the sentiment distribution has shifted enough to warrant investigation but not severe enough to immediately retrain.
+
+\textbf{Key Observations from Example:}
+
+\begin{enumerate}
+    \item \textbf{Sign of contribution:}
+    \begin{itemize}
+        \item When $P_{\text{prod}}^{(i)} < P_{\text{baseline}}^{(i)}$ (bin decreased): difference is negative, log ratio is negative, product is \textbf{positive}
+        \item When $P_{\text{prod}}^{(i)} > P_{\text{baseline}}^{(i)}$ (bin increased): difference is positive, log ratio is positive, product is \textbf{positive}
+        \item PSI is \textbf{always non-negative} (all contributions add positively)
+    \end{itemize}
+
+    \item \textbf{Magnitude sensitivity:}
+    \begin{itemize}
+        \item Bin 1 (halved from 0.20 to 0.10) contributes 0.0693 (largest)
+        \item Bin 5 (doubled from 0.05 to 0.10) contributes 0.0347 (second largest)
+        \item Small absolute changes in large bins matter more than large relative changes in small bins
+    \end{itemize}
+
+    \item \textbf{Balanced sensitivity:} PSI detects both increases and decreases equally, making it suitable for two-sided drift detection
+\end{enumerate}
+
+\textbf{Why This Formula Works for Drift Detection:}
+
+\begin{itemize}
+    \item \textbf{Mathematical foundation:} Rooted in information theory (KL divergence)
+    \item \textbf{Symmetry:} Treats production and baseline distributions equally
+    \item \textbf{Additivity:} Total drift is sum of per-bin drifts
+    \item \textbf{Interpretable thresholds:} Industry-validated ranges (< 0.1, 0.1-0.2, > 0.2)
+    \item \textbf{Computational efficiency:} $O(n_{\text{bins}})$ complexity, typically $n_{\text{bins}} \approx 10$
+\end{itemize}
 
 \textbf{PSI Interpretation:}
 \begin{itemize}

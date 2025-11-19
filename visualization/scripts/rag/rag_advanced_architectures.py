@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 import numpy as np
 import seaborn as sns
 import os
@@ -29,7 +30,7 @@ def create_advanced_rag_methods():
 
     # Method 1: Naive RAG (bottom)
     naive_color = '#95a5a6'
-    ax1.add_patch(plt.Rectangle((0.5, 0.5), 9, 1.8,
+    ax1.add_patch(Rectangle((0.5, 0.5), 9, 1.8,
                                  facecolor=naive_color, edgecolor='black', linewidth=2, alpha=0.7))
     ax1.text(5, 1.7, 'Naive RAG', fontsize=11, fontweight='bold', ha='center', va='center')
     ax1.text(5, 1.2, 'Query → Retrieve → Generate', fontsize=9, ha='center', va='center')
@@ -37,7 +38,7 @@ def create_advanced_rag_methods():
 
     # Method 2: HyDE (Hypothetical Document Embeddings)
     hyde_color = '#3498db'
-    ax1.add_patch(plt.Rectangle((0.5, 2.8), 9, 1.8,
+    ax1.add_patch(Rectangle((0.5, 2.8), 9, 1.8,
                                  facecolor=hyde_color, edgecolor='black', linewidth=2, alpha=0.7))
     ax1.text(5, 4, 'HyDE (Hypothetical Docs)', fontsize=11, fontweight='bold',
              ha='center', va='center', color='white')
@@ -48,7 +49,7 @@ def create_advanced_rag_methods():
 
     # Method 3: Self-RAG
     selfrag_color = '#e74c3c'
-    ax1.add_patch(plt.Rectangle((0.5, 5.1), 9, 1.8,
+    ax1.add_patch(Rectangle((0.5, 5.1), 9, 1.8,
                                  facecolor=selfrag_color, edgecolor='black', linewidth=2, alpha=0.7))
     ax1.text(5, 6.3, 'Self-RAG (Self-Reflective)', fontsize=11, fontweight='bold',
              ha='center', va='center', color='white')
@@ -59,7 +60,7 @@ def create_advanced_rag_methods():
 
     # Method 4: RAPTOR (top)
     raptor_color = '#2ecc71'
-    ax1.add_patch(plt.Rectangle((0.5, 7.4), 9, 1.8,
+    ax1.add_patch(Rectangle((0.5, 7.4), 9, 1.8,
                                  facecolor=raptor_color, edgecolor='black', linewidth=2, alpha=0.7))
     ax1.text(5, 8.6, 'RAPTOR (Recursive Abstraction)', fontsize=11, fontweight='bold',
              ha='center', va='center', color='white')
@@ -133,7 +134,7 @@ def create_advanced_rag_methods():
 
     plt.tight_layout()
     plt.savefig(f"{OUTPUT_DIR}/advanced_rag_architectures.png", dpi=DPI, bbox_inches='tight')
-    print(f"✓ Saved: {OUTPUT_DIR}/advanced_rag_architectures.png")
+    print(f"[OK] Saved: {OUTPUT_DIR}/advanced_rag_architectures.png")
     plt.close()
 
 
@@ -154,7 +155,7 @@ def create_reranking_impact():
 
     # Stage 1: Initial Retrieval (top)
     retrieval_color = '#3498db'
-    ax1.add_patch(plt.Rectangle((0.5, 6.5), 9, 2.5,
+    ax1.add_patch(Rectangle((0.5, 6.5), 9, 2.5,
                                  facecolor=retrieval_color, edgecolor='black', linewidth=2, alpha=0.7))
     ax1.text(5, 8.3, 'Stage 1: Initial Retrieval (Fast)', fontsize=11, fontweight='bold',
              ha='center', va='center', color='white')
@@ -170,7 +171,7 @@ def create_reranking_impact():
 
     # Stage 2: Reranking (middle)
     rerank_color = '#e74c3c'
-    ax1.add_patch(plt.Rectangle((0.5, 3.5), 9, 2.5,
+    ax1.add_patch(Rectangle((0.5, 3.5), 9, 2.5,
                                  facecolor=rerank_color, edgecolor='black', linewidth=2, alpha=0.7))
     ax1.text(5, 5.3, 'Stage 2: Reranking (Accurate)', fontsize=11, fontweight='bold',
              ha='center', va='center', color='white')
@@ -186,7 +187,7 @@ def create_reranking_impact():
 
     # Stage 3: Generation (bottom)
     generation_color = '#2ecc71'
-    ax1.add_patch(plt.Rectangle((0.5, 0.5), 9, 2.5,
+    ax1.add_patch(Rectangle((0.5, 0.5), 9, 2.5,
                                  facecolor=generation_color, edgecolor='black', linewidth=2, alpha=0.7))
     ax1.text(5, 2.3, 'Stage 3: Context-Aware Generation', fontsize=11, fontweight='bold',
              ha='center', va='center', color='white')
@@ -248,7 +249,7 @@ def create_reranking_impact():
 
     plt.tight_layout()
     plt.savefig(f"{OUTPUT_DIR}/reranking_impact.png", dpi=DPI, bbox_inches='tight')
-    print(f"✓ Saved: {OUTPUT_DIR}/reranking_impact.png")
+    print(f"[OK] Saved: {OUTPUT_DIR}/reranking_impact.png")
     plt.close()
 
 
@@ -259,6 +260,6 @@ if __name__ == "__main__":
     create_advanced_rag_methods()
     create_reranking_impact()
 
-    print(f"\n✓ All advanced RAG visualizations generated successfully!")
-    print(f"✓ Total images: 2")
-    print(f"✓ Output directory: {OUTPUT_DIR}")
+    print(f"\n[OK] All advanced RAG visualizations generated successfully!")
+    print(f"[OK] Total images: 2")
+    print(f"[OK] Output directory: {OUTPUT_DIR}")

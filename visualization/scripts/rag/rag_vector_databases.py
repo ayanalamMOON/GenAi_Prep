@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 import numpy as np
 import seaborn as sns
 import os
@@ -29,7 +30,7 @@ def create_vector_database_architecture():
 
     # Component 1: Storage Layer (bottom)
     storage_color = '#95a5a6'
-    ax1.add_patch(plt.Rectangle((0.5, 0.5), 9, 1.5,
+    ax1.add_patch(Rectangle((0.5, 0.5), 9, 1.5,
                                  facecolor=storage_color, edgecolor='black', linewidth=2, alpha=0.7))
     ax1.text(5, 1.25, 'Storage Layer: Document Embeddings', fontsize=11, fontweight='bold',
              ha='center', va='center')
@@ -38,7 +39,7 @@ def create_vector_database_architecture():
 
     # Component 2: Index Structure (middle)
     index_color = '#3498db'
-    ax1.add_patch(plt.Rectangle((0.5, 2.5), 4, 2.5,
+    ax1.add_patch(Rectangle((0.5, 2.5), 4, 2.5,
                                  facecolor=index_color, edgecolor='black', linewidth=2, alpha=0.7))
     ax1.text(2.5, 4, 'HNSW Index', fontsize=11, fontweight='bold',
              ha='center', va='center', color='white')
@@ -47,7 +48,7 @@ def create_vector_database_architecture():
     ax1.text(2.5, 2.8, 'O(log N) search', fontsize=9,
              ha='center', va='center', color='white', style='italic')
 
-    ax1.add_patch(plt.Rectangle((5.5, 2.5), 4, 2.5,
+    ax1.add_patch(Rectangle((5.5, 2.5), 4, 2.5,
                                  facecolor='#e74c3c', edgecolor='black', linewidth=2, alpha=0.7))
     ax1.text(7.5, 4, 'IVF Index', fontsize=11, fontweight='bold',
              ha='center', va='center', color='white')
@@ -58,7 +59,7 @@ def create_vector_database_architecture():
 
     # Component 3: Query Processing (top)
     query_color = '#2ecc71'
-    ax1.add_patch(plt.Rectangle((0.5, 5.5), 9, 1.5,
+    ax1.add_patch(Rectangle((0.5, 5.5), 9, 1.5,
                                  facecolor=query_color, edgecolor='black', linewidth=2, alpha=0.7))
     ax1.text(5, 6.5, 'Query Processing: ANN Search', fontsize=11, fontweight='bold',
              ha='center', va='center', color='white')
@@ -67,7 +68,7 @@ def create_vector_database_architecture():
 
     # Component 4: Metadata Filtering (right side)
     filter_color = '#f39c12'
-    ax1.add_patch(plt.Rectangle((0.5, 7.5), 9, 1.8,
+    ax1.add_patch(Rectangle((0.5, 7.5), 9, 1.8,
                                  facecolor=filter_color, edgecolor='black', linewidth=2, alpha=0.7))
     ax1.text(5, 8.7, 'Metadata Filtering', fontsize=11, fontweight='bold',
              ha='center', va='center', color='white')
@@ -182,7 +183,7 @@ def create_vector_database_architecture():
 
     plt.tight_layout()
     plt.savefig(f"{OUTPUT_DIR}/vector_database_architecture.png", dpi=DPI, bbox_inches='tight')
-    print(f"✓ Saved: {OUTPUT_DIR}/vector_database_architecture.png")
+    print(f"[OK] Saved: {OUTPUT_DIR}/vector_database_architecture.png")
     plt.close()
 
 
@@ -279,7 +280,7 @@ def create_retrieval_strategies():
 
     plt.tight_layout()
     plt.savefig(f"{OUTPUT_DIR}/retrieval_strategies.png", dpi=DPI, bbox_inches='tight')
-    print(f"✓ Saved: {OUTPUT_DIR}/retrieval_strategies.png")
+    print(f"[OK] Saved: {OUTPUT_DIR}/retrieval_strategies.png")
     plt.close()
 
 
@@ -290,6 +291,6 @@ if __name__ == "__main__":
     create_vector_database_architecture()
     create_retrieval_strategies()
 
-    print(f"\n✓ All vector database visualizations generated successfully!")
-    print(f"✓ Total images: 2")
-    print(f"✓ Output directory: {OUTPUT_DIR}")
+    print(f"\n[OK] All vector database visualizations generated successfully!")
+    print(f"[OK] Total images: 2")
+    print(f"[OK] Output directory: {OUTPUT_DIR}")

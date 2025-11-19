@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 import numpy as np
 import seaborn as sns
 import os
@@ -29,7 +30,7 @@ def create_rag_pipeline_overview():
 
     # Stage 1: Indexing (top)
     indexing_color = '#3498db'
-    ax1.add_patch(plt.Rectangle((0.5, 7), 9, 2,
+    ax1.add_patch(Rectangle((0.5, 7), 9, 2,
                                  facecolor=indexing_color, edgecolor='black', linewidth=2, alpha=0.7))
     ax1.text(5, 8.5, 'Stage 1: Indexing', fontsize=12, fontweight='bold',
              ha='center', va='center', color='white')
@@ -44,7 +45,7 @@ def create_rag_pipeline_overview():
 
     # Stage 2: Retrieval (middle)
     retrieval_color = '#e74c3c'
-    ax1.add_patch(plt.Rectangle((0.5, 4), 9, 2,
+    ax1.add_patch(Rectangle((0.5, 4), 9, 2,
                                  facecolor=retrieval_color, edgecolor='black', linewidth=2, alpha=0.7))
     ax1.text(5, 5.5, 'Stage 2: Retrieval', fontsize=12, fontweight='bold',
              ha='center', va='center', color='white')
@@ -59,7 +60,7 @@ def create_rag_pipeline_overview():
 
     # Stage 3: Generation (bottom)
     generation_color = '#2ecc71'
-    ax1.add_patch(plt.Rectangle((0.5, 1), 9, 2,
+    ax1.add_patch(Rectangle((0.5, 1), 9, 2,
                                  facecolor=generation_color, edgecolor='black', linewidth=2, alpha=0.7))
     ax1.text(5, 2.5, 'Stage 3: Generation', fontsize=12, fontweight='bold',
              ha='center', va='center', color='white')
@@ -71,7 +72,7 @@ def create_rag_pipeline_overview():
     # Output indicator
     ax1.annotate('', xy=(5, 0.8), xytext=(5, 1),
                 arrowprops=dict(arrowstyle='->', lw=3, color='black'))
-    ax1.text(5, 0.3, '✓ Factual Response', fontsize=11, fontweight='bold',
+    ax1.text(5, 0.3, '→ Factual Response', fontsize=11, fontweight='bold',
              ha='center', va='center', bbox=dict(boxstyle='round', facecolor='yellow', alpha=0.5))
 
     # Panel 2: RAG vs Standard LLM Comparison
@@ -115,7 +116,7 @@ def create_rag_pipeline_overview():
 
     plt.tight_layout()
     plt.savefig(f"{OUTPUT_DIR}/rag_pipeline_architecture.png", dpi=DPI, bbox_inches='tight')
-    print(f"✓ Saved: {OUTPUT_DIR}/rag_pipeline_architecture.png")
+    print(f"[OK] Saved: {OUTPUT_DIR}/rag_pipeline_architecture.png")
     plt.close()
 
 
@@ -209,7 +210,7 @@ def create_embedding_similarity_metrics():
 
     plt.tight_layout()
     plt.savefig(f"{OUTPUT_DIR}/embedding_similarity_metrics.png", dpi=DPI, bbox_inches='tight')
-    print(f"✓ Saved: {OUTPUT_DIR}/embedding_similarity_metrics.png")
+    print(f"[OK] Saved: {OUTPUT_DIR}/embedding_similarity_metrics.png")
     plt.close()
 
 
@@ -220,6 +221,6 @@ if __name__ == "__main__":
     create_rag_pipeline_overview()
     create_embedding_similarity_metrics()
 
-    print(f"\n✓ All RAG pipeline visualizations generated successfully!")
-    print(f"✓ Total images: 2")
-    print(f"✓ Output directory: {OUTPUT_DIR}")
+    print(f"\n[OK] All RAG pipeline visualizations generated successfully!")
+    print(f"[OK] Total images: 2")
+    print(f"[OK] Output directory: {OUTPUT_DIR}")
